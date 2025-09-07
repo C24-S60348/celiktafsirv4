@@ -1,0 +1,104 @@
+import 'package:flutter/material.dart';
+
+class Tutorial extends StatelessWidget {
+  const Tutorial({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const TutorialContent();
+  }
+}
+
+// Standalone page that can be used within the main app
+class TutorialContent extends StatefulWidget {
+  const TutorialContent({super.key});
+
+  @override
+  _TutorialContentState createState() => _TutorialContentState();
+}
+
+class _TutorialContentState extends State<TutorialContent> {
+  final PageController _pageController = PageController();
+  int _pageViewIndex = 0;
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Tutorial / Cara penggunaan", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+        centerTitle: true,
+        // actions: [
+        //   IconButton(
+        //     onPressed: () {
+        //       Navigator.of(context).pop();
+        //     },
+        //     icon: Icon(Icons.close),
+        //   ),
+        // ],
+      ),
+      body: Column(
+        children: [
+          // SizedBox(
+          //   width: double.infinity,
+          //   child: Center(
+          //     child: Text("Tutorial / Cara penggunaan", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+          //   ),
+          // ),
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.8,
+            child: PageView(
+              controller: _pageController,
+              onPageChanged: (index) {
+                setState(() {
+                  _pageViewIndex = index;
+                });
+              },
+              children: [
+                Image.asset("assets/images/tutorial1.png", fit: BoxFit.contain),
+                Image.asset("assets/images/tutorial2.png", fit: BoxFit.contain),
+                Image.asset("assets/images/tutorial3.png", fit: BoxFit.contain),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          if (_pageViewIndex != 2) // Assuming last page index is 2
+           SizedBox(
+              width: MediaQuery.of(context).size.width * 0.5,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                ),
+                onPressed: () {
+                  _pageController.nextPage(duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
+                },
+                child: Text("Geser ----->"),
+              ),
+            )
+          else 
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.5,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                ),
+                onPressed: () {
+                  //pushNamedAndRemoveUntil untuk menghapus semua route sebelumnya dan menampilkan route home
+                  //pushReplacementNamed untuk menghapus route sebelumnya dan menampilkan route home
+                  Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
+                },
+                child: Text("Selesai"),
+              ),
+            )
+        ],
+      ),
+    );
+  }
+}
