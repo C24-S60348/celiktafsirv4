@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'splashscreen.dart';
 import 'homepage.dart';
 import 'tutorial.dart';
+import 'mainpage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -21,6 +22,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/home': (context) => MyHomePage(title: 'Celik Tafsir'),
         '/tutorial': (context) => Tutorial(),
+        '/mainpage': (context) => MainPage(),
       },
       // home: Tutorial(),
       home: SplashScreen(),

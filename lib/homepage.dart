@@ -41,6 +41,12 @@ class _MyHomePageState extends State<MyHomePage> {
               },
               child: Text('Tutorial'),
             ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pushNamed('/mainpage');
+              },
+              child: Text('Main Page'),
+            ),
           ],
         ),
       ),
