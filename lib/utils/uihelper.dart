@@ -17,18 +17,19 @@ Widget myButton(BuildContext context, String text, Function() onPressed) {
 
 Widget surahButton(BuildContext context, String nombor, String surah, Function() onPressed) {
   return Row(
+    mainAxisAlignment: MainAxisAlignment.center,
     children: [
       Stack(
         alignment: Alignment.center,
         children: [
-          Image.asset('assets/images/nomborplace.png', fit: BoxFit.contain, width: 100,),
+          Image.asset('assets/images/nomborplace.png', fit: BoxFit.contain, width: MediaQuery.of(context).size.width * 0.15,),
           Text(nombor, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
         ],
       ),
       Stack(
         alignment: Alignment.center,
         children: [
-          Image.asset('assets/images/surahplace.png', fit: BoxFit.contain, width: 100,),
+          Image.asset('assets/images/surahplace.png', fit: BoxFit.contain, width: MediaQuery.of(context).size.width * 0.7,),
           Text(surah, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
         ],
       ),
