@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'splashscreen.dart';
-import 'homepage.dart';
-import 'tutorial.dart';
-import 'mainpage.dart';
+import 'views/splashscreen.dart';
+import 'views/homepage.dart';
+import 'views/tutorial.dart';
+import 'views/mainpage.dart';
+import 'views/tadabbur.dart';
+import 'views/information.dart';
 
 void main() {
   runApp(const MyApp());
@@ -23,6 +25,8 @@ class MyApp extends StatelessWidget {
         '/home': (context) => MyHomePage(title: 'Celik Tafsir'),
         '/tutorial': (context) => Tutorial(),
         '/mainpage': (context) => MainPage(),
+        '/tadabbur': (context) => TadabburPage(),
+        '/info': (context) => InformationPage(),
       },
       // home: Tutorial(),
       home: SplashScreen(),

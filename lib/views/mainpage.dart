@@ -21,13 +21,25 @@ class _MainPageState extends State<MainPage> {
         borderRadius: BorderRadius.circular(10),
       ),
       backgroundColor: Colors.transparent,
+      shadowColor: Colors.transparent,
+      elevation: 0,
       foregroundColor: Colors.white,
     );
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text('Celik Tafsir'),
+        title: Text('Celik Tafsir', style: TextStyle(color: Colors.white),),
+        centerTitle: true,
+        leading: IconButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+        ),
+        backgroundColor: Colors.black,
       ),
       body: Container(
+        color: Colors.black,
         height: MediaQuery.of(context).size.height * 0.85,
         child: Stack(
           fit: StackFit.expand,
@@ -50,7 +62,7 @@ class _MainPageState extends State<MainPage> {
                         onPressed: () {
                           Navigator.of(context).pushNamed('/tadabbur');
                         },
-                        child: Text('Tadabbur'),
+                        child: SizedBox(),
                       ),
                       SizedBox(width: 10),
                       ElevatedButton(
@@ -58,7 +70,7 @@ class _MainPageState extends State<MainPage> {
                         onPressed: () {
                           Navigator.of(context).pushNamed('/bookmarks');
                         },
-                        child: Text('Bookmarks'),
+                        child: SizedBox(),
                       ),
                     ],
                   ),
@@ -71,7 +83,7 @@ class _MainPageState extends State<MainPage> {
                         onPressed: () {
                           Navigator.of(context).pushNamed('/tetapan');
                         },
-                        child: Text('Tetapan'),
+                        child: SizedBox(),
                       ),
                       SizedBox(width: 10),
                       ElevatedButton(
@@ -79,7 +91,7 @@ class _MainPageState extends State<MainPage> {
                         onPressed: () {
                           Navigator.of(context).pushNamed('/info');
                         },
-                        child: Text('Info'),
+                        child: SizedBox(),
                       ),
                     ],
                   ),

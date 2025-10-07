@@ -1,3 +1,4 @@
+import '../utils/uihelper.dart';
 import 'package:flutter/material.dart';
 
 class Tutorial extends StatelessWidget {
@@ -30,9 +31,11 @@ class _TutorialContentState extends State<TutorialContent> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.pink[50],
       appBar: AppBar(
         title: Text("Tutorial / Cara penggunaan", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
         centerTitle: true,
+        backgroundColor: Colors.pink[50],
         // actions: [
         //   IconButton(
         //     onPressed: () {
@@ -50,8 +53,9 @@ class _TutorialContentState extends State<TutorialContent> {
           //     child: Text("Tutorial / Cara penggunaan", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
           //   ),
           // ),
-          SizedBox(
+          Container(
             height: MediaQuery.of(context).size.height * 0.8,
+            color: Colors.transparent, // Adding a background color
             child: PageView(
               controller: _pageController,
               onPageChanged: (index) {
@@ -60,7 +64,7 @@ class _TutorialContentState extends State<TutorialContent> {
                 });
               },
               children: [
-                Image.asset("assets/images/tutorial1.png", fit: BoxFit.contain),
+                Image.asset("assets/images/tutorial1.png", fit: BoxFit.contain,),
                 Image.asset("assets/images/tutorial2.png", fit: BoxFit.contain),
                 Image.asset("assets/images/tutorial3.png", fit: BoxFit.contain),
               ],
@@ -72,30 +76,17 @@ class _TutorialContentState extends State<TutorialContent> {
           if (_pageViewIndex != 2) // Assuming last page index is 2
            SizedBox(
               width: MediaQuery.of(context).size.width * 0.5,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                ),
-                onPressed: () {
+              child: myButton(context, "Geser ----->", () {
                   _pageController.nextPage(duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
-                },
-                child: Text("Geser ----->"),
-              ),
-            )
+                })
+              )
           else 
             SizedBox(
               width: MediaQuery.of(context).size.width * 0.5,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                ),
-                onPressed: () {
-                  //pushNamedAndRemoveUntil untuk menghapus semua route sebelumnya dan menampilkan route home
-                  //pushReplacementNamed untuk menghapus route sebelumnya dan menampilkan route home
-                  Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
-                },
-                child: Text("Selesai"),
-              ),
+              child: myButton(context, "Selesai", () {
+                  Navigator.of(context).pushNamed('/mainpage');
+                })
+
             )
         ],
       ),
