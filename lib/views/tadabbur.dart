@@ -22,7 +22,8 @@ class _TadabburPageState extends State<TadabburPage> {
     setState(() {
       filteredSurahList = surahList
           .where((surah) =>
-              surah['name']!.toLowerCase().contains(query.toLowerCase()))
+              surah['name']!.toLowerCase().contains(query.toLowerCase()) ||
+              surah['name_arab']!.toLowerCase().contains(query.toLowerCase()))
           .toList();
     });
   }
@@ -33,7 +34,7 @@ class _TadabburPageState extends State<TadabburPage> {
       appBar: AppBar(
         title: Text('Pilihan Surah', style: TextStyle(color: Colors.white)),
         centerTitle: true,
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: const Color.fromARGB(255, 52, 21, 104),
         leading: IconButton(
           onPressed: () {
             Navigator.of(context).pop();
@@ -79,6 +80,7 @@ class _TadabburPageState extends State<TadabburPage> {
                         context,
                         filteredSurahList[index]['number']!,
                         filteredSurahList[index]['name']!,
+                        filteredSurahList[index]['name_arab']!,
                         () {},
                       ),
                       SizedBox(height: 10),
