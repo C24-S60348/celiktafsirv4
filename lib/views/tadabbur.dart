@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/uihelper.dart';
-import '../models/tadabburmodel.dart' as model;
+import '../models/tadabbur.dart' as model;
 
 class TadabburPage extends StatefulWidget {
   @override
@@ -21,9 +21,11 @@ class _TadabburPageState extends State<TadabburPage> {
   void _filterSurahs(String query) {
     setState(() {
       filteredSurahList = surahList
-          .where((surah) =>
-              surah['name']!.toLowerCase().contains(query.toLowerCase()) ||
-              surah['name_arab']!.toLowerCase().contains(query.toLowerCase()))
+          .where(
+            (surah) =>
+                surah['name']!.toLowerCase().contains(query.toLowerCase()) ||
+                surah['name_arab']!.toLowerCase().contains(query.toLowerCase()),
+          )
           .toList();
     });
   }
@@ -42,55 +44,54 @@ class _TadabburPageState extends State<TadabburPage> {
           icon: Icon(Icons.arrow_back, color: Colors.white),
         ),
       ),
-      body: Container(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16.0),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Cari Surah...',
-                  prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
+      body: Stack(
+        children: [
+          Image.asset(
+            'assets/images/bg.jpg',
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          ),
+          Container(
+            
+            padding: EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                model.buildSearchField(_filterSurahs),
+                SizedBox(height: 20),
+                Center(
+                  child: Image.asset(
+                    'assets/images/bismillah.png',
+                    fit: BoxFit.contain,
+                    width: MediaQuery.of(context).size.width * 0.7,
                   ),
                 ),
-                onChanged: (value) {
-                  _filterSurahs(value);
-                },
-              ),
+                Divider(),
+                SizedBox(height: 20),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: filteredSurahList.length,
+                    itemBuilder: (context, index) {
+                      return Column(
+                        children: [
+                          model.surahButton(
+                            context,
+                            filteredSurahList[index]['number']!,
+                            filteredSurahList[index]['name']!,
+                            filteredSurahList[index]['name_arab']!,
+                            () {},
+                          ),
+                          SizedBox(height: 10),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-            SizedBox(height: 20),
-            Center(
-              child: Image.asset(
-                'assets/images/bismillah.png',
-                fit: BoxFit.contain,
-              ),
-            ),
-            SizedBox(height: 20),
-            Expanded(
-              child: ListView.builder(
-                itemCount: filteredSurahList.length,
-                itemBuilder: (context, index) {
-                  return Column(
-                    children: [
-                      surahButton(
-                        context,
-                        filteredSurahList[index]['number']!,
-                        filteredSurahList[index]['name']!,
-                        filteredSurahList[index]['name_arab']!,
-                        () {},
-                      ),
-                      SizedBox(height: 10),
-                    ],
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -30,12 +30,7 @@ class _MainPageState extends State<MainPage> {
       appBar: AppBar(
         title: Text('Celik Tafsir', style: TextStyle(color: Colors.white),),
         centerTitle: true,
-        leading: IconButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-        ),
+        automaticallyImplyLeading: false, // Disables back button
         backgroundColor: Colors.black,
       ),
       body: Container(

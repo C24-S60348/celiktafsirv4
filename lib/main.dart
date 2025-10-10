@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'views/splashscreen.dart';
-import 'views/homepage.dart';
 import 'views/tutorial.dart';
 import 'views/mainpage.dart';
 import 'views/tadabbur.dart';
@@ -22,7 +21,6 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       routes: {
-        '/home': (context) => MyHomePage(title: 'Celik Tafsir'),
         '/tutorial': (context) => Tutorial(),
         '/mainpage': (context) => MainPage(),
         '/tadabbur': (context) => TadabburPage(),

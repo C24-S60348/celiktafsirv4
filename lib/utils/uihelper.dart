@@ -15,29 +15,4 @@ Widget myButton(BuildContext context, String text, Function() onPressed) {
   );
 }
 
-Widget surahButton(BuildContext context, String nombor, String surah, String suraharab, Function() onPressed) {
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-      Stack(
-        alignment: Alignment.center,
-        children: [
-          Image.asset('assets/images/nomborplace.png', fit: BoxFit.contain, width: MediaQuery.of(context).size.width * 0.15,),
-          Text(nombor, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
-        ],
-      ),
-      Stack(
-        alignment: Alignment.center,
-        children: [
-          Image.asset('assets/images/surahplace.png', fit: BoxFit.contain, width: MediaQuery.of(context).size.width * 0.7,),
-          Column(
-            children: [
-              Text(surah, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
-              Text(suraharab, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
-            ],
-          ),
-        ],
-      ),
-    ],
-  );
-}
+
