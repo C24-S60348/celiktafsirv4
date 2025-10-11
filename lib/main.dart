@@ -4,6 +4,7 @@ import 'views/tutorial.dart';
 import 'views/mainpage.dart';
 import 'views/tadabbur.dart';
 import 'views/information.dart';
+import 'views/baca.dart';
 
 void main() {
   runApp(const MyApp());
@@ -25,6 +26,7 @@ class MyApp extends StatelessWidget {
         '/mainpage': (context) => MainPage(),
         '/tadabbur': (context) => TadabburPage(),
         '/info': (context) => InformationPage(),
+        '/baca': (context) => BacaPage(),
       },
       // home: Tutorial(),
       home: SplashScreen(),

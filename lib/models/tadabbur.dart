@@ -1,10 +1,8 @@
-import 'package:flutter/material.dart';
-
 final List<Map<String, String>> surahList = [
     {'number': '01', 'name': 'Al-Fatihah', 'name_arab': 'الفاتحة'},
     {'number': '02', 'name': 'Al-Baqarah', 'name_arab': 'البقرة'},
-    {'number': '02', 'name': 'Baqarah Juzuk 2', 'name_arab': 'البقرة الجزء الثاني'},
-    {'number': '02', 'name': 'Baqarah Juzuk 3', 'name_arab': 'البقرة الجزء الثالث'},
+    // {'number': '02', 'name': 'Baqarah Juzuk 2', 'name_arab': 'البقرة الجزء الثاني'},
+    // {'number': '02', 'name': 'Baqarah Juzuk 3', 'name_arab': 'البقرة الجزء الثالث'},
     {'number': '03', 'name': 'Ali Imran', 'name_arab': 'آل عمران'},
     {'number': '04', 'name': 'An-Nisa', 'name_arab': 'النساء'},
     {'number': '05', 'name': 'Al-Maidah', 'name_arab': 'المائدة'},
@@ -118,48 +116,3 @@ final List<Map<String, String>> surahList = [
     {'number': '113', 'name': 'Al-Falaq', 'name_arab': 'الفلق'},
     {'number': '114', 'name': 'An-Nas', 'name_arab': 'الناس'},
   ];
-
-Widget surahButton(BuildContext context, String nombor, String surah, String suraharab, Function() onPressed) {
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-      Stack(
-        alignment: Alignment.center,
-        children: [
-          Image.asset('assets/images/nomborplace.png', fit: BoxFit.contain, width: MediaQuery.of(context).size.width * 0.15,),
-          Text(nombor, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
-        ],
-      ),
-      Stack(
-        alignment: Alignment.center,
-        children: [
-          Image.asset('assets/images/surahplace.png', fit: BoxFit.contain, width: MediaQuery.of(context).size.width * 0.7,),
-          Column(
-            children: [
-              Text(surah, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
-              Text(suraharab, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
-            ],
-          ),
-        ],
-      ),
-    ],
-  );
-}
-
-Widget buildSearchField(Function(String) onSearch) {
-  return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: TextField(
-        decoration: InputDecoration(
-          hintText: 'Cari Surah...',
-          prefixIcon: Icon(Icons.search),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(32.0),
-          ),
-        ),
-        onChanged: (value) {
-          onSearch(value);
-        },
-      ),
-    );
-}
