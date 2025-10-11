@@ -27,18 +27,24 @@ class _MainPageState extends State<MainPage> {
     );
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        title: Text('Celik Tafsir', style: TextStyle(color: Colors.white),),
-        centerTitle: true,
-        automaticallyImplyLeading: false, // Disables back button
-        backgroundColor: Colors.black,
-      ),
+      // appBar: AppBar(
+      //   title: Text('Celik Tafsir', style: TextStyle(color: Colors.white),),
+      //   centerTitle: true,
+      //   automaticallyImplyLeading: false, // Disables back button
+      //   backgroundColor: Colors.black,
+      // ),
       body: Container(
         color: Colors.black,
-        height: MediaQuery.of(context).size.height * 0.85,
+        height: MediaQuery.of(context).size.height,
         child: Stack(
           fit: StackFit.expand,
           children: [
+            // Image.asset(
+            //   'assets/images/bg.jpg',
+            //   fit: BoxFit.cover,
+            //   width: double.infinity,
+            //   height: double.infinity,
+            // ),
             Image.asset(
               'assets/images/Kandungan.png', 
               fit: BoxFit.contain,

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/uihelper.dart';
 import '../models/tadabbur.dart' as model;
-import '../controllers/tadabbur.dart' as controller;
-import '../widgets/tadabbur.dart' as widget;
 
 class TadabburPage extends StatefulWidget {
   @override
@@ -60,7 +58,7 @@ class _TadabburPageState extends State<TadabburPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                widget.buildSearchField(_filterSurahs),
+                model.buildSearchField(_filterSurahs),
                 SizedBox(height: 20),
                 Center(
                   child: Image.asset(
@@ -77,7 +75,7 @@ class _TadabburPageState extends State<TadabburPage> {
                     itemBuilder: (context, index) {
                       return Column(
                         children: [
-                          widget.surahButton(
+                          model.surahButton(
                             context,
                             filteredSurahList[index]['number']!,
                             filteredSurahList[index]['name']!,

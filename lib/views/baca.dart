@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/uihelper.dart';
-import '../widgets/baca.dart' as widget;
+import '../models/baca.dart' as model;
 import '../services/baca.dart' as service;
 import '../services/getlistsurah.dart' as getlist;
 
@@ -54,68 +54,8 @@ class _BacaPageState extends State<BacaPage> {
     }
   }
 
-  void getDatasurah(surahindex, pageindex) async {
-    final url = await getlist.GetListSurah.getSurahUrl(surahindex, pageindex);
-    if (url != null) {
-      setState(() {
-        surahData['url'] = url;
-      });
-    }
-  }
-
-  Widget bodyContent() {
-    return Column(
-      children: [
-        SizedBox(height: 20),
-        
-        FutureBuilder<String?>(
-          future: getlist.GetListSurah.getSurahUrl(surahIndex, currentPage),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Text("Loading...");
-            } else if (snapshot.hasError) {
-              return Text("Error: ${snapshot.error}");
-            } else if (snapshot.hasData) {
-              return FutureBuilder<String?>(
-                future: service.BacaService.fetchContentFromUrl(snapshot.data!, 'entry-content'),
-                builder: (context, contentSnapshot) {
-                  if (contentSnapshot.connectionState == ConnectionState.waiting) {
-                    return Text("Loading.....");
-                  } else if (contentSnapshot.hasError) {
-                    return Text("Error loading content: ${contentSnapshot.error}");
-                  } else if (contentSnapshot.hasData) {
-                    final cleanText = service.BacaService.parseHtmlToText(contentSnapshot.data!);
-                    return Text(
-                      cleanText,
-                      style: TextStyle(fontSize: 16),
-                      textAlign: TextAlign.justify,
-                    );
-                  } else {
-                    return Text("No content available");
-                  }
-                },
-              );
-            } else {
-              return Text("No URL available");
-            }
-          },
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    // if (isLoading) {
-    //   return Scaffold(
-    //     appBar: AppBar(
-    //       title: Text('Loading...', style: TextStyle(color: Colors.white)),
-    //       backgroundColor: const Color.fromARGB(255, 52, 21, 104),
-    //     ),
-    //     body: Center(child: CircularProgressIndicator()),
-    //   );
-    // }
-
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -174,13 +114,17 @@ class _BacaPageState extends State<BacaPage> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: SingleChildScrollView(
-                      child: widget.buildSurahBody(context, surahData, bodyContent()),
+                      child: model.buildSurahBody(
+                        context, 
+                        surahData, 
+                        model.bodyContent(surahIndex, currentPage)
+                      ),
                     ),
                   ),
                 ),
                 
                 // Navigation buttons
-                widget.buildPageIndicator(
+                model.buildPageIndicator(
                   currentPage, 
                   totalPages, 
                   _previousPage, 
