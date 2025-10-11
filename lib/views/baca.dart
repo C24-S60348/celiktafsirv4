@@ -13,7 +13,7 @@ class _BacaPageState extends State<BacaPage> {
   late Map<String, String> surahData;
   int currentPage = 0; // Changed to 0-based indexing
   int totalPages = 1;
-  bool isLoading = true;
+  // bool isLoading = true;
   int surahIndex = 0; // Add surah index
 
   @override
@@ -33,7 +33,7 @@ class _BacaPageState extends State<BacaPage> {
     if (surah != null) {
       setState(() {
         totalPages = surah['totalPages'];
-        isLoading = false;
+        // isLoading = false;
       });
     }
   }
@@ -106,15 +106,15 @@ class _BacaPageState extends State<BacaPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text('Loading...', style: TextStyle(color: Colors.white)),
-          backgroundColor: const Color.fromARGB(255, 52, 21, 104),
-        ),
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
+    // if (isLoading) {
+    //   return Scaffold(
+    //     appBar: AppBar(
+    //       title: Text('Loading...', style: TextStyle(color: Colors.white)),
+    //       backgroundColor: const Color.fromARGB(255, 52, 21, 104),
+    //     ),
+    //     body: Center(child: CircularProgressIndicator()),
+    //   );
+    // }
 
     return Scaffold(
       appBar: AppBar(
