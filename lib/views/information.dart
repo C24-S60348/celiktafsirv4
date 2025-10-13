@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../utils/uihelper.dart';
 
 class InformationPage extends StatelessWidget {
   @override
@@ -101,7 +102,13 @@ class InformationPage extends StatelessWidget {
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 51, 135, 54), decoration: TextDecoration.underline),
                           ),
                         ),
-                      )
+                      ),
+                      SizedBox(height: 20),
+                      Center(
+                        child: myButtonBlack(context, 'Tutorial', () {
+                          Navigator.of(context).pushNamed('/tutorial');
+                        },),
+                      ),
                     ],
                   ),
                 ),
