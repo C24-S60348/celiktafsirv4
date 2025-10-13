@@ -9,6 +9,7 @@ class TadabburPage extends StatefulWidget {
 
 class _TadabburPageState extends State<TadabburPage> {
   final List<Map<String, String>> surahList = model.surahList;
+  bool isLoading = false;
 
   List<Map<String, String>> filteredSurahList = [];
 
@@ -53,7 +54,6 @@ class _TadabburPageState extends State<TadabburPage> {
             height: double.infinity,
           ),
           Container(
-            
             padding: EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import '../services/getlistsurah.dart' as getlist;
 import '../services/baca.dart' as service;
 
@@ -23,7 +25,7 @@ Widget buildPageIndicator(
           ),
         ),
         ElevatedButton.icon(
-          onPressed: currentPage < totalPages ? onNext : null,
+          onPressed: currentPage < totalPages - 1 ? onNext : null,
           icon: Icon(Icons.arrow_forward),
           label: Text('Selepas'),
           style: ElevatedButton.styleFrom(
@@ -106,4 +108,74 @@ Widget bodyContent(surahIndex, currentPage) {
             }
           },
   );
+}
+
+// Database functions for bookmarks
+Future<List<Map<String, dynamic>>> getBookmarks() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final bookmarksJson = prefs.getString('bookmarks');
+    if (bookmarksJson != null) {
+      final List<dynamic> bookmarksList = json.decode(bookmarksJson);
+      return bookmarksList.cast<Map<String, dynamic>>();
+    }
+    return [];
+  } catch (e) {
+    print('Error getting bookmarks: $e');
+    return [];
+  }
+}
+
+Future<void> saveBookmarks(List<Map<String, dynamic>> bookmarks) async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final bookmarksJson = json.encode(bookmarks);
+    await prefs.setString('bookmarks', bookmarksJson);
+  } catch (e) {
+    print('Error saving bookmarks: $e');
+  }
+}
+
+Future<void> addBookmark(int surahIndex, int currentPage) async {
+  try {
+    final bookmark = {
+      'surahIndex': surahIndex,
+      'currentPage': currentPage,
+      'dateAdded': DateTime.now().toIso8601String(),
+    };
+    final bookmarks = await getBookmarks();
+    
+    // Check if bookmark already exists
+    final existingIndex = bookmarks.indexWhere((b) => 
+      b['surahIndex'] == surahIndex && b['currentPage'] == currentPage);
+    
+    if (existingIndex == -1) {
+      bookmarks.add(bookmark);
+      await saveBookmarks(bookmarks);
+    }
+  } catch (e) {
+    print('Error adding bookmark: $e');
+  }
+}
+
+Future<void> removeBookmark(int surahIndex, int currentPage) async {
+  try {
+    final bookmarks = await getBookmarks();
+    bookmarks.removeWhere((b) => 
+      b['surahIndex'] == surahIndex && b['currentPage'] == currentPage);
+    await saveBookmarks(bookmarks);
+  } catch (e) {
+    print('Error removing bookmark: $e');
+  }
+}
+
+Future<bool> isBookmarked(int surahIndex, int currentPage) async {
+  try {
+    final bookmarks = await getBookmarks();
+    return bookmarks.any((b) => 
+      b['surahIndex'] == surahIndex && b['currentPage'] == currentPage);
+  } catch (e) {
+    print('Error checking bookmark: $e');
+    return false;
+  }
 }

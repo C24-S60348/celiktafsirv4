@@ -2,7 +2,7 @@ import 'package:http/http.dart' as http;
 
 class GetListSurah {
   static Future<List<Map<String, dynamic>>> getListSurah() async {
-    final response = await http.get(Uri.parse('https://c24-s60348.github.io/celiktafsirlinkdata/data.txt'));
+    final response = await http.get(Uri.parse('https://c24-s60348.github.io/CelikTafsirLinkData/data.txt'));
     final data = response.body;
     
     // Split by semicolon to get individual surahs

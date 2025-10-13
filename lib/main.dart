@@ -5,7 +5,7 @@ import 'views/mainpage.dart';
 import 'views/tadabbur.dart';
 import 'views/information.dart';
 import 'views/baca.dart';
-
+import 'views/bookmarks.dart';
 void main() {
   runApp(const MyApp());
 }
@@ -27,6 +27,7 @@ class MyApp extends StatelessWidget {
         '/tadabbur': (context) => TadabburPage(),
         '/info': (context) => InformationPage(),
         '/baca': (context) => BacaPage(),
+        '/bookmarks': (context) => BookmarksPage(),
       },
       // home: Tutorial(),
       home: SplashScreen(),

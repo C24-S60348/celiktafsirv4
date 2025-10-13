@@ -15,6 +15,7 @@ class _BacaPageState extends State<BacaPage> {
   int totalPages = 1;
   // bool isLoading = true;
   int surahIndex = 0; // Add surah index
+  bool isBookmarked = false; // Add bookmark state
 
   @override
   void didChangeDependencies() {
@@ -25,6 +26,7 @@ class _BacaPageState extends State<BacaPage> {
       surahIndex = args['surahIndex'] ?? 0;
       currentPage = args['pageIndex'] ?? 0;
       _loadSurahContent();
+      _checkBookmark(); // Check bookmark status when page loads
     }
   }
 
@@ -43,6 +45,7 @@ class _BacaPageState extends State<BacaPage> {
       setState(() {
         currentPage++;
       });
+      _checkBookmark(); // Check bookmark after page change
     }
   }
 
@@ -51,7 +54,42 @@ class _BacaPageState extends State<BacaPage> {
       setState(() {
         currentPage--;
       });
+      _checkBookmark(); // Check bookmark after page change
     }
+  }
+
+  void _toggleBookmark() async {
+    if (isBookmarked) {
+      // Remove bookmark
+      await model.removeBookmark(surahIndex, currentPage);
+      _showBookmarkMessage('Bookmark removed');
+    } else {
+      // Add bookmark
+      await model.addBookmark(surahIndex, currentPage);
+      _showBookmarkMessage('Bookmark added');
+    }
+    
+    // Update UI state after bookmark operation
+    _checkBookmark();
+  }
+
+  void _checkBookmark() async {
+    final bookmarked = await model.isBookmarked(surahIndex, currentPage);
+    if (mounted) {
+      setState(() {
+        isBookmarked = bookmarked;
+      });
+    }
+  }
+
+  void _showBookmarkMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: Duration(seconds: 2),
+        backgroundColor: const Color.fromARGB(255, 52, 21, 104),
+      ),
+    );
   }
 
   @override
@@ -72,10 +110,14 @@ class _BacaPageState extends State<BacaPage> {
         ),
         actions: [
           IconButton(
-            onPressed: () {
-              // Bookmark functionality
+            onPressed: _toggleBookmark,
+            onLongPress: () {
+              Navigator.of(context).pushNamed('/bookmarks');
             },
-            icon: Icon(Icons.bookmark_border, color: Colors.white),
+            icon: Icon(
+              isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+              color: Colors.white,
+            ),
           ),
         ],
       ),
