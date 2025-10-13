@@ -16,17 +16,21 @@ class _BacaPageState extends State<BacaPage> {
   // bool isLoading = true;
   int surahIndex = 0; // Add surah index
   bool isBookmarked = false; // Add bookmark state
+  bool _isInitialized = false; // Add initialization flag
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final args = ModalRoute.of(context)?.settings.arguments;
-    if (args != null && args is Map<String, dynamic>) {
-      surahData = args.cast<String, String>();
-      surahIndex = args['surahIndex'] ?? 0;
-      currentPage = args['pageIndex'] ?? 0;
-      _loadSurahContent();
-      _checkBookmark(); // Check bookmark status when page loads
+    if (!_isInitialized) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args != null && args is Map<String, dynamic>) {
+        surahData = args.cast<String, String>();
+        surahIndex = args['surahIndex'] ?? 0;
+        currentPage = args['pageIndex'] ?? 0;
+        _isInitialized = true;
+        _loadSurahContent();
+        _checkBookmark(); // Check bookmark status when page loads
+      }
     }
   }
 
@@ -116,6 +120,20 @@ class _BacaPageState extends State<BacaPage> {
             },
             icon: Icon(
               isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+              color: Colors.white,
+            ),
+          ),
+          IconButton(
+            onPressed: () async {
+              final url = await getlist.GetListSurah.getSurahUrl(surahIndex, currentPage);
+              await Navigator.of(context).pushNamed('/websitepage', arguments: {
+                'url': url,
+              });
+              // Refresh bookmark status when returning from websitepage
+              _checkBookmark();
+            },
+            icon: Icon(
+              Icons.language,
               color: Colors.white,
             ),
           ),

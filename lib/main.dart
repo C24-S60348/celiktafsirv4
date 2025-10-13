@@ -6,6 +6,8 @@ import 'views/tadabbur.dart';
 import 'views/information.dart';
 import 'views/baca.dart';
 import 'views/bookmarks.dart';
+import 'views/websitepage.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -28,6 +30,7 @@ class MyApp extends StatelessWidget {
         '/info': (context) => InformationPage(),
         '/baca': (context) => BacaPage(),
         '/bookmarks': (context) => BookmarksPage(),
+        '/websitepage': (context) => WebsitePage(),
       },
       // home: Tutorial(),
       home: SplashScreen(),
