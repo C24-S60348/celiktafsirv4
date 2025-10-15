@@ -24,16 +24,17 @@ class _WebsitePageState extends State<WebsitePage> {
 
   Future<void> _launchURL() async {
     final Uri uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Could not launch $url'),
-          backgroundColor: const Color.fromARGB(255, 52, 21, 104),
-        ),
-      );
-    }
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+    // if (await canLaunchUrl(uri)) {
+    //   await launchUrl(uri, mode: LaunchMode.externalApplication);
+    // } else {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     SnackBar(
+    //       content: Text('Could not launch $url'),
+    //       backgroundColor: const Color.fromARGB(255, 52, 21, 104),
+    //     ),
+    //   );
+    // }
   }
 
   @override
