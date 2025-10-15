@@ -7,6 +7,7 @@ import 'views/information.dart';
 import 'views/baca.dart';
 import 'views/bookmarks.dart';
 import 'views/websitepage.dart';
+import 'views/settings.dart';
 
 void main() {
   runApp(const MyApp());
@@ -31,6 +32,7 @@ class MyApp extends StatelessWidget {
         '/baca': (context) => BacaPage(),
         '/bookmarks': (context) => BookmarksPage(),
         '/websitepage': (context) => WebsitePage(),
+        '/settings': (context) => SettingsPage(),
       },
       // home: Tutorial(),
       home: SplashScreen(),

@@ -82,7 +82,7 @@ class _MainPageState extends State<MainPage> {
                       ElevatedButton(
                         style: buttonstyle,
                         onPressed: () {
-                          Navigator.of(context).pushNamed('/tetapan');
+                          Navigator.of(context).pushNamed('/settings');
                         },
                         child: SizedBox(),
                       ),
