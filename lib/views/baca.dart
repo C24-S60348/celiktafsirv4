@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import '../utils/uihelper.dart';
 import '../models/baca.dart' as model;
-import '../services/baca.dart' as service;
 import '../services/getlistsurah.dart' as getlist;
+import '../services/download_service.dart';
 
 class BacaPage extends StatefulWidget {
   @override
@@ -35,12 +34,62 @@ class _BacaPageState extends State<BacaPage> {
   }
 
   void _loadSurahContent() async {
+    print('Loading surah content for index: $surahIndex');
     final surah = await getlist.GetListSurah.getSurahByIndex(surahIndex);
+    print('Surah data: $surah');
+    
     if (surah != null) {
+      final pages = surah['totalPages'];
+      print('Total pages from surah: $pages');
+      
       setState(() {
-        totalPages = surah['totalPages'];
+        totalPages = pages;
         // isLoading = false;
       });
+      
+      print('Updated totalPages to: $totalPages');
+      
+      // Start downloading this surah in background
+      _downloadSurahInBackground();
+    } else {
+      print('Surah data is null for index: $surahIndex');
+    }
+  }
+
+  void _downloadSurahInBackground() async {
+    try {
+      // Check if surah is already downloaded
+      final isDownloaded = await DownloadService.isSurahDownloaded(surahIndex);
+      
+      if (!isDownloaded) {
+        // Show a subtle notification that download is starting
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Memuat kandungan...'),
+            duration: Duration(seconds: 2),
+            backgroundColor: Color.fromARGB(255, 52, 21, 104),
+          ),
+        );
+        
+        // Download in background
+        await DownloadService.downloadSurahPages(surahIndex);
+        
+        // Show completion notification
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Kandungan berjaya dimuatkan!'),
+              duration: Duration(seconds: 2),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+        
+        // Debug: Check cached pages
+        await DownloadService.debugCachedPages(surahIndex);
+      }
+    } catch (e) {
+      print('Error memuat kandungan: $e');
     }
   }
 

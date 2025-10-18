@@ -3,6 +3,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../services/getlistsurah.dart' as getlist;
 import '../services/baca.dart' as service;
+import '../services/download_service.dart';
+
+Future<double> getFontSize() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getDouble('font_size') ?? 16.0;
+}
 
 Widget buildPageIndicator(
   int currentPage,
@@ -76,38 +82,80 @@ Widget buildSurahBody(
 }
 
 Widget bodyContent(surahIndex, currentPage) {
+  double fontSize = 16.0;
+  getFontSize().then((value) {
+    fontSize = value;
+  });
   return FutureBuilder<String?>(
-          future: getlist.GetListSurah.getSurahUrl(surahIndex, currentPage),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Text("Loading...");
-            } else if (snapshot.hasError) {
-              return Text("Error: ${snapshot.error}");
-            } else if (snapshot.hasData) {
-              return FutureBuilder<String?>(
-                future: service.BacaService.fetchContentFromUrl(snapshot.data!, 'entry-content'),
-                builder: (context, contentSnapshot) {
-                  if (contentSnapshot.connectionState == ConnectionState.waiting) {
-                    return Text("Loading.....");
-                  } else if (contentSnapshot.hasError) {
-                    return Text("Error loading content: ${contentSnapshot.error}");
-                  } else if (contentSnapshot.hasData) {
-                    final cleanText = service.BacaService.parseHtmlToText(contentSnapshot.data!);
-                    return Text(
-                      cleanText,
-                      style: TextStyle(fontSize: 16),
-                      textAlign: TextAlign.justify,
-                    );
-                  } else {
-                    return Text("No content available");
-                  }
-                },
-              );
-            } else {
-              return Text("No URL available");
-            }
-          },
+    future: _getPageContent(surahIndex, currentPage),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  Color.fromARGB(255, 52, 21, 104),
+                ),
+              ),
+              SizedBox(height: 16),
+              // Text("Memuatkan kandungan..."),
+            ],
+          ),
+        );
+      } else if (snapshot.hasError) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error, size: 48, color: Colors.red),
+              SizedBox(height: 16),
+              Text("Gagal memuat kandungan."),
+            ],
+          ),
+        );
+      } else if (snapshot.hasData) {
+        return Text(
+          snapshot.data!,
+          style: TextStyle(fontSize: fontSize),
+          textAlign: TextAlign.justify,
+        );
+      } else {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.info, size: 48, color: Colors.red),
+              SizedBox(height: 16),
+              Text("Sila sambungkan internet untuk memuatkan kandungan"),
+            ],
+          ),
+        );
+      }
+    },
   );
+}
+
+/// Get content for a specific page (cached or fetch)
+Future<String?> _getPageContent(int surahIndex, int pageIndex) async {
+  // First try to get from cache
+  final cachedPage = await DownloadService.getCachedPage(surahIndex, pageIndex);
+  
+  if (cachedPage != null) {
+    return cachedPage['textContent'];
+  }
+  
+  // If not cached, fetch from URL
+  final url = await getlist.GetListSurah.getSurahUrl(surahIndex, pageIndex);
+  if (url != null) {
+    final content = await service.BacaService.fetchContentFromUrl(url, 'entry-content');
+    if (content != null) {
+      return service.BacaService.parseHtmlToText(content);
+    }
+  }
+  
+  return null;
 }
 
 // Database functions for bookmarks

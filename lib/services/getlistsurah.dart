@@ -1,10 +1,44 @@
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class GetListSurah {
+  static const String _cacheKey = 'cached_surah_list';
+  static const String _cacheTimestampKey = 'cached_surah_list_timestamp';
+  
   static Future<List<Map<String, dynamic>>> getListSurah() async {
+    try {
+      // Try to fetch from network first
     final response = await http.get(Uri.parse('https://c24-s60348.github.io/CelikTafsirLinkData/data.txt'));
-    final data = response.body;
-    
+      
+      if (response.statusCode == 200) {
+        final data = response.body;
+        final surahList = _parseSurahData(data);
+        
+        // Cache the data locally
+        await _cacheSurahList(surahList);
+        
+        return surahList;
+      } else {
+        throw Exception('Failed to fetch data: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Network error, trying cached data: $e');
+      
+      // If network fails, try to get cached data
+      final cachedData = await _getCachedSurahList();
+      if (cachedData != null) {
+        print('Using cached surah data');
+        return cachedData;
+      }
+      
+      // If no cached data, return empty list
+      print('No cached data available');
+      return [];
+    }
+  }
+  
+  static List<Map<String, dynamic>> _parseSurahData(String data) {
     // Split by semicolon to get individual surahs
     final surahSections = data.split(';');
     final List<Map<String, dynamic>> surahList = [];
@@ -27,6 +61,37 @@ class GetListSurah {
     }
     
     return surahList;
+  }
+  
+  /// Cache surah list locally
+  static Future<void> _cacheSurahList(List<Map<String, dynamic>> surahList) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonString = jsonEncode(surahList);
+      await prefs.setString(_cacheKey, jsonString);
+      await prefs.setString(_cacheTimestampKey, DateTime.now().toIso8601String());
+      print('Surah list cached successfully');
+    } catch (e) {
+      print('Error caching surah list: $e');
+    }
+  }
+  
+  /// Get cached surah list
+  static Future<List<Map<String, dynamic>>?> _getCachedSurahList() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonString = prefs.getString(_cacheKey);
+      
+      if (jsonString != null) {
+        final List<dynamic> decoded = jsonDecode(jsonString);
+        return decoded.cast<Map<String, dynamic>>();
+      }
+      
+      return null;
+    } catch (e) {
+      print('Error getting cached surah list: $e');
+      return null;
+    }
   }
   
   /// Get a specific surah by index

@@ -149,10 +149,21 @@ class _SettingsPageState extends State<SettingsPage> {
               onPressed: () => Navigator.of(context).pop(),
               child: Text('Tutup'),
             ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pushNamed('/tutorial'),
+              child: Text('Tutorial'),
+            ),
           ],
         );
       },
     );
+  }
+
+  void _resetFontSize() {
+    setState(() {
+      _fontSize = 16.0;
+    });
+    _saveSettings();
   }
 
   @override
@@ -191,47 +202,49 @@ class _SettingsPageState extends State<SettingsPage> {
           Container(
             padding: EdgeInsets.all(16.0),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 // Font Selection
-                Container(
-                  padding: EdgeInsets.all(16.0),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Tulisan',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      InkWell(
-                        onTap: _showFontDialog,
-                        child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(_selectedFont),
-                              Icon(Icons.arrow_drop_down),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 16),
+                // Container(
+                //   padding: EdgeInsets.all(16.0),
+                //   decoration: BoxDecoration(
+                //     color: Colors.white.withOpacity(0.9),
+                //     borderRadius: BorderRadius.circular(10),
+                //   ),
+                //   child: Column(
+                //     crossAxisAlignment: CrossAxisAlignment.start,
+                //     children: [
+                //       Text(
+                //         'Tulisan',
+                //         style: TextStyle(
+                //           fontSize: 18,
+                //           fontWeight: FontWeight.bold,
+                //           color: Colors.black,
+                //         ),
+                //       ),
+                //       SizedBox(height: 10),
+                //       InkWell(
+                //         onTap: _showFontDialog,
+                //         child: Container(
+                //           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                //           decoration: BoxDecoration(
+                //             border: Border.all(color: Colors.grey),
+                //             borderRadius: BorderRadius.circular(8),
+                //           ),
+                //           child: Row(
+                //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //             children: [
+                //               Text(_selectedFont),
+                //               Icon(Icons.arrow_drop_down),
+                //             ],
+                //           ),
+                //         ),
+                //       ),
+                //     ],
+                //   ),
+                // ),
+                // SizedBox(height: 16),
 
                 // Font Size
                 Container(
@@ -243,13 +256,21 @@ class _SettingsPageState extends State<SettingsPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Saiz Tulisan',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Saiz Tulisan'),
+                          SizedBox(width: 10),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey[300],
+                              foregroundColor: Colors.black,
+                              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            ),
+                            onPressed: _resetFontSize,
+                            child: Text('Reset'),
+                          )
+                        ],
                       ),
                       SizedBox(height: 10),
                       Row(
@@ -283,50 +304,50 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 SizedBox(height: 16),
 
-                // Theme Selection
-                Container(
-                  padding: EdgeInsets.all(16.0),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Tema',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      InkWell(
-                        onTap: _showThemeDialog,
-                        child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(_selectedTheme),
-                              Icon(Icons.arrow_drop_down),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 16),
+                // // Theme Selection
+                // Container(
+                //   padding: EdgeInsets.all(16.0),
+                //   decoration: BoxDecoration(
+                //     color: Colors.white.withOpacity(0.9),
+                //     borderRadius: BorderRadius.circular(10),
+                //   ),
+                //   child: Column(
+                //     crossAxisAlignment: CrossAxisAlignment.start,
+                //     children: [
+                //       Text(
+                //         'Tema',
+                //         style: TextStyle(
+                //           fontSize: 18,
+                //           fontWeight: FontWeight.bold,
+                //           color: Colors.black,
+                //         ),
+                //       ),
+                //       SizedBox(height: 10),
+                //       InkWell(
+                //         onTap: _showThemeDialog,
+                //         child: Container(
+                //           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                //           decoration: BoxDecoration(
+                //             border: Border.all(color: Colors.grey),
+                //             borderRadius: BorderRadius.circular(8),
+                //           ),
+                //           child: Row(
+                //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //             children: [
+                //               Text(_selectedTheme),
+                //               Icon(Icons.arrow_drop_down),
+                //             ],
+                //           ),
+                //         ),
+                //       ),
+                //     ],
+                //   ),
+                // ),
+                // SizedBox(height: 16),
 
                 // How to Use Button
                 Container(
-                  width: double.infinity,
+                  width: MediaQuery.of(context).size.width * 0.7,
                   child: ElevatedButton(
                     onPressed: _showHowToUse,
                     style: ElevatedButton.styleFrom(
