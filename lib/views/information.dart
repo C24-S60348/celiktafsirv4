@@ -67,7 +67,7 @@ class InformationPage extends StatelessWidget {
                     Divider(color: Colors.black),
                     SizedBox(height: 10),
                     Text(
-                      'Versi: 1.0.4',
+                      'Versi: 1.0.8',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     SizedBox(height: 10),

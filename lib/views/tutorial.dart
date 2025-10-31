@@ -64,16 +64,18 @@ class _TutorialContentState extends State<TutorialContent> {
                 });
               },
               children: [
-                Image.asset("assets/images/tutorial1.png", fit: BoxFit.contain,),
-                Image.asset("assets/images/tutorial2.png", fit: BoxFit.contain),
-                Image.asset("assets/images/tutorial3.png", fit: BoxFit.contain),
+                Image.asset("assets/images/tutorial4.png", fit: BoxFit.contain,),
+                Image.asset("assets/images/tutorial5.png", fit: BoxFit.contain),
+                Image.asset("assets/images/tutorial6.png", fit: BoxFit.contain),
+                Image.asset("assets/images/tutorial7.png", fit: BoxFit.contain),
+                Image.asset("assets/images/tutorial8.png", fit: BoxFit.contain),
               ],
             ),
           ),
           SizedBox(
             height: 10,
           ),
-          if (_pageViewIndex != 2) // Assuming last page index is 2
+          if (_pageViewIndex != 3) // Assuming last page index is 2
            SizedBox(
               width: MediaQuery.of(context).size.width * 0.5,
               child: myButton(context, "Geser ----->", () {

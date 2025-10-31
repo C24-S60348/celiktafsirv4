@@ -1,9 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'dart:convert';
 import '../services/getlistsurah.dart' as getlist;
 import '../services/baca.dart' as service;
 import '../services/download_service.dart';
+
+/// Extension builder for network images
+Widget networkImageExtensionBuilder(ExtensionContext context) {
+  final src = context.attributes['src'];
+  if (src != null && src.isNotEmpty) {
+    return Image.network(
+      src,
+      fit: BoxFit.contain,
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return Center(
+          child: CircularProgressIndicator(
+            value: loadingProgress.expectedTotalBytes != null
+                ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                : null,
+          ),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          width: double.infinity,
+          height: 200,
+          color: Colors.grey[300],
+          child: Icon(Icons.broken_image, size: 48, color: Colors.grey[600]),
+        );
+      },
+    );
+  }
+  return SizedBox.shrink();
+}
 
 Future<double> getFontSize() async {
   final prefs = await SharedPreferences.getInstance();
@@ -82,57 +113,77 @@ Widget buildSurahBody(
 }
 
 Widget bodyContent(surahIndex, currentPage) {
-  double fontSize = 16.0;
-  getFontSize().then((value) {
-    fontSize = value;
-  });
-  return FutureBuilder<String?>(
-    future: _getPageContent(surahIndex, currentPage),
-    builder: (context, snapshot) {
-      if (snapshot.connectionState == ConnectionState.waiting) {
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  Color.fromARGB(255, 52, 21, 104),
-                ),
+  return FutureBuilder<double>(
+    future: getFontSize(),
+    builder: (context, fontSizeSnapshot) {
+      return FutureBuilder<String?>(
+        future: _getPageContent(surahIndex, currentPage),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Color.fromARGB(255, 52, 21, 104),
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  // Text("Memuatkan kandungan..."),
+                ],
               ),
-              SizedBox(height: 16),
-              // Text("Memuatkan kandungan..."),
-            ],
-          ),
-        );
-      } else if (snapshot.hasError) {
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error, size: 48, color: Colors.red),
-              SizedBox(height: 16),
-              Text("Gagal memuat kandungan."),
-            ],
-          ),
-        );
-      } else if (snapshot.hasData) {
-        return Text(
-          snapshot.data!,
-          style: TextStyle(fontSize: fontSize),
-          textAlign: TextAlign.justify,
-        );
-      } else {
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.info, size: 48, color: Colors.red),
-              SizedBox(height: 16),
-              Text("Sila sambungkan internet untuk memuatkan kandungan"),
-            ],
-          ),
-        );
-      }
+            );
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error, size: 48, color: Colors.red),
+                  SizedBox(height: 16),
+                  Text("Gagal memuat kandungan."),
+                ],
+              ),
+            );
+          } else if (snapshot.hasData) {
+            final fontSize = fontSizeSnapshot.data ?? 16.0;
+            return Html(
+              data: snapshot.data!,
+              style: {
+                "body": Style(
+                  fontSize: FontSize(fontSize),
+                  textAlign: TextAlign.justify,
+                ),
+                "p": Style(
+                  fontSize: FontSize(fontSize),
+                  textAlign: TextAlign.justify,
+                ),
+                "img": Style(
+                  width: Width(double.infinity),
+                  height: Height(200),
+                ),
+              },
+              extensions: [
+                TagExtension(
+                  tagsToExtend: {"img"},
+                  builder: networkImageExtensionBuilder,
+                ),
+              ],
+            );
+          } else {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.info, size: 48, color: Colors.red),
+                  SizedBox(height: 16),
+                  Text("Sila sambungkan internet untuk memuatkan kandungan"),
+                ],
+              ),
+            );
+          }
+        },
+      );
     },
   );
 }
@@ -143,7 +194,8 @@ Future<String?> _getPageContent(int surahIndex, int pageIndex) async {
   final cachedPage = await DownloadService.getCachedPage(surahIndex, pageIndex);
   
   if (cachedPage != null) {
-    return cachedPage['textContent'];
+    // Return HTML content instead of text content
+    return cachedPage['htmlContent'];
   }
   
   // If not cached, fetch from URL
@@ -151,7 +203,8 @@ Future<String?> _getPageContent(int surahIndex, int pageIndex) async {
   if (url != null) {
     final content = await service.BacaService.fetchContentFromUrl(url, 'entry-content');
     if (content != null) {
-      return service.BacaService.parseHtmlToText(content);
+      // Return raw HTML content instead of parsed text
+      return content;
     }
   }
   

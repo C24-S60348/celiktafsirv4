@@ -118,7 +118,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
                             ),
                             SizedBox(height: 16),
                             Text(
-                              'No bookmarks yet',
+                              'Tiada bookmark',
                               style: TextStyle(
                                 fontSize: 18,
                                 color: Colors.grey[600],
@@ -127,7 +127,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
                             ),
                             SizedBox(height: 8),
                             Text(
-                              'Bookmark verses while reading to see them here',
+                              'Bookmark ayat semasa membaca untuk melihatnya di sini',
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.grey[500],

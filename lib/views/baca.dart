@@ -16,6 +16,13 @@ class _BacaPageState extends State<BacaPage> {
   int surahIndex = 0; // Add surah index
   bool isBookmarked = false; // Add bookmark state
   bool _isInitialized = false; // Add initialization flag
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   void didChangeDependencies() {
@@ -222,11 +229,18 @@ class _BacaPageState extends State<BacaPage> {
                       color: Colors.white.withOpacity(0.9),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: SingleChildScrollView(
-                      child: model.buildSurahBody(
-                        context, 
-                        surahData, 
-                        model.bodyContent(surahIndex, currentPage)
+                    child: Scrollbar(
+                      controller: _scrollController,
+                      thumbVisibility: true,
+                      thickness: 2.0,
+                      radius: Radius.circular(4.0),
+                      child: SingleChildScrollView(
+                        controller: _scrollController,
+                        child: model.buildSurahBody(
+                          context, 
+                          surahData, 
+                          model.bodyContent(surahIndex, currentPage)
+                        ),
                       ),
                     ),
                   ),
