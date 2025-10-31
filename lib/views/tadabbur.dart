@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../utils/uihelper.dart';
 import '../models/tadabbur.dart' as model;
 
 class TadabburPage extends StatefulWidget {
@@ -81,7 +80,7 @@ class _TadabburPageState extends State<TadabburPage> {
                             filteredSurahList[index]['name']!,
                             filteredSurahList[index]['name_arab']!,
                             () {
-                              Navigator.of(context).pushNamed('/baca', arguments: {
+                              Navigator.of(context).pushNamed('/surahPages', arguments: {
                                 ...filteredSurahList[index],
                                 'surahIndex': index,
                               });

@@ -8,6 +8,7 @@ import 'views/baca.dart';
 import 'views/bookmarks.dart';
 import 'views/websitepage.dart';
 import 'views/settings.dart';
+import 'views/surah_pages.dart';
 
 void main() {
   runApp(const MyApp());
@@ -29,6 +30,7 @@ class MyApp extends StatelessWidget {
         '/mainpage': (context) => MainPage(),
         '/tadabbur': (context) => TadabburPage(),
         '/info': (context) => InformationPage(),
+        '/surahPages': (context) => SurahPagesPage(),
         '/baca': (context) => BacaPage(),
         '/bookmarks': (context) => BookmarksPage(),
         '/websitepage': (context) => WebsitePage(),
