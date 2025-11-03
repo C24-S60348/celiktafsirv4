@@ -11,7 +11,7 @@ class BacaPage extends StatefulWidget {
 class _BacaPageState extends State<BacaPage> {
   late Map<String, String> surahData;
   int currentPage = 0; // Changed to 0-based indexing
-  int totalPages = 1;
+  int totalPages = 0;
   // bool isLoading = true;
   int surahIndex = 0; // Add surah index
   bool isBookmarked = false; // Add bookmark state
@@ -210,7 +210,14 @@ class _BacaPageState extends State<BacaPage> {
                 // Page indicator
                 Container(
                   padding: EdgeInsets.symmetric(vertical: 8.0),
-                  child: Text(
+                  child: totalPages == 0 ? Text(
+                    'Halaman ${currentPage + 1}',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ) : Text(
                     'Halaman ${currentPage + 1} dari $totalPages',
                     style: TextStyle(
                       fontSize: 16,

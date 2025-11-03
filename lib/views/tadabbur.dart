@@ -72,17 +72,22 @@ class _TadabburPageState extends State<TadabburPage> {
                   child: ListView.builder(
                     itemCount: filteredSurahList.length,
                     itemBuilder: (context, index) {
+                      final filteredSurah = filteredSurahList[index];
+                      // Find the actual index in the original surahList
+                      final actualIndex = surahList.indexWhere(
+                        (surah) => surah['number'] == filteredSurah['number'],
+                      );
                       return Column(
                         children: [
                           model.surahButton(
                             context,
-                            filteredSurahList[index]['number']!,
-                            filteredSurahList[index]['name']!,
-                            filteredSurahList[index]['name_arab']!,
+                            filteredSurah['number']!,
+                            filteredSurah['name']!,
+                            filteredSurah['name_arab']!,
                             () {
                               Navigator.of(context).pushNamed('/surahPages', arguments: {
-                                ...filteredSurahList[index],
-                                'surahIndex': index,
+                                ...filteredSurah,
+                                'surahIndex': actualIndex,
                               });
                             },
                           ),

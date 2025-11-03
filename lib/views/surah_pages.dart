@@ -157,7 +157,7 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
                         ),
                       ),
                       SizedBox(height: 8),
-                      Text(
+                      isLoading ? SizedBox(height: 15,) : Text(
                         'Jumlah: ${pages.length} halaman',
                         style: TextStyle(
                           fontSize: 14,

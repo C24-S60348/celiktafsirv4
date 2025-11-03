@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../utils/uihelper.dart';
 import '../models/baca.dart' as model;
 import '../services/getlistsurah.dart' as getlist;
 import '../models/tadabbur.dart' as surahlist;
@@ -12,6 +11,8 @@ class BookmarksPage extends StatefulWidget {
 class _BookmarksPageState extends State<BookmarksPage> {
   List<Map<String, dynamic>> bookmarks = [];
   bool isLoading = true;
+  bool _isNavigating = false;
+  final Map<int, Future<Map<String, dynamic>?>> _surahCache = {};
 
   @override
   void initState() {
@@ -57,11 +58,18 @@ class _BookmarksPageState extends State<BookmarksPage> {
   }
 
   void _navigateToVerse(Map<String, dynamic> bookmark) async {
+    // Prevent multiple simultaneous navigations
+    if (_isNavigating) return;
+    
+    setState(() {
+      _isNavigating = true;
+    });
+    
     try {
       // Get surah data from the service
       final surah = await getlist.GetListSurah.getSurahByIndex(bookmark['surahIndex']);
       if (surah != null) {
-        Navigator.of(context).pushNamed('/baca', arguments: {
+        await Navigator.of(context).pushNamed('/baca', arguments: {
           'number': surah['surahIndex'],
           'name': surahlist.surahList[surah['surahIndex']]['name'],
           'name_arab': surahlist.surahList[surah['surahIndex']]['name_arab'],
@@ -71,6 +79,12 @@ class _BookmarksPageState extends State<BookmarksPage> {
       }
     } catch (e) {
       print('Error navigating to verse: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isNavigating = false;
+        });
+      }
     }
   }
 
@@ -141,8 +155,16 @@ class _BookmarksPageState extends State<BookmarksPage> {
                         itemCount: bookmarks.length,
                         itemBuilder: (context, index) {
                           final bookmark = bookmarks[index];
+                          final surahIndex = bookmark['surahIndex'] as int;
+                          
+                          // Cache the future to avoid reloading when widget rebuilds
+                          if (!_surahCache.containsKey(surahIndex)) {
+                            _surahCache[surahIndex] = getlist.GetListSurah.getSurahByIndex(surahIndex);
+                          }
+                          
                           return FutureBuilder<Map<String, dynamic>?>(
-                            future: getlist.GetListSurah.getSurahByIndex(bookmark['surahIndex']),
+                            key: ValueKey('surah_$surahIndex'),
+                            future: _surahCache[surahIndex],
                             builder: (context, snapshot) {
                               if (snapshot.connectionState == ConnectionState.waiting) {
                                 return Card(
@@ -172,7 +194,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: InkWell(
-                                  onTap: () => _navigateToVerse(bookmark),
+                                  onTap: _isNavigating ? null : () => _navigateToVerse(bookmark),
                                   borderRadius: BorderRadius.circular(12),
                                   child: Padding(
                                     padding: EdgeInsets.all(16),

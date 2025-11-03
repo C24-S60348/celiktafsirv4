@@ -9,6 +9,7 @@ import 'views/bookmarks.dart';
 import 'views/websitepage.dart';
 import 'views/settings.dart';
 import 'views/surah_pages.dart';
+import 'utils/uihelper.dart';
 
 void main() {
   runApp(const MyApp());
@@ -25,16 +26,42 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      routes: {
-        '/tutorial': (context) => Tutorial(),
-        '/mainpage': (context) => MainPage(),
-        '/tadabbur': (context) => TadabburPage(),
-        '/info': (context) => InformationPage(),
-        '/surahPages': (context) => SurahPagesPage(),
-        '/baca': (context) => BacaPage(),
-        '/bookmarks': (context) => BookmarksPage(),
-        '/websitepage': (context) => WebsitePage(),
-        '/settings': (context) => SettingsPage(),
+      onGenerateRoute: (settings) {
+        Widget page;
+        
+        switch (settings.name) {
+          case '/tutorial':
+            page = Tutorial();
+            break;
+          case '/mainpage':
+            page = MainPage();
+            break;
+          case '/tadabbur':
+            page = TadabburPage();
+            break;
+          case '/info':
+            page = InformationPage();
+            break;
+          case '/surahPages':
+            page = SurahPagesPage();
+            break;
+          case '/baca':
+            page = BacaPage();
+            break;
+          case '/bookmarks':
+            page = BookmarksPage();
+            break;
+          case '/websitepage':
+            page = WebsitePage();
+            break;
+          case '/settings':
+            page = SettingsPage();
+            break;
+          default:
+            page = SplashScreen();
+        }
+        
+        return slideRoute(page, arguments: settings.arguments);
       },
       // home: Tutorial(),
       home: SplashScreen(),
