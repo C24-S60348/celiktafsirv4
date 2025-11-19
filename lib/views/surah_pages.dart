@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/getlistsurah.dart' as getlist;
+import 'package:http/http.dart' as http;
 
 class SurahPagesPage extends StatefulWidget {
   @override
@@ -11,6 +12,7 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
   int surahIndex = 0;
   List<Map<String, dynamic>> pages = [];
   bool isLoading = true;
+  bool hasNoInternet = false;
 
   @override
   void didChangeDependencies() {
@@ -29,15 +31,36 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
     }
   }
 
+  Future<bool> _checkInternetConnection() async {
+    try {
+      final response = await http.get(Uri.parse('https://celiktafsir.net')).timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {
+          throw Exception('Connection timeout');
+        },
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
   void _loadPages() async {
+    // Check internet connection first
+    final hasInternet = await _checkInternetConnection();
+    
     final surah = await getlist.GetListSurah.getSurahByIndex(surahIndex);
     if (surah != null) {
-      final urls = surah['urls'] as List<String>;
+      final urls = List<String>.from(surah['urls'] as List);
+      final titles = surah['titles'] as List<String>?;
       final List<Map<String, dynamic>> pageList = [];
 
       for (int i = 0; i < urls.length; i++) {
         final url = urls[i];
-        final title = _extractTitleFromUrl(url);
+        // Use cached title if available, otherwise extract from URL
+        final title = (titles != null && i < titles.length) 
+            ? titles[i] 
+            : _extractTitleFromUrl(url);
         pageList.add({
           'index': i,
           'title': title,
@@ -48,6 +71,15 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
       setState(() {
         pages = pageList;
         isLoading = false;
+        // If no pages and no internet, show message
+        hasNoInternet = (!hasInternet && urls.isEmpty);
+      });
+    } else {
+      // No surah data - check if it's because of no internet
+      setState(() {
+        pages = [];
+        isLoading = false;
+        hasNoInternet = !hasInternet;
       });
     }
   }
@@ -119,7 +151,7 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          '${surahData['name']} (${surahData['name_arab']})',
+          '${surahData['name']}',
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
@@ -157,13 +189,24 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
                         ),
                       ),
                       SizedBox(height: 8),
-                      isLoading ? SizedBox(height: 15,) : Text(
-                        'Jumlah: ${pages.length} halaman',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black87,
-                        ),
-                      ),
+                      isLoading 
+                        ? SizedBox(height: 15,)
+                        : hasNoInternet && pages.isEmpty
+                          ? Text(
+                              'Tiada sambungan internet',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.red[700],
+                                fontWeight: FontWeight.bold,
+                              ),
+                            )
+                          : Text(
+                              'Jumlah: ${pages.length} halaman',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.black87,
+                              ),
+                            ),
                     ],
                   ),
                 ),
@@ -180,50 +223,95 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
                             ),
                           ),
                         )
-                      : ListView.builder(
-                          itemCount: pages.length,
-                          itemBuilder: (context, index) {
-                            final page = pages[index];
-                            // debugPrint('Page: ${page['title']}');
-                            return Card(
-                              margin: EdgeInsets.symmetric(
-                                horizontal: 8.0,
-                                vertical: 4.0,
-                              ),
-                              elevation: 2,
-                              child: ListTile(
-                                leading: CircleAvatar(
-                                  backgroundColor: Color.fromARGB(255, 52, 21, 104),
+                      : hasNoInternet && pages.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.wifi_off,
+                                  size: 64,
+                                  color: Colors.grey[600],
+                                ),
+                                SizedBox(height: 16),
+                                Text(
+                                  'Tiada sambungan internet',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 32.0),
                                   child: Text(
-                                    '${page['index'] + 1}',
+                                    'Sila semak sambungan internet anda dan cuba lagi.',
+                                    textAlign: TextAlign.center,
                                     style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                      color: Colors.black54,
                                     ),
                                   ),
                                 ),
-                                title: Text(
-                                  page['title'] as String,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                              ],
+                            ),
+                          )
+                        : pages.isEmpty
+                          ? Center(
+                              child: Text(
+                                'Tiada halaman tersedia',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black54,
                                 ),
-                                subtitle: Text(
-                                  'Halaman ${page['index'] + 1}',
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                                trailing: Icon(Icons.arrow_forward_ios, size: 16),
-                                onTap: () {
-                                  Navigator.of(context).pushNamed('/baca', arguments: {
-                                    ...surahData,
-                                    'surahIndex': surahIndex,
-                                    'pageIndex': page['index'],
-                                  });
-                                },
                               ),
-                            );
-                          },
-                        ),
+                            )
+                          : ListView.builder(
+                              itemCount: pages.length,
+                              itemBuilder: (context, index) {
+                                final page = pages[index];
+                                // debugPrint('Page: ${page['title']}');
+                                return Card(
+                                  margin: EdgeInsets.symmetric(
+                                    horizontal: 8.0,
+                                    vertical: 4.0,
+                                  ),
+                                  elevation: 2,
+                                  child: ListTile(
+                                    leading: CircleAvatar(
+                                      backgroundColor: Color.fromARGB(255, 52, 21, 104),
+                                      child: Text(
+                                        '${page['index'] + 1}',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    title: Text(
+                                      page['title'] as String,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    subtitle: Text(
+                                      'Halaman ${page['index'] + 1}',
+                                      style: TextStyle(fontSize: 12),
+                                    ),
+                                    trailing: Icon(Icons.arrow_forward_ios, size: 16),
+                                    onTap: () {
+                                      Navigator.of(context).pushNamed('/baca', arguments: {
+                                        ...surahData,
+                                        'surahIndex': surahIndex,
+                                        'pageIndex': page['index'],
+                                        'pageTitle': page['title'],
+                                      });
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
                 ),
               ],
             ),

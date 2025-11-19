@@ -6,6 +6,61 @@ import '../services/getlistsurah.dart' as getlist;
 import '../services/baca.dart' as service;
 import '../services/download_service.dart';
 
+/// Remove numbering from unordered list items and clean up nested list structures
+String _removeNumbersFromUnorderedLists(String html) {
+  String result = html;
+  
+  // Remove wrapper <ol><li style="list-style-type: none"><ol>...</ol></li></ol> structures
+  result = result.replaceAllMapped(
+    RegExp(
+      r'<ol[^>]*>\s*<li[^>]*style="list-style-type:\s*none"[^>]*>\s*(<ol[^>]*>.*?</ol>)\s*</li>\s*</ol>',
+      dotAll: true,
+      caseSensitive: false,
+    ),
+    (match) => match.group(1)!, // Keep only the inner <ol>
+  );
+  
+  // Remove wrapper <ul><li style="list-style-type: none"><ul>...</ul></li></ul> structures
+  result = result.replaceAllMapped(
+    RegExp(
+      r'<ul[^>]*>\s*<li[^>]*style="list-style-type:\s*none"[^>]*>\s*(<ul[^>]*>.*?</ul>)\s*</li>\s*</ul>',
+      dotAll: true,
+      caseSensitive: false,
+    ),
+    (match) => match.group(1)!, // Keep only the inner <ul>
+  );
+  
+  // Process <ul> tags to remove numbers
+  int maxIterations = 20;
+  int iteration = 0;
+  
+  while (iteration < maxIterations) {
+    // Find the innermost <ul>...</ul> block
+    final match = RegExp(
+      r'<ul[^>]*>((?:(?!<ul[^>]*>).)*?)</ul>',
+      dotAll: true,
+      caseSensitive: false,
+    ).firstMatch(result);
+    
+    if (match == null) break;
+    
+    String fullMatch = match.group(0)!;
+    String ulOpenTag = fullMatch.substring(0, fullMatch.indexOf('>') + 1);
+    String ulContent = match.group(1)!;
+    
+    // Remove number patterns from <li> tags within this <ul>
+    String cleanedContent = ulContent.replaceAllMapped(
+      RegExp(r'(<li[^>]*>)\s*(\d+\.\s+)', caseSensitive: false),
+      (m) => m.group(1)!,
+    );
+    
+    result = result.replaceFirst(fullMatch, '$ulOpenTag$cleanedContent</ul>');
+    iteration++;
+  }
+  
+  return result;
+}
+
 /// Extension builder for network images
 Widget networkImageExtensionBuilder(ExtensionContext context) {
   final src = context.attributes['src'];
@@ -88,12 +143,9 @@ Widget buildSurahBody(
         child: Column(
           children: [
             Text(
-              'Surah ${surahData['name']}',
+              '${surahData['pageTitle'] ?? surahData['name'] ?? ''}',
+              textAlign: TextAlign.center,
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              surahData['name_arab']!,
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 20),
             Image.asset(
@@ -147,8 +199,11 @@ Widget bodyContent(surahIndex, currentPage) {
             );
           } else if (snapshot.hasData) {
             final fontSize = fontSizeSnapshot.data ?? 16.0;
+            // Remove numbers from unordered list items
+            final cleanedHtml = _removeNumbersFromUnorderedLists(snapshot.data!);
+            
             return Html(
-              data: snapshot.data!,
+              data: cleanedHtml,
               style: {
                 "body": Style(
                   fontSize: FontSize(fontSize),
@@ -157,6 +212,25 @@ Widget bodyContent(surahIndex, currentPage) {
                 "p": Style(
                   fontSize: FontSize(fontSize),
                   textAlign: TextAlign.justify,
+                ),
+                "ul": Style(
+                  fontSize: FontSize(fontSize),
+                  textAlign: TextAlign.justify,
+                  listStyleType: ListStyleType.disc, // Show bullet points for unordered lists
+                  padding: HtmlPaddings.only(left: 20),
+                ),
+                "ol": Style(
+                  fontSize: FontSize(fontSize),
+                  textAlign: TextAlign.justify,
+                  listStyleType: ListStyleType.none, // Remove numbering
+                  padding: HtmlPaddings.only(left: 20),
+                  margin: Margins.zero,
+                  display: Display.block,
+                ),
+                "li": Style(
+                  fontSize: FontSize(fontSize),
+                  textAlign: TextAlign.justify,
+                  padding: HtmlPaddings.only(bottom: 8),
                 ),
                 "img": Style(
                   width: Width(double.infinity),

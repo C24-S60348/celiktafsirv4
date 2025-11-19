@@ -17,6 +17,7 @@ class _BacaPageState extends State<BacaPage> {
   bool isBookmarked = false; // Add bookmark state
   bool _isInitialized = false; // Add initialization flag
   final ScrollController _scrollController = ScrollController();
+  List<String>? _cachedTitles; // Cache titles to avoid calling service on navigation
 
   @override
   void dispose() {
@@ -47,14 +48,23 @@ class _BacaPageState extends State<BacaPage> {
     
     if (surah != null) {
       final pages = surah['totalPages'];
+      final titles = surah['titles'] as List<String>?;
       print('Total pages from surah: $pages');
       
       setState(() {
         totalPages = pages;
+        _cachedTitles = titles; // Cache titles for navigation
         // isLoading = false;
       });
       
       print('Updated totalPages to: $totalPages');
+      
+      // Update page title if not already set from navigation
+      if (surahData['pageTitle'] == null && _cachedTitles != null && currentPage < _cachedTitles!.length) {
+        setState(() {
+          surahData['pageTitle'] = _cachedTitles![currentPage];
+        });
+      }
       
       // Start downloading this surah in background
       _downloadSurahInBackground();
@@ -100,11 +110,21 @@ class _BacaPageState extends State<BacaPage> {
     }
   }
 
+  void _updatePageTitle() {
+    // Use cached titles directly without calling service
+    if (_cachedTitles != null && currentPage >= 0 && currentPage < _cachedTitles!.length) {
+      setState(() {
+        surahData['pageTitle'] = _cachedTitles![currentPage];
+      });
+    }
+  }
+
   void _nextPage() {
     if (currentPage < totalPages - 1) {
       setState(() {
         currentPage++;
       });
+      _updatePageTitle(); // Update page title when navigating
       _checkBookmark(); // Check bookmark after page change
     }
   }
@@ -114,6 +134,7 @@ class _BacaPageState extends State<BacaPage> {
       setState(() {
         currentPage--;
       });
+      _updatePageTitle(); // Update page title when navigating
       _checkBookmark(); // Check bookmark after page change
     }
   }
@@ -157,7 +178,7 @@ class _BacaPageState extends State<BacaPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          '${surahData['name']} (${surahData['name_arab']})',
+          '${surahData['name']}',
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,

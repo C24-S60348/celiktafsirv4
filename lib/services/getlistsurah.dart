@@ -1,34 +1,59 @@
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:html/parser.dart' as html_parser;
 
 class GetListSurah {
-  static const String _cacheKey = 'cached_surah_list';
+  static const String _cacheKey = 'cached_surah_names';
+  static const String _cacheCategoryUrlsKey = 'cached_category_urls';
+  static const String _cacheSurahUrlsKey = 'cached_surah_urls'; // Cache for scraped URLs per surah
   static const String _cacheTimestampKey = 'cached_surah_list_timestamp';
+  static const String _baseUrl = 'https://celiktafsir.net';
   
-  static Future<List<Map<String, dynamic>>> getListSurah() async {
-    try {
-      // Try to fetch from network first
-    final response = await http.get(Uri.parse('https://c24-s60348.github.io/CelikTafsirLinkData/data.txt'));
-      
-      if (response.statusCode == 200) {
-        final data = response.body;
-        final surahList = _parseSurahData(data);
+  // Cache for category URLs (surah number -> category URL)
+  static Map<int, String>? _categoryUrlsCache;
+  
+  /// Get list of surah names (including juzuk variants) for tadabbur page
+  /// Always tries to fetch fresh data if internet is available
+  /// Only uses cache if fetch fails (no internet or network error)
+  static Future<List<Map<String, String>>> getSurahNames() async {
+    // Check if we have internet connection
+    final hasInternet = await _hasInternetConnection();
+    
+    if (hasInternet) {
+      // Try to fetch from website first
+      try {
+        print('Fetching surah names from celiktafsir.net...');
+        final surahNames = await _scrapeSurahNamesFromWebsite();
         
-        // Cache the data locally
-        await _cacheSurahList(surahList);
+        if (surahNames.isNotEmpty) {
+          // Cache the data locally
+          await _cacheSurahNames(surahNames);
+          print('Successfully scraped ${surahNames.length} surah names from website');
+          return surahNames;
+        } else {
+          throw Exception('No surah names found on website');
+        }
+      } catch (e) {
+        print('Error scraping website, trying cached data: $e');
         
-        return surahList;
-      } else {
-        throw Exception('Failed to fetch data: ${response.statusCode}');
+        // If network fails, try to get cached data
+        final cachedData = await _getCachedSurahNames();
+        if (cachedData != null && cachedData.isNotEmpty) {
+          print('Using cached surah names');
+          return cachedData;
+        }
+        
+        // If no cached data, return empty list
+        print('No cached data available');
+        return [];
       }
-    } catch (e) {
-      print('Network error, trying cached data: $e');
-      
-      // If network fails, try to get cached data
-      final cachedData = await _getCachedSurahList();
-      if (cachedData != null) {
-        print('Using cached surah data');
+    } else {
+      // No internet - use cached data
+      print('No internet connection, using cached surah names');
+      final cachedData = await _getCachedSurahNames();
+      if (cachedData != null && cachedData.isNotEmpty) {
+        print('Using cached surah names');
         return cachedData;
       }
       
@@ -38,76 +63,590 @@ class GetListSurah {
     }
   }
   
-  static List<Map<String, dynamic>> _parseSurahData(String data) {
-    // Split by semicolon to get individual surahs
-    final surahSections = data.split(';');
-    final List<Map<String, dynamic>> surahList = [];
+  /// Scrape surah names (including juzuk variants) from celiktafsir.net website
+  static Future<List<Map<String, String>>> _scrapeSurahNamesFromWebsite() async {
+    final List<Map<String, String>> surahNames = [];
     
-    for (int i = 0; i < surahSections.length; i++) {
-      final section = surahSections[i].trim();
-      if (section.isEmpty) continue;
+    try {
+      // Fetch the main page
+      final response = await http.get(Uri.parse(_baseUrl));
+      if (response.statusCode != 200) {
+        throw Exception('Failed to fetch main page: ${response.statusCode}');
+      }
       
-      // Split by space to get individual pages/URLs for this surah
-      final urls = section.split(' ').where((url) => url.trim().isNotEmpty).toList();
+      final document = html_parser.parse(response.body);
       
-      if (urls.isNotEmpty) {
-        surahList.add({
-          'surahNumber': i + 1,
-          'surahIndex': i,
-          'urls': urls,
-          'totalPages': urls.length,
-        });
+      // Find all elements with class="entry-content"
+      final entryContents = document.querySelectorAll('.entry-content');
+      final Map<int, String> surahCategoryUrls = {};
+      
+      for (var entryContent in entryContents) {
+        // Find links within entry-content
+        final links = entryContent.querySelectorAll('a');
+        
+        for (var link in links) {
+          final href = link.attributes['href'];
+          final text = link.text.trim();
+          
+          if (href == null || text.isEmpty) continue;
+          
+          // Extract surah number from href (e.g., surah-001-al-fatihah)
+          final hrefMatch = RegExp(r'surah-(\d{3})-').firstMatch(href);
+          if (hrefMatch == null) continue;
+          
+          final surahNumber = int.parse(hrefMatch.group(1)!);
+          
+          // Store category URL for main surah (first occurrence)
+          if (!surahCategoryUrls.containsKey(surahNumber)) {
+            final categoryUrl = href.startsWith('http') ? href : '$_baseUrl$href';
+            surahCategoryUrls[surahNumber] = categoryUrl;
+          }
+          
+          // Extract surah name from link text (e.g., "Surah Al-Fatihah" or "2. Baqarah Juzuk 2")
+          String surahNameText = text;
+          
+          // Check for sibling <strong><em>(...)</em></strong> element after the link
+          // This contains additional info like "(Pembukaan)" or "(Lembu Betina)"
+          String additionalText = '';
+          try {
+            // Get the parent element (usually <strong>)
+            final parent = link.parent;
+            if (parent != null) {
+              // Get the grandparent (usually <p>)
+              final grandparent = parent.parent;
+              if (grandparent != null) {
+                // Get all children of the grandparent
+                final children = grandparent.children;
+                // Find the index of the link's parent by comparing their HTML
+                int parentIndex = -1;
+                final parentHtml = parent.outerHtml;
+                for (int i = 0; i < children.length; i++) {
+                  if (children[i].outerHtml == parentHtml) {
+                    parentIndex = i;
+                    break;
+                  }
+                }
+                
+                // Check the next sibling element after the link's parent
+                if (parentIndex >= 0 && parentIndex < children.length - 1) {
+                  final nextSibling = children[parentIndex + 1];
+                  // Check if it's a <strong> element with <em> inside
+                  if (nextSibling.localName?.toLowerCase() == 'strong') {
+                    final emElement = nextSibling.querySelector('em');
+                    if (emElement != null) {
+                      final emText = emElement.text.trim();
+                      // Check if it contains parentheses (like "(Pembukaan)" or "(Lembu Betina)")
+                      if (emText.startsWith('(') && emText.endsWith(')')) {
+                        additionalText = emText;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          } catch (e) {
+            // If there's an error accessing siblings, continue without additional text
+            print('Error accessing sibling elements: $e');
+          }
+          
+          // Remove leading number prefix like "2. " or "1. " (but keep "Surah" prefix)
+          surahNameText = surahNameText.replaceFirst(RegExp(r'^\d+\.\s+'), '').trim();
+          
+          // Remove any parentheses content like "(19)" but keep "Surah" prefix
+          surahNameText = surahNameText.replaceAll(RegExp(r'\s*\([^)]+\)\s*'), ' ').trim();
+          
+          // Clean up multiple spaces
+          surahNameText = surahNameText.replaceAll(RegExp(r'\s+'), ' ').trim();
+          
+          // Format number with leading zero
+          final surahNumberStr = surahNumber.toString().padLeft(2, '0');
+          
+          // Check if we already added this exact surah (avoid duplicates)
+          final existingIndex = surahNames.indexWhere((s) => s['number'] == surahNumberStr && s['name'] == surahNameText && s['additional_text'] == additionalText);
+          if (existingIndex == -1) {
+            surahNames.add({
+              'number': surahNumberStr,
+              'name': surahNameText,
+              'name_arab': '', // Not used anymore
+              'additional_text': additionalText, // Store additional text separately
+            });
+          }
+        }
+      }
+      
+      // Cache category URLs
+      _categoryUrlsCache = surahCategoryUrls;
+      await _cacheCategoryUrls(surahCategoryUrls);
+      
+      // If Arabic names are not found in HTML, use a fallback mapping
+      // For now, we'll need to add Arabic names manually or find them in the HTML
+      // Let's try to find Arabic names in the HTML structure
+      _populateArabicNames(surahNames, document);
+      
+      print('Found ${surahNames.length} surah entries');
+      return surahNames;
+    } catch (e) {
+      print('Error in _scrapeSurahNamesFromWebsite: $e');
+      return [];
+    }
+  }
+  
+  /// Populate Arabic names from HTML or use fallback mapping
+  /// Note: Arabic names are no longer used, but keeping this function for compatibility
+  static void _populateArabicNames(List<Map<String, String>> surahNames, dynamic document) {
+    // Arabic names are no longer used - additional_text is used instead
+    // This function is kept for compatibility but does nothing
+  }
+  
+  /// Extract title from URL (same logic as in surah_pages.dart)
+  static String _extractTitleFromUrl(String url) {
+    try {
+      // Extract the last part of the URL (after the last /)
+      final parts = url.split('/');
+      // Filter out empty strings and get the last non-empty part
+      final nonEmptyParts = parts.where((p) => p.isNotEmpty).toList();
+      if (nonEmptyParts.isNotEmpty) {
+        String title = nonEmptyParts.last;
+        
+        // Split by hyphens
+        List<String> segments = title.split('-');
+        
+        // Process segments and join with spaces, but preserve hyphens between numbers
+        List<String> processedSegments = [];
+        for (int i = 0; i < segments.length; i++) {
+          String segment = segments[i].trim();
+          if (segment.isEmpty) continue;
+          
+          // Expand abbreviations
+          if (segment.toLowerCase() == 'bah') {
+            segment = 'bahagian';
+          }
+          
+          // Capitalize first letter, rest lowercase
+          if (segment.isNotEmpty) {
+            segment = segment[0].toUpperCase() + segment.substring(1).toLowerCase();
+          }
+          
+          processedSegments.add(segment);
+          
+          // If current and next segments are both numbers, add hyphen instead of space
+          if (i < segments.length - 1) {
+            String nextSegment = segments[i + 1].trim();
+            if (_isNumeric(segment) && _isNumeric(nextSegment)) {
+              processedSegments.add('-');
+            } else {
+              processedSegments.add(' ');
+            }
+          }
+        }
+        
+        title = processedSegments.join('');
+        
+        // Clean up multiple spaces
+        title = title.replaceAll(RegExp(r'\s+'), ' ');
+        
+        return title.trim();
+      }
+    } catch (e) {
+      print('Error extracting title: $e');
+    }
+    
+    return '';
+  }
+  
+  static bool _isNumeric(String str) {
+    if (str.isEmpty) return false;
+    return RegExp(r'^\d+$').hasMatch(str);
+  }
+
+  /// Scrape all post URLs and titles from a surah category page
+  static Future<List<Map<String, String>>> _scrapeSurahUrls(String categoryUrl) async {
+    final List<Map<String, String>> urlTitles = [];
+    int page = 1;
+    bool hasMorePages = true;
+    
+    while (hasMorePages) {
+      try {
+        // WordPress category pages typically use ?paged=X for pagination
+        final url = page == 1 ? categoryUrl : '$categoryUrl?paged=$page';
+        final response = await http.get(Uri.parse(url));
+        
+        if (response.statusCode != 200) {
+          break;
+        }
+        
+        final document = html_parser.parse(response.body);
+        
+        // Find all post links - look for links that match post URL pattern
+        // Post URLs typically match pattern: /YYYY/MM/DD/post-slug/
+        final postUrlPattern = RegExp(r'/\d{4}/\d{2}/\d{2}/[^/]+/$');
+        final allLinks = document.querySelectorAll('a');
+        
+        bool foundNewLinks = false;
+        for (var link in allLinks) {
+          final href = link.attributes['href'];
+          if (href != null) {
+            // Convert relative URL to absolute
+            final absoluteUrl = href.startsWith('http') ? href : '$_baseUrl$href';
+            
+            // Check if it's a post URL (matches date pattern) and is from celiktafsir.net
+            if (absoluteUrl.contains('celiktafsir.net') && 
+                postUrlPattern.hasMatch(absoluteUrl) &&
+                !urlTitles.any((item) => item['url'] == absoluteUrl) &&
+                !absoluteUrl.contains('/category/') &&
+                !absoluteUrl.contains('/tag/') &&
+                !absoluteUrl.contains('/author/') &&
+                !absoluteUrl.contains('/page/')) {
+              // Extract title from URL
+              final title = _extractTitleFromUrl(absoluteUrl);
+              urlTitles.add({
+                'url': absoluteUrl,
+                'title': title,
+              });
+              foundNewLinks = true;
+            }
+          }
+        }
+        
+        // Check if there's a next page link
+        final nextPageLink = document.querySelector('a.next.page-numbers, .nav-next a, .pagination .next a, .pagination-next a');
+        hasMorePages = foundNewLinks && nextPageLink != null;
+        page++;
+        
+        // Safety limit to prevent infinite loops
+        if (page > 100) {
+          print('Warning: Reached page limit for category');
+          break;
+        }
+        
+        // If no new links found, stop
+        if (!foundNewLinks) {
+          hasMorePages = false;
+        }
+      } catch (e) {
+        print('Error scraping page $page of category: $e');
+        break;
       }
     }
     
-    return surahList;
+    // Sort by URL to maintain order
+    urlTitles.sort((a, b) => a['url']!.compareTo(b['url']!));
+    
+    return urlTitles;
   }
   
-  /// Cache surah list locally
-  static Future<void> _cacheSurahList(List<Map<String, dynamic>> surahList) async {
+  /// Cache surah names locally
+  static Future<void> _cacheSurahNames(List<Map<String, String>> surahNames) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final jsonString = jsonEncode(surahList);
+      final jsonString = jsonEncode(surahNames);
       await prefs.setString(_cacheKey, jsonString);
       await prefs.setString(_cacheTimestampKey, DateTime.now().toIso8601String());
-      print('Surah list cached successfully');
+      print('Surah names cached successfully');
     } catch (e) {
-      print('Error caching surah list: $e');
+      print('Error caching surah names: $e');
     }
   }
   
-  /// Get cached surah list
-  static Future<List<Map<String, dynamic>>?> _getCachedSurahList() async {
+  /// Get cached surah names
+  static Future<List<Map<String, String>>?> _getCachedSurahNames() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = prefs.getString(_cacheKey);
       
       if (jsonString != null) {
         final List<dynamic> decoded = jsonDecode(jsonString);
-        return decoded.cast<Map<String, dynamic>>();
+        // Properly convert Map<String, dynamic> to Map<String, String>
+        return decoded.map((item) {
+          final Map<String, dynamic> map = item as Map<String, dynamic>;
+          return Map<String, String>.from(map.map((key, value) => MapEntry(key, value.toString())));
+        }).toList();
       }
       
       return null;
     } catch (e) {
-      print('Error getting cached surah list: $e');
+      print('Error getting cached surah names: $e');
       return null;
     }
   }
   
-  /// Get a specific surah by index
-  static Future<Map<String, dynamic>?> getSurahByIndex(int surahIndex) async {
-    final surahList = await getListSurah();
-    if (surahIndex >= 0 && surahIndex < surahList.length) {
-      return surahList[surahIndex];
+  /// Cache category URLs locally
+  static Future<void> _cacheCategoryUrls(Map<int, String> categoryUrls) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final Map<String, String> stringMap = categoryUrls.map((k, v) => MapEntry(k.toString(), v));
+      final jsonString = jsonEncode(stringMap);
+      await prefs.setString(_cacheCategoryUrlsKey, jsonString);
+      print('Category URLs cached successfully');
+    } catch (e) {
+      print('Error caching category URLs: $e');
     }
+  }
+  
+  /// Get cached category URLs
+  static Future<Map<int, String>?> _getCachedCategoryUrls() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonString = prefs.getString(_cacheCategoryUrlsKey);
+      
+      if (jsonString != null) {
+        final Map<String, dynamic> decoded = jsonDecode(jsonString);
+        return decoded.map((k, v) => MapEntry(int.parse(k), v.toString()));
+      }
+      
+      return null;
+    } catch (e) {
+      print('Error getting cached category URLs: $e');
+      return null;
+    }
+  }
+  
+  /// Get category URL for a surah (load from cache or scrape if needed)
+  static Future<String?> _getCategoryUrlForSurah(int surahNumber) async {
+    // Try to get from cache first
+    if (_categoryUrlsCache != null && _categoryUrlsCache!.containsKey(surahNumber)) {
+      return _categoryUrlsCache![surahNumber];
+    }
+    
+    // Try to load from SharedPreferences
+    final cachedUrls = await _getCachedCategoryUrls();
+    if (cachedUrls != null && cachedUrls.containsKey(surahNumber)) {
+      _categoryUrlsCache = cachedUrls;
+      return cachedUrls[surahNumber];
+    }
+    
+    // If not cached, scrape the main page to get category URLs
+    try {
+      final response = await http.get(Uri.parse(_baseUrl));
+      if (response.statusCode == 200) {
+        final document = html_parser.parse(response.body);
+        final surahLinks = document.querySelectorAll('a');
+        final Map<int, String> categoryUrls = {};
+        
+        for (var link in surahLinks) {
+          final href = link.attributes['href'];
+          final text = link.text.trim();
+          final surahMatch = RegExp(r'Surah\s+(\d{3}):\s+([^(]+)').firstMatch(text);
+          if (surahMatch != null && href != null) {
+            final surahNum = int.parse(surahMatch.group(1)!);
+            if (!categoryUrls.containsKey(surahNum)) {
+              final categoryUrl = href.startsWith('http') ? href : '$_baseUrl$href';
+              categoryUrls[surahNum] = categoryUrl;
+            }
+          }
+        }
+        
+        _categoryUrlsCache = categoryUrls;
+        await _cacheCategoryUrls(categoryUrls);
+        
+        return categoryUrls[surahNumber];
+      }
+    } catch (e) {
+      print('Error scraping category URL: $e');
+    }
+    
     return null;
+  }
+  
+  /// Cache surah URLs and titles locally
+  static Future<void> _cacheSurahUrls(int surahNumber, List<Map<String, String>> urlTitles) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      // Get existing cache
+      final existingCache = await _getCachedSurahUrls();
+      existingCache[surahNumber] = urlTitles;
+      
+      // Convert to JSON-serializable format
+      final Map<String, dynamic> cacheMap = {};
+      existingCache.forEach((key, value) {
+        cacheMap[key.toString()] = value;
+      });
+      
+      final jsonString = jsonEncode(cacheMap);
+      await prefs.setString(_cacheSurahUrlsKey, jsonString);
+      print('Cached URLs and titles for surah $surahNumber (${urlTitles.length} pages)');
+    } catch (e) {
+      print('Error caching surah URLs: $e');
+    }
+  }
+  
+  /// Get cached surah URLs and titles
+  static Future<Map<int, List<Map<String, String>>>> _getCachedSurahUrls() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonString = prefs.getString(_cacheSurahUrlsKey);
+      
+      if (jsonString != null) {
+        final Map<String, dynamic> decoded = jsonDecode(jsonString);
+        final Map<int, List<Map<String, String>>> result = {};
+        decoded.forEach((key, value) {
+          if (value is List) {
+            // Handle both old format (List<String>) and new format (List<Map<String, String>>)
+            final List<Map<String, String>> urlTitles = [];
+            for (var item in value) {
+              if (item is String) {
+                // Old format: just URL, extract title
+                urlTitles.add({
+                  'url': item,
+                  'title': _extractTitleFromUrl(item),
+                });
+              } else if (item is Map) {
+                // New format: Map with url and title
+                urlTitles.add(Map<String, String>.from(item.map((k, v) => MapEntry(k.toString(), v.toString()))));
+              }
+            }
+            result[int.parse(key)] = urlTitles;
+          }
+        });
+        return result;
+      }
+      
+      return {};
+    } catch (e) {
+      print('Error getting cached surah URLs: $e');
+      return {};
+    }
+  }
+  
+  /// Check if internet is available by attempting a simple HTTP request
+  static Future<bool> _hasInternetConnection() async {
+    try {
+      final response = await http.get(Uri.parse(_baseUrl)).timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {
+          throw Exception('Connection timeout');
+        },
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+  
+  /// Get a specific surah by index - scrapes URLs on-demand
+  static Future<Map<String, dynamic>?> getSurahByIndex(int surahIndex) async {
+    final surahNumber = surahIndex + 1; // surahIndex is 0-based, surahNumber is 1-based
+    
+    // Check if we have internet connection
+    final hasInternet = await _hasInternetConnection();
+    
+    // If we have internet, try to fetch fresh data
+    if (hasInternet) {
+      // Get category URL for this surah
+      final categoryUrl = await _getCategoryUrlForSurah(surahNumber);
+      if (categoryUrl == null) {
+        print('No category URL found for surah $surahNumber');
+        // Try to use cached URLs if available
+        final cachedUrls = await _getCachedSurahUrls();
+        if (cachedUrls.containsKey(surahNumber)) {
+          print('Using cached URLs for surah $surahNumber');
+          final urlTitles = cachedUrls[surahNumber]!;
+          return {
+            'surahNumber': surahNumber,
+            'surahIndex': surahIndex,
+            'urls': urlTitles.map((item) => item['url']!).toList(),
+            'titles': urlTitles.map((item) => item['title']!).toList(),
+            'urlTitles': urlTitles,
+            'totalPages': urlTitles.length,
+          };
+        }
+        return null;
+      }
+      
+      // Scrape URLs and titles for this specific surah
+      try {
+        print('Scraping URLs and titles for surah $surahNumber from $categoryUrl...');
+        final urlTitles = await _scrapeSurahUrls(categoryUrl);
+        
+        // Cache the URLs and titles
+        await _cacheSurahUrls(surahNumber, urlTitles);
+        
+        return {
+          'surahNumber': surahNumber,
+          'surahIndex': surahIndex,
+          'urls': urlTitles.map((item) => item['url']!).toList(),
+          'titles': urlTitles.map((item) => item['title']!).toList(),
+          'urlTitles': urlTitles,
+          'totalPages': urlTitles.length,
+        };
+      } catch (e) {
+        print('Error scraping surah $surahNumber: $e');
+        // If scraping fails, try to use cached URLs
+        final cachedUrls = await _getCachedSurahUrls();
+        if (cachedUrls.containsKey(surahNumber)) {
+          print('Using cached URLs for surah $surahNumber after scraping error');
+          final urlTitles = cachedUrls[surahNumber]!;
+          return {
+            'surahNumber': surahNumber,
+            'surahIndex': surahIndex,
+            'urls': urlTitles.map((item) => item['url']!).toList(),
+            'titles': urlTitles.map((item) => item['title']!).toList(),
+            'urlTitles': urlTitles,
+            'totalPages': urlTitles.length,
+          };
+        }
+        return {
+          'surahNumber': surahNumber,
+          'surahIndex': surahIndex,
+          'urls': <String>[],
+          'titles': <String>[],
+          'urlTitles': <Map<String, String>>[],
+          'totalPages': 0,
+        };
+      }
+    } else {
+      // No internet - use cached URLs
+      print('No internet connection, using cached URLs for surah $surahNumber');
+      final cachedUrls = await _getCachedSurahUrls();
+      if (cachedUrls.containsKey(surahNumber)) {
+        final urlTitles = cachedUrls[surahNumber]!;
+        return {
+          'surahNumber': surahNumber,
+          'surahIndex': surahIndex,
+          'urls': urlTitles.map((item) => item['url']!).toList(),
+          'titles': urlTitles.map((item) => item['title']!).toList(),
+          'urlTitles': urlTitles,
+          'totalPages': urlTitles.length,
+        };
+      } else {
+        print('No cached URLs found for surah $surahNumber');
+        return {
+          'surahNumber': surahNumber,
+          'surahIndex': surahIndex,
+          'urls': <String>[],
+          'titles': <String>[],
+          'urlTitles': <Map<String, String>>[],
+          'totalPages': 0,
+        };
+      }
+    }
   }
   
   /// Get a specific URL from a specific surah
   static Future<String?> getSurahUrl(int surahIndex, int pageIndex) async {
     final surah = await getSurahByIndex(surahIndex);
-    if (surah != null && pageIndex >= 0 && pageIndex < surah['urls'].length) {
-      return surah['urls'][pageIndex];
+    if (surah != null) {
+      final urls = List<String>.from(surah['urls'] as List);
+      if (pageIndex >= 0 && pageIndex < urls.length) {
+        return urls[pageIndex];
+      }
+    }
+    return null;
+  }
+  
+  /// Get a specific page title from a specific surah
+  static Future<String?> getSurahPageTitle(int surahIndex, int pageIndex) async {
+    final surah = await getSurahByIndex(surahIndex);
+    if (surah != null) {
+      final titles = surah['titles'] as List<String>?;
+      if (titles != null && pageIndex >= 0 && pageIndex < titles.length) {
+        return titles[pageIndex];
+      }
+      // Fallback: extract from URL if titles not available
+      final url = await getSurahUrl(surahIndex, pageIndex);
+      if (url != null) {
+        return _extractTitleFromUrl(url);
+      }
     }
     return null;
   }

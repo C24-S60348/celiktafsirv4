@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-Widget surahButton(BuildContext context, String nombor, String surah, String suraharab, Function() onPressed) {
+Widget surahButton(BuildContext context, String nombor, String surah, String additionalText, Function() onPressed) {
   return GestureDetector(
     onTap: onPressed,
     child: Row(
@@ -17,12 +17,16 @@ Widget surahButton(BuildContext context, String nombor, String surah, String sur
           alignment: Alignment.center,
           children: [
             Image.asset('assets/images/surahplace.png', fit: BoxFit.contain, width: MediaQuery.of(context).size.width * 0.7,),
-            Column(
-              children: [
-                Text(surah, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
-                Text(suraharab, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
-              ],
-            ),
+            // If there's additional text, show it below; otherwise center the surah name
+            additionalText.isNotEmpty
+                ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(surah, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
+                      Text(additionalText, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+                    ],
+                  )
+                : Text(surah, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
           ],
         ),
       ],

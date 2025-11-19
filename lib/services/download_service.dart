@@ -16,7 +16,7 @@ class DownloadService {
       }
       
       final totalPages = surah['totalPages'] as int;
-      final urls = surah['urls'] as List<String>;
+      final urls = List<String>.from(surah['urls'] as List);
       
       print('Downloading surah $surahIndex: $totalPages pages');
       
