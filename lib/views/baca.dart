@@ -25,6 +25,8 @@ class _BacaPageState extends State<BacaPage> {
     super.dispose();
   }
 
+  String? categoryUrl;
+  
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -34,6 +36,7 @@ class _BacaPageState extends State<BacaPage> {
         surahData = args.cast<String, String>();
         surahIndex = args['surahIndex'] ?? 0;
         currentPage = args['pageIndex'] ?? 0;
+        categoryUrl = args['category_url']?.toString();
         _isInitialized = true;
         _loadSurahContent();
         _checkBookmark(); // Check bookmark status when page loads
@@ -43,7 +46,8 @@ class _BacaPageState extends State<BacaPage> {
 
   void _loadSurahContent() async {
     print('Loading surah content for index: $surahIndex');
-    final surah = await getlist.GetListSurah.getSurahByIndex(surahIndex);
+    // Pass categoryUrl to ensure we get the correct variant (e.g., Baqarah Juzuk 2)
+    final surah = await getlist.GetListSurah.getSurahByIndex(surahIndex, categoryUrl: categoryUrl);
     print('Surah data: $surah');
     
     if (surah != null) {
@@ -76,7 +80,7 @@ class _BacaPageState extends State<BacaPage> {
   void _downloadSurahInBackground() async {
     try {
       // Check if surah is already downloaded
-      final isDownloaded = await DownloadService.isSurahDownloaded(surahIndex);
+      final isDownloaded = await DownloadService.isSurahDownloaded(surahIndex, categoryUrl: categoryUrl);
       
       if (!isDownloaded) {
         // Show a subtle notification that download is starting
@@ -88,8 +92,8 @@ class _BacaPageState extends State<BacaPage> {
           ),
         );
         
-        // Download in background
-        await DownloadService.downloadSurahPages(surahIndex);
+        // Download in background with correct categoryUrl
+        await DownloadService.downloadSurahPages(surahIndex, categoryUrl: categoryUrl);
         
         // Show completion notification
         if (mounted) {
@@ -103,7 +107,7 @@ class _BacaPageState extends State<BacaPage> {
         }
         
         // Debug: Check cached pages
-        await DownloadService.debugCachedPages(surahIndex);
+        await DownloadService.debugCachedPages(surahIndex, categoryUrl: categoryUrl);
       }
     } catch (e) {
       print('Error memuat kandungan: $e');
@@ -145,8 +149,8 @@ class _BacaPageState extends State<BacaPage> {
       await model.removeBookmark(surahIndex, currentPage);
       _showBookmarkMessage('Bookmark removed');
     } else {
-      // Add bookmark
-      await model.addBookmark(surahIndex, currentPage);
+      // Add bookmark with category URL
+      await model.addBookmark(surahIndex, currentPage, categoryUrl: categoryUrl);
       _showBookmarkMessage('Bookmark added');
     }
     

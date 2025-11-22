@@ -66,8 +66,11 @@ class _BookmarksPageState extends State<BookmarksPage> {
     });
     
     try {
+      // Get stored category URL from bookmark
+      final categoryUrl = bookmark['categoryUrl'] as String?;
+      
       // Get surah data from the service
-      final surah = await getlist.GetListSurah.getSurahByIndex(bookmark['surahIndex']);
+      final surah = await getlist.GetListSurah.getSurahByIndex(bookmark['surahIndex'], categoryUrl: categoryUrl);
       if (surah != null) {
         await Navigator.of(context).pushNamed('/baca', arguments: {
           'number': surah['surahIndex'],
@@ -75,6 +78,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
           'name_arab': surahlist.surahList[surah['surahIndex']]['name_arab'],
           'surahIndex': bookmark['surahIndex'],
           'pageIndex': bookmark['currentPage'],
+          'category_url': categoryUrl,
         });
       }
     } catch (e) {

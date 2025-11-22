@@ -14,6 +14,8 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
   bool isLoading = true;
   bool hasNoInternet = false;
 
+  String? categoryUrl;
+  
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -26,6 +28,7 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
           'number': args['number']?.toString() ?? '',
         };
         surahIndex = args['surahIndex'] ?? 0;
+        categoryUrl = args['category_url']?.toString();
         _loadPages();
       }
     }
@@ -49,7 +52,8 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
     // Check internet connection first
     final hasInternet = await _checkInternetConnection();
     
-    final surah = await getlist.GetListSurah.getSurahByIndex(surahIndex);
+    // Pass categoryUrl to getSurahByIndex so each variant uses its specific URL
+    final surah = await getlist.GetListSurah.getSurahByIndex(surahIndex, categoryUrl: categoryUrl);
     if (surah != null) {
       final urls = List<String>.from(surah['urls'] as List);
       final titles = surah['titles'] as List<String>?;
@@ -306,6 +310,7 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
                                         'surahIndex': surahIndex,
                                         'pageIndex': page['index'],
                                         'pageTitle': page['title'],
+                                        'category_url': categoryUrl,
                                       });
                                     },
                                   ),

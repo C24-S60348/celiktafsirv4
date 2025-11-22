@@ -311,11 +311,12 @@ Future<void> saveBookmarks(List<Map<String, dynamic>> bookmarks) async {
   }
 }
 
-Future<void> addBookmark(int surahIndex, int currentPage) async {
+Future<void> addBookmark(int surahIndex, int currentPage, {String? categoryUrl}) async {
   try {
     final bookmark = {
       'surahIndex': surahIndex,
       'currentPage': currentPage,
+      'categoryUrl': categoryUrl,
       'dateAdded': DateTime.now().toIso8601String(),
     };
     final bookmarks = await getBookmarks();

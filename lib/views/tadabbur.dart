@@ -20,12 +20,18 @@ class _TadabburPageState extends State<TadabburPage> {
   }
 
   void _loadSurahNames() async {
+    if (!mounted) return;
+    
     setState(() {
       isLoading = true;
     });
     
     try {
       final names = await getlist.GetListSurah.getSurahNames();
+      
+      // Check if widget is still mounted after async operation
+      if (!mounted) return;
+      
       // Ensure all maps are properly typed as Map<String, String>
       final convertedNames = names.map((item) {
         return Map<String, String>.from(item.map((key, value) => MapEntry(key, value.toString())));
@@ -38,12 +44,21 @@ class _TadabburPageState extends State<TadabburPage> {
       });
     } catch (e) {
       print('Error loading surah names: $e');
+      
+      // Check if widget is still mounted after error
+      if (!mounted) return;
+      
       // Fallback to hardcoded list if scraping fails
-      // Add additional_text field to fallback list
+      // Add additional_text and category_url fields to fallback list
       final fallbackList = model.surahList.map((item) {
         final Map<String, String> newItem = Map<String, String>.from(item);
         if (!newItem.containsKey('additional_text')) {
           newItem['additional_text'] = '';
+        }
+        if (!newItem.containsKey('category_url')) {
+          // Generate default category URL from surah number
+          final number = newItem['number'] ?? '001';
+          newItem['category_url'] = 'https://celiktafsir.net/surah-${number.padLeft(3, '0')}-';
         }
         return newItem;
       }).toList();
@@ -57,6 +72,8 @@ class _TadabburPageState extends State<TadabburPage> {
   }
 
   void _filterSurahs(String query) {
+    if (!mounted) return;
+    
     setState(() {
       filteredSurahList = surahList
           .where(

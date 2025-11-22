@@ -7,9 +7,9 @@ class DownloadService {
   static const String _cacheKey = 'cached_surah_content';
   
   /// Download all pages for a specific surah
-  static Future<void> downloadSurahPages(int surahIndex) async {
+  static Future<void> downloadSurahPages(int surahIndex, {String? categoryUrl}) async {
     try {
-      final surah = await GetListSurah.getSurahByIndex(surahIndex);
+      final surah = await GetListSurah.getSurahByIndex(surahIndex, categoryUrl: categoryUrl);
       if (surah == null) {
         print('Surah $surahIndex not found');
         return;
@@ -79,9 +79,9 @@ class DownloadService {
   }
   
   /// Check if surah is fully downloaded
-  static Future<bool> isSurahDownloaded(int surahIndex) async {
+  static Future<bool> isSurahDownloaded(int surahIndex, {String? categoryUrl}) async {
     try {
-      final surah = await GetListSurah.getSurahByIndex(surahIndex);
+      final surah = await GetListSurah.getSurahByIndex(surahIndex, categoryUrl: categoryUrl);
       if (surah == null) return false;
       
       final totalPages = surah['totalPages'] as int;
@@ -106,9 +106,9 @@ class DownloadService {
   }
   
   /// Debug method to check cached pages for a surah
-  static Future<void> debugCachedPages(int surahIndex) async {
+  static Future<void> debugCachedPages(int surahIndex, {String? categoryUrl}) async {
     final cachedContent = await _getCachedContent();
-    final surah = await GetListSurah.getSurahByIndex(surahIndex);
+    final surah = await GetListSurah.getSurahByIndex(surahIndex, categoryUrl: categoryUrl);
     
     if (surah == null) {
       print('Surah $surahIndex not found');

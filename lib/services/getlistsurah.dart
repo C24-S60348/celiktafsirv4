@@ -90,17 +90,26 @@ class GetListSurah {
           
           if (href == null || text.isEmpty) continue;
           
-          // Extract surah number from href (e.g., surah-001-al-fatihah)
-          final hrefMatch = RegExp(r'surah-(\d{3})-').firstMatch(href);
+          // Extract surah number from href (e.g., surah-001-al-fatihah, surah-6-anam, surah-59-hashr)
+          // Match 1, 2, or 3 digits
+          final hrefMatch = RegExp(r'surah-(\d{1,3})-').firstMatch(href);
           if (hrefMatch == null) continue;
           
-          final surahNumber = int.parse(hrefMatch.group(1)!);
+          int surahNumber = int.parse(hrefMatch.group(1)!);
           
-          // Store category URL for main surah (first occurrence)
+          // Fix for website error: surah-015-hashr should be surah 59 (Al-Hashr), not 15 (Al-Hijr)
+          if (surahNumber == 15 && href.toLowerCase().contains('hashr')) {
+            surahNumber = 59;
+          }
+          
+          // Store category URL (for backwards compatibility with single-surah lookups)
           if (!surahCategoryUrls.containsKey(surahNumber)) {
             final categoryUrl = href.startsWith('http') ? href : '$_baseUrl$href';
             surahCategoryUrls[surahNumber] = categoryUrl;
           }
+          
+          // Store the specific category URL for this variant (including juzuk variants)
+          final specificCategoryUrl = href.startsWith('http') ? href : '$_baseUrl$href';
           
           // Extract surah name from link text (e.g., "Surah Al-Fatihah" or "2. Baqarah Juzuk 2")
           String surahNameText = text;
@@ -158,6 +167,13 @@ class GetListSurah {
           // Clean up multiple spaces
           surahNameText = surahNameText.replaceAll(RegExp(r'\s+'), ' ').trim();
           
+          // Format Baqarah Juzuk/Bahagian variants to include "Surah Al-" prefix
+          // Transform "Baqarah Juzuk 2" → "Surah Al-Baqarah Juzuk 2"
+          if (surahNameText.startsWith('Baqarah') && 
+              (surahNameText.contains('Juzuk') || surahNameText.contains('Bahagian'))) {
+            surahNameText = 'Surah Al-$surahNameText';
+          }
+          
           // Format number with leading zero
           final surahNumberStr = surahNumber.toString().padLeft(2, '0');
           
@@ -169,6 +185,7 @@ class GetListSurah {
               'name': surahNameText,
               'name_arab': '', // Not used anymore
               'additional_text': additionalText, // Store additional text separately
+              'category_url': specificCategoryUrl, // Store specific URL for each variant
             });
           }
         }
@@ -524,7 +541,8 @@ class GetListSurah {
   }
   
   /// Get a specific surah by index - scrapes URLs on-demand
-  static Future<Map<String, dynamic>?> getSurahByIndex(int surahIndex) async {
+  /// If categoryUrl is provided, it will be used instead of looking it up
+  static Future<Map<String, dynamic>?> getSurahByIndex(int surahIndex, {String? categoryUrl}) async {
     final surahNumber = surahIndex + 1; // surahIndex is 0-based, surahNumber is 1-based
     
     // Check if we have internet connection
@@ -532,9 +550,9 @@ class GetListSurah {
     
     // If we have internet, try to fetch fresh data
     if (hasInternet) {
-      // Get category URL for this surah
-      final categoryUrl = await _getCategoryUrlForSurah(surahNumber);
-      if (categoryUrl == null) {
+      // Get category URL for this surah (use provided one or look it up)
+      final String? finalCategoryUrl = categoryUrl ?? await _getCategoryUrlForSurah(surahNumber);
+      if (finalCategoryUrl == null) {
         print('No category URL found for surah $surahNumber');
         // Try to use cached URLs if available
         final cachedUrls = await _getCachedSurahUrls();
@@ -555,8 +573,8 @@ class GetListSurah {
       
       // Scrape URLs and titles for this specific surah
       try {
-        print('Scraping URLs and titles for surah $surahNumber from $categoryUrl...');
-        final urlTitles = await _scrapeSurahUrls(categoryUrl);
+        print('Scraping URLs and titles for surah $surahNumber from $finalCategoryUrl...');
+        final urlTitles = await _scrapeSurahUrls(finalCategoryUrl);
         
         // Cache the URLs and titles
         await _cacheSurahUrls(surahNumber, urlTitles);
