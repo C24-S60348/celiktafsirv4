@@ -5,10 +5,28 @@ import 'getlistsurah.dart';
 
 class DownloadService {
   static const String _cacheKey = 'cached_surah_content';
+  static const String _cacheVersionKey = 'cache_version';
+  static const int _currentCacheVersion = 2; // Increment this when cache structure changes
+  
+  /// Check and migrate cache if needed
+  static Future<void> _checkCacheVersion() async {
+    final prefs = await SharedPreferences.getInstance();
+    final cachedVersion = prefs.getInt(_cacheVersionKey) ?? 0;
+    
+    if (cachedVersion < _currentCacheVersion) {
+      print('Cache version outdated ($cachedVersion < $_currentCacheVersion). Clearing cache...');
+      await clearCache();
+      await prefs.setInt(_cacheVersionKey, _currentCacheVersion);
+      print('Cache cleared and version updated to $_currentCacheVersion');
+    }
+  }
   
   /// Download all pages for a specific surah
   static Future<void> downloadSurahPages(int surahIndex, {String? categoryUrl}) async {
     try {
+      // Check cache version before accessing cache
+      await _checkCacheVersion();
+      
       final surah = await GetListSurah.getSurahByIndex(surahIndex, categoryUrl: categoryUrl);
       if (surah == null) {
         print('Surah $surahIndex not found');
@@ -73,6 +91,9 @@ class DownloadService {
   
   /// Get cached content for a specific page
   static Future<Map<String, dynamic>?> getCachedPage(int surahIndex, int pageIndex) async {
+    // Check cache version before accessing cache
+    await _checkCacheVersion();
+    
     final cachedContent = await _getCachedContent();
     final cacheKey = '${surahIndex}_$pageIndex';
     return cachedContent[cacheKey];

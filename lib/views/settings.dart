@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/download_service.dart';
 
 class SettingsPage extends StatefulWidget {
   @override
@@ -164,6 +165,81 @@ class _SettingsPageState extends State<SettingsPage> {
       _fontSize = 16.0;
     });
     _saveSettings();
+  }
+
+  void _showClearCacheDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Kosongkan Cache'),
+          content: Text(
+            'Adakah anda pasti mahu mengosongkan cache? '
+            'Semua kandungan yang telah dimuat turun akan dipadam. '
+            'Aplikasi akan memuat turun semula kandungan apabila anda membuka surah.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Batal'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                // Show loading
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+                
+                try {
+                  // Clear all caches
+                  await DownloadService.clearCache();
+                  
+                  // Clear surah list cache too
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.remove('cached_surah_names');
+                  await prefs.remove('cached_category_urls');
+                  await prefs.remove('cached_surah_urls');
+                  await prefs.remove('cached_surah_list_timestamp');
+                  
+                  // Close loading dialog
+                  Navigator.of(context).pop();
+                  
+                  // Show success message
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Cache berjaya dikosongkan!'),
+                      backgroundColor: Colors.green,
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                } catch (e) {
+                  // Close loading dialog
+                  Navigator.of(context).pop();
+                  
+                  // Show error message
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Ralat mengosongkan cache: $e'),
+                      backgroundColor: Colors.red,
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                }
+              },
+              child: Text(
+                'Kosongkan',
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -359,6 +435,30 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                     child: Text(
                       'Cara Menggunakan',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16),
+                
+                // Clear Cache Button
+                Container(
+                  width: MediaQuery.of(context).size.width * 0.7,
+                  child: ElevatedButton(
+                    onPressed: _showClearCacheDialog,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red[700],
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(
+                      'Kosongkan Cache',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 16,

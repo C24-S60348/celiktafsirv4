@@ -8,15 +8,37 @@ class GetListSurah {
   static const String _cacheCategoryUrlsKey = 'cached_category_urls';
   static const String _cacheSurahUrlsKey = 'cached_surah_urls'; // Cache for scraped URLs per surah
   static const String _cacheTimestampKey = 'cached_surah_list_timestamp';
+  static const String _cacheVersionKey = 'surah_cache_version';
+  static const int _currentCacheVersion = 2; // Increment when cache structure changes
   static const String _baseUrl = 'https://celiktafsir.net';
   
   // Cache for category URLs (surah number -> category URL)
   static Map<int, String>? _categoryUrlsCache;
   
+  /// Check and migrate cache if needed
+  static Future<void> _checkCacheVersion() async {
+    final prefs = await SharedPreferences.getInstance();
+    final cachedVersion = prefs.getInt(_cacheVersionKey) ?? 0;
+    
+    if (cachedVersion < _currentCacheVersion) {
+      print('Surah cache version outdated ($cachedVersion < $_currentCacheVersion). Clearing surah cache...');
+      // Clear all surah-related caches
+      await prefs.remove(_cacheKey);
+      await prefs.remove(_cacheCategoryUrlsKey);
+      await prefs.remove(_cacheSurahUrlsKey);
+      await prefs.remove(_cacheTimestampKey);
+      await prefs.setInt(_cacheVersionKey, _currentCacheVersion);
+      print('Surah cache cleared and version updated to $_currentCacheVersion');
+    }
+  }
+  
   /// Get list of surah names (including juzuk variants) for tadabbur page
   /// Always tries to fetch fresh data if internet is available
   /// Only uses cache if fetch fails (no internet or network error)
   static Future<List<Map<String, String>>> getSurahNames() async {
+    // Check cache version first
+    await _checkCacheVersion();
+    
     // Check if we have internet connection
     final hasInternet = await _hasInternetConnection();
     
