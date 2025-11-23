@@ -2,6 +2,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:html/parser.dart' as html_parser;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class GetListSurah {
   static const String _cacheKey = 'cached_surah_names';
@@ -11,6 +12,19 @@ class GetListSurah {
   static const String _cacheVersionKey = 'surah_cache_version';
   static const int _currentCacheVersion = 2; // Increment when cache structure changes
   static const String _baseUrl = 'https://celiktafsir.net';
+  
+  // CORS Proxy for Web - using custom proxy server
+  static const String _corsProxy = 'https://afwanhaziq.vps.webdock.cloud/proxy?url=';
+  
+  /// Get the URL with CORS proxy if running on web
+  static String _getProxiedUrl(String url) {
+    if (kIsWeb) {
+      // For web, use custom CORS proxy
+      return '$_corsProxy$url';
+    }
+    // For mobile, use direct URL (no CORS restrictions)
+    return url;
+  }
   
   // Cache for category URLs (surah number -> category URL)
   static Map<int, String>? _categoryUrlsCache;
@@ -91,7 +105,7 @@ class GetListSurah {
     
     try {
       // Fetch the main page
-      final response = await http.get(Uri.parse(_baseUrl));
+      final response = await http.get(Uri.parse(_getProxiedUrl(_baseUrl)));
       if (response.statusCode != 200) {
         throw Exception('Failed to fetch main page: ${response.statusCode}');
       }
@@ -308,7 +322,7 @@ class GetListSurah {
       try {
         // WordPress category pages typically use ?paged=X for pagination
         final url = page == 1 ? categoryUrl : '$categoryUrl?paged=$page';
-        final response = await http.get(Uri.parse(url));
+        final response = await http.get(Uri.parse(_getProxiedUrl(url)));
         
         if (response.statusCode != 200) {
           break;
@@ -456,7 +470,7 @@ class GetListSurah {
     
     // If not cached, scrape the main page to get category URLs
     try {
-      final response = await http.get(Uri.parse(_baseUrl));
+      final response = await http.get(Uri.parse(_getProxiedUrl(_baseUrl)));
       if (response.statusCode == 200) {
         final document = html_parser.parse(response.body);
         final surahLinks = document.querySelectorAll('a');
@@ -550,7 +564,7 @@ class GetListSurah {
   /// Check if internet is available by attempting a simple HTTP request
   static Future<bool> _hasInternetConnection() async {
     try {
-      final response = await http.get(Uri.parse(_baseUrl)).timeout(
+      final response = await http.get(Uri.parse(_getProxiedUrl(_baseUrl))).timeout(
         const Duration(seconds: 5),
         onTimeout: () {
           throw Exception('Connection timeout');

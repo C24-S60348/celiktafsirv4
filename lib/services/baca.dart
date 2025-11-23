@@ -1,10 +1,22 @@
-import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' as html_parser;
-import 'package:html/dom.dart' as html_dom;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class BacaService {
   static const String baseUrl = 'https://celiktafsir.net';
+  
+  // CORS Proxy for Web - using custom proxy server
+  static const String _corsProxy = 'https://afwanhaziq.vps.webdock.cloud/proxy?url=';
+  
+  /// Get the URL with CORS proxy if running on web
+  static String _getProxiedUrl(String url) {
+    if (kIsWeb) {
+      // For web, use custom CORS proxy
+      return '$_corsProxy$url';
+    }
+    // For mobile, use direct URL (no CORS restrictions)
+    return url;
+  }
 
   /// Fetches HTML content from a URL and extracts data from element with specified class
   static Future<String?> fetchContentFromUrl(
@@ -12,7 +24,7 @@ class BacaService {
     String className,
   ) async {
     try {
-      final response = await http.get(Uri.parse(url));
+      final response = await http.get(Uri.parse(_getProxiedUrl(url)));
 
       if (response.statusCode == 200) {
         final document = html_parser.parse(response.body);

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../services/getlistsurah.dart' as getlist;
 import '../services/baca.dart' as service;
 import '../services/download_service.dart';
@@ -61,12 +62,61 @@ String _removeNumbersFromUnorderedLists(String html) {
   return result;
 }
 
+/// Get proxied image URL for web to bypass CORS
+String _getProxiedImageUrl(String imageUrl) {
+  // Handle relative URLs by converting to absolute URLs
+  String absoluteUrl = imageUrl;
+  if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
+    // If it's a relative URL, prepend the base URL
+    const baseUrl = 'https://celiktafsir.net';
+    if (imageUrl.startsWith('/')) {
+      absoluteUrl = '$baseUrl$imageUrl';
+    } else {
+      absoluteUrl = '$baseUrl/$imageUrl';
+    }
+  }
+  
+  if (kIsWeb) {
+    // For web, use CORS proxy for images
+    const corsProxy = 'https://afwanhaziq.vps.webdock.cloud/proxy?url=';
+    return '$corsProxy$absoluteUrl';
+  }
+  // For mobile, use direct URL
+  return absoluteUrl;
+}
+
+/// Process HTML content to proxy all image URLs for web
+String _processHtmlForWeb(String htmlContent) {
+  if (!kIsWeb) {
+    // For mobile, return content as-is
+    return htmlContent;
+  }
+  
+  // For web, proxy all image URLs in the HTML
+  // Replace src="..." in img tags
+  final imgPattern = RegExp(r'<img([^>]*)\s+src="([^"]*)"([^>]*)>', caseSensitive: false);
+  
+  return htmlContent.replaceAllMapped(imgPattern, (match) {
+    final beforeSrc = match.group(1) ?? '';
+    final originalSrc = match.group(2) ?? '';
+    final afterSrc = match.group(3) ?? '';
+    
+    // Get proxied URL
+    final proxiedSrc = _getProxiedImageUrl(originalSrc);
+    
+    return '<img$beforeSrc src="$proxiedSrc"$afterSrc>';
+  });
+}
+
 /// Extension builder for network images
 Widget networkImageExtensionBuilder(ExtensionContext context) {
   final src = context.attributes['src'];
   if (src != null && src.isNotEmpty) {
+    // Proxy the image URL for web to bypass CORS
+    final proxiedUrl = _getProxiedImageUrl(src);
+    
     return Image.network(
-      src,
+      proxiedUrl,
       fit: BoxFit.contain,
       loadingBuilder: (context, child, loadingProgress) {
         if (loadingProgress == null) return child;
@@ -79,11 +129,23 @@ Widget networkImageExtensionBuilder(ExtensionContext context) {
         );
       },
       errorBuilder: (context, error, stackTrace) {
+        print('Error loading image from: $proxiedUrl');
+        print('Error: $error');
         return Container(
           width: double.infinity,
           height: 200,
           color: Colors.grey[300],
-          child: Icon(Icons.broken_image, size: 48, color: Colors.grey[600]),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.broken_image, size: 48, color: Colors.grey[600]),
+              SizedBox(height: 8),
+              Text(
+                'Gagal memuatkan gambar',
+                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+              ),
+            ],
+          ),
         );
       },
     );
@@ -268,8 +330,11 @@ Future<String?> _getPageContent(int surahIndex, int pageIndex) async {
   final cachedPage = await DownloadService.getCachedPage(surahIndex, pageIndex);
   
   if (cachedPage != null) {
-    // Return HTML content instead of text content
-    return cachedPage['htmlContent'];
+    // Process HTML content to proxy images for web
+    final htmlContent = cachedPage['htmlContent'];
+    if (htmlContent != null && htmlContent is String) {
+      return _processHtmlForWeb(htmlContent);
+    }
   }
   
   // If not cached, fetch from URL
@@ -277,8 +342,8 @@ Future<String?> _getPageContent(int surahIndex, int pageIndex) async {
   if (url != null) {
     final content = await service.BacaService.fetchContentFromUrl(url, 'entry-content');
     if (content != null) {
-      // Return raw HTML content instead of parsed text
-      return content;
+      // Process HTML content to proxy images for web
+      return _processHtmlForWeb(content);
     }
   }
   
