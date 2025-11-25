@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/tadabbur.dart' as model;
 import '../services/getlistsurah.dart' as getlist;
+import '../utils/theme_helper.dart';
 
 class TadabburPage extends StatefulWidget {
   @override
@@ -100,70 +101,192 @@ class _TadabburPageState extends State<TadabburPage> {
           icon: Icon(Icons.arrow_back, color: Colors.white),
         ),
       ),
-      body: Stack(
-        children: [
-          Image.asset(
-            'assets/images/bg.jpg',
-            fit: BoxFit.cover,
-            width: double.infinity,
-            height: double.infinity,
+      body: FutureBuilder<String>(
+        future: ThemeHelper.getThemeName(),
+        builder: (context, snapshot) {
+          final themeName = snapshot.data ?? 'Terang';
+          final textColor = ThemeHelper.getTextColor(themeName);
+          final isDark = themeName == 'Gelap';
+          
+          return Stack(
+            children: [
+              // Background image with dark overlay in dark mode
+              Image.asset(
+                'assets/images/bg.jpg',
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+                color: isDark ? Colors.black54 : null,
+                colorBlendMode: isDark ? BlendMode.darken : null,
+              ),
+              Container(
+                padding: EdgeInsets.all(16.0),
+                child: isLoading
+                    ? Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Color.fromARGB(255, 52, 21, 104),
+                          ),
+                        ),
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // Search field with theme support
+                          _buildSearchFieldWithTheme(_filterSurahs, textColor, isDark),
+                          SizedBox(height: 20),
+                          Center(
+                            child: Image.asset(
+                              'assets/images/bismillah.png',
+                              fit: BoxFit.contain,
+                              width: MediaQuery.of(context).size.width * 0.7,
+                            ),
+                          ),
+                          Divider(color: textColor.withOpacity(0.3)),
+                          SizedBox(height: 20),
+                          Expanded(
+                            child: ListView.builder(
+                              itemCount: filteredSurahList.length,
+                              itemBuilder: (context, index) {
+                                final filteredSurah = filteredSurahList[index];
+                                // Find the actual index in the original surahList
+                                // For juzuk variants, we need to find the main surah index
+                                final surahNumber = int.parse(filteredSurah['number']!);
+                                final actualIndex = surahNumber - 1; // Convert to 0-based index
+                                
+                                return Column(
+                                  children: [
+                                    _buildSurahButtonWithTheme(
+                                      context,
+                                      filteredSurah['number']!,
+                                      filteredSurah['name']!,
+                                      filteredSurah['additional_text'] ?? '',
+                                      textColor,
+                                      isDark,
+                                      () {
+                                        Navigator.of(context).pushNamed('/surahPages', arguments: {
+                                          ...filteredSurah,
+                                          'surahIndex': actualIndex,
+                                        });
+                                      },
+                                    ),
+                                    SizedBox(height: 10),
+                                  ],
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  // Theme-aware search field builder
+  Widget _buildSearchFieldWithTheme(Function(String) onSearch, Color textColor, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      child: TextField(
+        style: TextStyle(color: textColor),
+        decoration: InputDecoration(
+          hintText: 'Cari Surah...',
+          hintStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
+          prefixIcon: Icon(Icons.search, color: textColor),
+          filled: true,
+          fillColor: ThemeHelper.getContentBackgroundColor(isDark ? 'Gelap' : 'Terang'),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(32.0),
+            borderSide: BorderSide(color: isDark ? Colors.grey[700]! : Colors.grey[300]!),
           ),
-          Container(
-            padding: EdgeInsets.all(16.0),
-            child: isLoading
-                ? Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        Color.fromARGB(255, 52, 21, 104),
-                      ),
-                    ),
-                  )
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      model.buildSearchField(_filterSurahs),
-                      SizedBox(height: 20),
-                      Center(
-                        child: Image.asset(
-                          'assets/images/bismillah.png',
-                          fit: BoxFit.contain,
-                          width: MediaQuery.of(context).size.width * 0.7,
-                        ),
-                      ),
-                      Divider(),
-                      SizedBox(height: 20),
-                      Expanded(
-                        child: ListView.builder(
-                          itemCount: filteredSurahList.length,
-                          itemBuilder: (context, index) {
-                            final filteredSurah = filteredSurahList[index];
-                            // Find the actual index in the original surahList
-                            // For juzuk variants, we need to find the main surah index
-                            final surahNumber = int.parse(filteredSurah['number']!);
-                            final actualIndex = surahNumber - 1; // Convert to 0-based index
-                            
-                            return Column(
-                              children: [
-                                model.surahButton(
-                                  context,
-                                  filteredSurah['number']!,
-                                  filteredSurah['name']!,
-                                  filteredSurah['additional_text'] ?? '',
-                                  () {
-                                    Navigator.of(context).pushNamed('/surahPages', arguments: {
-                                      ...filteredSurah,
-                                      'surahIndex': actualIndex,
-                                    });
-                                  },
-                                ),
-                                SizedBox(height: 10),
-                              ],
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(32.0),
+            borderSide: BorderSide(color: isDark ? Colors.grey[700]! : Colors.grey[300]!),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(32.0),
+            borderSide: BorderSide(color: const Color.fromARGB(255, 52, 21, 104), width: 2),
+          ),
+        ),
+        onChanged: (value) {
+          onSearch(value);
+        },
+      ),
+    );
+  }
+
+  // Theme-aware surah button builder
+  Widget _buildSurahButtonWithTheme(
+    BuildContext context,
+    String nombor,
+    String surah,
+    String additionalText,
+    Color textColor,
+    bool isDark,
+    Function() onPressed,
+  ) {
+    // Select image paths based on theme, with fallback to regular images
+    final nomborImagePath = isDark 
+        ? 'assets/images/nomborplace_darkmode.png' 
+        : 'assets/images/nomborplace.png';
+    final surahImagePath = isDark 
+        ? 'assets/images/surahplace_darkmode.png' 
+        : 'assets/images/surahplace.png';
+    
+    return GestureDetector(
+      onTap: onPressed,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              Image.asset(
+                nomborImagePath,
+                fit: BoxFit.contain,
+                width: MediaQuery.of(context).size.width * 0.15,
+                errorBuilder: (context, error, stackTrace) {
+                  // Fallback to regular image if dark mode image not found
+                  return Image.asset(
+                    'assets/images/nomborplace.png',
+                    fit: BoxFit.contain,
+                    width: MediaQuery.of(context).size.width * 0.15,
+                  );
+                },
+              ),
+              Text(nombor, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textColor)),
+            ],
+          ),
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              Image.asset(
+                surahImagePath,
+                fit: BoxFit.contain,
+                width: MediaQuery.of(context).size.width * 0.7,
+                errorBuilder: (context, error, stackTrace) {
+                  // Fallback to regular image if dark mode image not found
+                  return Image.asset(
+                    'assets/images/surahplace.png',
+                    fit: BoxFit.contain,
+                    width: MediaQuery.of(context).size.width * 0.7,
+                  );
+                },
+              ),
+              // If there's additional text, show it below; otherwise center the surah name
+              additionalText.isNotEmpty
+                  ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(surah, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textColor)),
+                        Text(additionalText, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: textColor)),
+                      ],
+                    )
+                  : Text(surah, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textColor)),
+            ],
           ),
         ],
       ),

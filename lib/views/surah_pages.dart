@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/getlistsurah.dart' as getlist;
 import 'package:http/http.dart' as http;
+import '../utils/theme_helper.dart';
 
 class SurahPagesPage extends StatefulWidget {
   @override
@@ -167,161 +168,183 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
           icon: Icon(Icons.arrow_back, color: Colors.white),
         ),
       ),
-      body: Stack(
-        children: [
-          Image.asset(
-            'assets/images/bg.jpg',
-            fit: BoxFit.cover,
-            width: double.infinity,
-            height: double.infinity,
-          ),
-          Container(
-            padding: EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                // Header
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 16.0),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Pilih Halaman',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      isLoading 
-                        ? SizedBox(height: 15,)
-                        : hasNoInternet && pages.isEmpty
-                          ? Text(
-                              'Tiada sambungan internet',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.red[700],
-                                fontWeight: FontWeight.bold,
-                              ),
-                            )
-                          : Text(
-                              'Jumlah: ${pages.length} halaman',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.black87,
-                              ),
-                            ),
-                    ],
-                  ),
-                ),
-                Divider(color: Colors.white),
-                SizedBox(height: 10),
-
-                // Pages list
-                Expanded(
-                  child: isLoading
-                      ? Center(
-                          child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Color.fromARGB(255, 52, 21, 104),
+      body: FutureBuilder<String>(
+        future: ThemeHelper.getThemeName(),
+        builder: (context, snapshot) {
+          final themeName = snapshot.data ?? 'Terang';
+          final textColor = ThemeHelper.getTextColor(themeName);
+          final backgroundColor = ThemeHelper.getContentBackgroundColor(themeName);
+          final isDark = themeName == 'Gelap';
+          
+          return Stack(
+            children: [
+              // Background image with dark overlay in dark mode
+              Image.asset(
+                'assets/images/bg.jpg',
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+                color: isDark ? Colors.black54 : null,
+                colorBlendMode: isDark ? BlendMode.darken : null,
+              ),
+              Container(
+                padding: EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    // Header
+                    Container(
+                      padding: EdgeInsets.symmetric(vertical: 16.0),
+                      child: Column(
+                        children: [
+                          Text(
+                            'Pilih Halaman',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: textColor,
                             ),
                           ),
-                        )
-                      : hasNoInternet && pages.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.wifi_off,
-                                  size: 64,
-                                  color: Colors.grey[600],
-                                ),
-                                SizedBox(height: 16),
-                                Text(
+                          SizedBox(height: 8),
+                          isLoading 
+                            ? SizedBox(height: 15,)
+                            : hasNoInternet && pages.isEmpty
+                              ? Text(
                                   'Tiada sambungan internet',
                                   style: TextStyle(
-                                    fontSize: 18,
+                                    fontSize: 14,
+                                    color: Colors.red[700],
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
+                                  ),
+                                )
+                              : Text(
+                                  'Jumlah: ${pages.length} halaman',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: isDark ? Colors.grey[300] : Colors.black87,
                                   ),
                                 ),
-                                SizedBox(height: 8),
-                                Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 32.0),
-                                  child: Text(
-                                    'Sila semak sambungan internet anda dan cuba lagi.',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.black54,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        : pages.isEmpty
+                        ],
+                      ),
+                    ),
+                    Divider(color: textColor.withOpacity(0.3)),
+                    SizedBox(height: 10),
+
+                    // Pages list
+                    Expanded(
+                      child: isLoading
                           ? Center(
-                              child: Text(
-                                'Tiada halaman tersedia',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.black54,
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Color.fromARGB(255, 52, 21, 104),
                                 ),
                               ),
                             )
-                          : ListView.builder(
-                              itemCount: pages.length,
-                              itemBuilder: (context, index) {
-                                final page = pages[index];
-                                // debugPrint('Page: ${page['title']}');
-                                return Card(
-                                  margin: EdgeInsets.symmetric(
-                                    horizontal: 8.0,
-                                    vertical: 4.0,
-                                  ),
-                                  elevation: 2,
-                                  child: ListTile(
-                                    leading: CircleAvatar(
-                                      backgroundColor: Color.fromARGB(255, 52, 21, 104),
+                          : hasNoInternet && pages.isEmpty
+                            ? Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.wifi_off,
+                                      size: 64,
+                                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                                    ),
+                                    SizedBox(height: 16),
+                                    Text(
+                                      'Tiada sambungan internet',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: textColor,
+                                      ),
+                                    ),
+                                    SizedBox(height: 8),
+                                    Padding(
+                                      padding: EdgeInsets.symmetric(horizontal: 32.0),
                                       child: Text(
-                                        '${page['index'] + 1}',
+                                        'Sila semak sambungan internet anda dan cuba lagi.',
+                                        textAlign: TextAlign.center,
                                         style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                          color: isDark ? Colors.grey[400] : Colors.black54,
                                         ),
                                       ),
                                     ),
-                                    title: Text(
-                                      page['title'] as String,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w500,
-                                      ),
+                                  ],
+                                ),
+                              )
+                            : pages.isEmpty
+                              ? Center(
+                                  child: Text(
+                                    'Tiada halaman tersedia',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: isDark ? Colors.grey[400] : Colors.black54,
                                     ),
-                                    subtitle: Text(
-                                      'Halaman ${page['index'] + 1}',
-                                      style: TextStyle(fontSize: 12),
-                                    ),
-                                    trailing: Icon(Icons.arrow_forward_ios, size: 16),
-                                    onTap: () {
-                                      Navigator.of(context).pushNamed('/baca', arguments: {
-                                        ...surahData,
-                                        'surahIndex': surahIndex,
-                                        'pageIndex': page['index'],
-                                        'pageTitle': page['title'],
-                                        'category_url': categoryUrl,
-                                      });
-                                    },
                                   ),
-                                );
-                              },
-                            ),
+                                )
+                              : ListView.builder(
+                                  itemCount: pages.length,
+                                  itemBuilder: (context, index) {
+                                    final page = pages[index];
+                                    // debugPrint('Page: ${page['title']}');
+                                    return Card(
+                                      margin: EdgeInsets.symmetric(
+                                        horizontal: 8.0,
+                                        vertical: 4.0,
+                                      ),
+                                      elevation: 2,
+                                      color: backgroundColor,
+                                      child: ListTile(
+                                        leading: CircleAvatar(
+                                          backgroundColor: Color.fromARGB(255, 52, 21, 104),
+                                          child: Text(
+                                            '${page['index'] + 1}',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                        title: Text(
+                                          page['title'] as String,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                            color: textColor,
+                                          ),
+                                        ),
+                                        subtitle: Text(
+                                          'Halaman ${page['index'] + 1}',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: isDark ? Colors.grey[400] : Colors.black54,
+                                          ),
+                                        ),
+                                        trailing: Icon(
+                                          Icons.arrow_forward_ios,
+                                          size: 16,
+                                          color: textColor,
+                                        ),
+                                        onTap: () {
+                                          Navigator.of(context).pushNamed('/baca', arguments: {
+                                            ...surahData,
+                                            'surahIndex': surahIndex,
+                                            'pageIndex': page['index'],
+                                            'pageTitle': page['title'],
+                                            'category_url': categoryUrl,
+                                          });
+                                        },
+                                      ),
+                                    );
+                                  },
+                                ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-        ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }
