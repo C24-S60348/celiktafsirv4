@@ -6,7 +6,7 @@ import 'getlistsurah.dart';
 class DownloadService {
   static const String _cacheKey = 'cached_surah_content';
   static const String _cacheVersionKey = 'cache_version';
-  static const int _currentCacheVersion = 2; // Increment this when cache structure changes
+  static const int _currentCacheVersion = 4; // Increment this when cache structure changes - v4: Sort by publication date
   
   /// Check and migrate cache if needed
   static Future<void> _checkCacheVersion() async {
