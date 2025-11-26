@@ -84,12 +84,19 @@ class _BacaPageState extends State<BacaPage> {
       final isDownloaded = await DownloadService.isSurahDownloaded(surahIndex, categoryUrl: categoryUrl);
       
       if (!isDownloaded) {
+        // Get theme to determine snackbar color
+        final themeName = await ThemeHelper.getThemeName();
+        final isDark = themeName == 'Gelap';
+        
         // Show a subtle notification that download is starting
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Memuat kandungan...'),
+            content: Text(
+              'Memuat kandungan...',
+              style: TextStyle(color: Colors.white),
+            ),
             duration: Duration(seconds: 2),
-            backgroundColor: Color.fromARGB(255, 52, 21, 104),
+            backgroundColor: isDark ? Colors.grey[850] : Color.fromARGB(255, 52, 21, 104),
           ),
         );
         
@@ -285,6 +292,7 @@ class _BacaPageState extends State<BacaPage> {
                               surahData, 
                               model.bodyContent(surahIndex, currentPage, isDark, textColor),
                               textColor,
+                              isDark,
                             ),
                           ),
                         ),
@@ -315,6 +323,7 @@ class _BacaPageState extends State<BacaPage> {
     Map<String, String> surahData,
     Widget bodyContent,
     Color textColor,
+    bool isDark,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -334,7 +343,9 @@ class _BacaPageState extends State<BacaPage> {
               ),
               SizedBox(height: 20),
               Image.asset(
-                'assets/images/bismillah.png',
+                isDark 
+                  ? 'assets/images/bismillah_darkmode.png'
+                  : 'assets/images/bismillah.png',
                 fit: BoxFit.contain,
                 width: MediaQuery.of(context).size.width * 0.6,
               ),

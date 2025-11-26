@@ -137,7 +137,9 @@ class _TadabburPageState extends State<TadabburPage> {
                           SizedBox(height: 20),
                           Center(
                             child: Image.asset(
-                              'assets/images/bismillah.png',
+                              isDark 
+                                ? 'assets/images/bismillah_darkmode.png'
+                                : 'assets/images/bismillah.png',
                               fit: BoxFit.contain,
                               width: MediaQuery.of(context).size.width * 0.7,
                             ),
