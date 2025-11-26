@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/baca.dart' as model;
 import '../services/getlistsurah.dart' as getlist;
 import '../models/tadabbur.dart' as surahlist;
+import '../utils/theme_helper.dart';
 
 class BookmarksPage extends StatefulWidget {
   @override
@@ -106,159 +107,174 @@ class _BookmarksPageState extends State<BookmarksPage> {
           icon: Icon(Icons.arrow_back, color: Colors.white),
         ),
       ),
-      body: Stack(
-        children: [
-          Image.asset(
-            'assets/images/bg.jpg',
-            fit: BoxFit.cover,
-            width: double.infinity,
-            height: double.infinity,
-          ),
-          Container(
-            padding: EdgeInsets.all(16.0),
-            child: isLoading
-                ? Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        const Color.fromARGB(255, 52, 21, 104),
-                      ),
-                    ),
-                  )
-                : bookmarks.isEmpty
+      body: FutureBuilder<String>(
+        future: ThemeHelper.getThemeName(),
+        builder: (context, snapshot) {
+          final themeName = snapshot.data ?? 'Terang';
+          final backgroundColor = ThemeHelper.getContentBackgroundColor(themeName);
+          final textColor = ThemeHelper.getTextColor(themeName);
+          final isDark = themeName == 'Gelap';
+          
+          return Stack(
+            children: [
+              // Background image with dark overlay in dark mode
+              Image.asset(
+                'assets/images/bg.jpg',
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+                color: isDark ? Colors.black54 : null,
+                colorBlendMode: isDark ? BlendMode.darken : null,
+              ),
+              Container(
+                padding: EdgeInsets.all(16.0),
+                child: isLoading
                     ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.bookmark_border,
-                              size: 64,
-                              color: Colors.grey[600],
-                            ),
-                            SizedBox(height: 16),
-                            Text(
-                              'Tiada bookmark',
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Colors.grey[600],
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'Bookmark ayat semasa membaca untuk melihatnya di sini',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[500],
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            const Color.fromARGB(255, 52, 21, 104),
+                          ),
                         ),
                       )
-                    : ListView.builder(
-                        itemCount: bookmarks.length,
-                        itemBuilder: (context, index) {
-                          final bookmark = bookmarks[index];
-                          final surahIndex = bookmark['surahIndex'] as int;
-                          
-                          // Cache the future to avoid reloading when widget rebuilds
-                          if (!_surahCache.containsKey(surahIndex)) {
-                            _surahCache[surahIndex] = getlist.GetListSurah.getSurahByIndex(surahIndex);
-                          }
-                          
-                          return FutureBuilder<Map<String, dynamic>?>(
-                            key: ValueKey('surah_$surahIndex'),
-                            future: _surahCache[surahIndex],
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
-                                return Card(
-                                  margin: EdgeInsets.only(bottom: 12),
-                                  child: Padding(
-                                    padding: EdgeInsets.all(16),
-                                    child: Row(
-                                      children: [
-                                        CircularProgressIndicator(),
-                                        SizedBox(width: 16),
-                                        Text('Loading...'),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              }
-                              
-                              final surah = snapshot.data;
-                              if (surah == null) {
-                                return SizedBox.shrink();
-                              }
-                              
-                              return Card(
-                                margin: EdgeInsets.only(bottom: 12),
-                                elevation: 4,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                    : bookmarks.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.bookmark_border,
+                                  size: 64,
+                                  color: isDark ? Colors.grey[400] : Colors.grey[600],
                                 ),
-                                child: InkWell(
-                                  onTap: _isNavigating ? null : () => _navigateToVerse(bookmark),
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Padding(
-                                    padding: EdgeInsets.all(16),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                SizedBox(height: 16),
+                                Text(
+                                  'Tiada bookmark',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: isDark ? Colors.grey[300] : Colors.grey[600],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Bookmark ayat semasa membaca untuk melihatnya di sini',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: isDark ? Colors.grey[400] : Colors.grey[500],
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            itemCount: bookmarks.length,
+                            itemBuilder: (context, index) {
+                              final bookmark = bookmarks[index];
+                              final surahIndex = bookmark['surahIndex'] as int;
+                              
+                              // Cache the future to avoid reloading when widget rebuilds
+                              if (!_surahCache.containsKey(surahIndex)) {
+                                _surahCache[surahIndex] = getlist.GetListSurah.getSurahByIndex(surahIndex);
+                              }
+                              
+                              return FutureBuilder<Map<String, dynamic>?>(
+                                key: ValueKey('surah_$surahIndex'),
+                                future: _surahCache[surahIndex],
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState == ConnectionState.waiting) {
+                                    return Card(
+                                      margin: EdgeInsets.only(bottom: 12),
+                                      color: backgroundColor,
+                                      child: Padding(
+                                        padding: EdgeInsets.all(16),
+                                        child: Row(
                                           children: [
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    '${surahlist.surahList[surah['surahIndex']]['name']} (${surahlist.surahList[surah['surahIndex']]['name_arab']})',
-                                                    style: TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight: FontWeight.bold,
-                                                      color: const Color.fromARGB(255, 52, 21, 104),
-                                                    ),
+                                            CircularProgressIndicator(),
+                                            SizedBox(width: 16),
+                                            Text('Loading...', style: TextStyle(color: textColor)),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                  
+                                  final surah = snapshot.data;
+                                  if (surah == null) {
+                                    return SizedBox.shrink();
+                                  }
+                                  
+                                  return Card(
+                                    margin: EdgeInsets.only(bottom: 12),
+                                    elevation: 4,
+                                    color: backgroundColor,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: InkWell(
+                                      onTap: _isNavigating ? null : () => _navigateToVerse(bookmark),
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Padding(
+                                        padding: EdgeInsets.all(16),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Text(
+                                                        '${surahlist.surahList[surah['surahIndex']]['name']} (${surahlist.surahList[surah['surahIndex']]['name_arab']})',
+                                                        style: TextStyle(
+                                                          fontSize: 16,
+                                                          fontWeight: FontWeight.bold,
+                                                          color: isDark ? Colors.white : const Color.fromARGB(255, 52, 21, 104),
+                                                        ),
+                                                      ),
+                                                      SizedBox(height: 4),
+                                                      Text(
+                                                        'Halaman ${bookmark['currentPage'] + 1}',
+                                                        style: TextStyle(
+                                                          fontSize: 14,
+                                                          color: isDark ? Colors.grey[300] : Colors.grey[600],
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
-                                                  SizedBox(height: 4),
-                                                  Text(
-                                                    'Halaman ${bookmark['currentPage'] + 1}',
-                                                    style: TextStyle(
-                                                      fontSize: 14,
-                                                      color: Colors.grey[600],
-                                                    ),
+                                                ),
+                                                IconButton(
+                                                  onPressed: () => _removeBookmark(index),
+                                                  icon: Icon(
+                                                    Icons.bookmark_remove,
+                                                    color: Colors.red[400],
                                                   ),
-                                                ],
-                                              ),
+                                                ),
+                                              ],
                                             ),
-                                            IconButton(
-                                              onPressed: () => _removeBookmark(index),
-                                              icon: Icon(
-                                                Icons.bookmark_remove,
-                                                color: Colors.red[400],
+                                            SizedBox(height: 8),
+                                            Text(
+                                              'Added ${_formatDate(DateTime.parse(bookmark['dateAdded']))}',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: isDark ? Colors.grey[400] : Colors.grey[500],
                                               ),
                                             ),
                                           ],
                                         ),
-                                        SizedBox(height: 8),
-                                        Text(
-                                          'Added ${_formatDate(DateTime.parse(bookmark['dateAdded']))}',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey[500],
-                                          ),
-                                        ),
-                                      ],
+                                      ),
                                     ),
-                                  ),
-                                ),
+                                  );
+                                },
                               );
                             },
-                          );
-                        },
-                      ),
-          ),
-        ],
+                          ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

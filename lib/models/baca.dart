@@ -226,7 +226,7 @@ Widget buildSurahBody(
   );
 }
 
-Widget bodyContent(surahIndex, currentPage) {
+Widget bodyContent(surahIndex, currentPage, [bool isDark = false, Color? textColor]) {
   return FutureBuilder<double>(
     future: getFontSize(),
     builder: (context, fontSizeSnapshot) {
@@ -264,35 +264,97 @@ Widget bodyContent(surahIndex, currentPage) {
             // Remove numbers from unordered list items
             final cleanedHtml = _removeNumbersFromUnorderedLists(snapshot.data!);
             
+            // Get text color - white for dark mode, black for light mode
+            final htmlTextColor = isDark ? Colors.white : (textColor ?? Colors.black);
+            
             return Html(
               data: cleanedHtml,
               style: {
                 "body": Style(
                   fontSize: FontSize(fontSize),
                   textAlign: TextAlign.justify,
+                  color: htmlTextColor,
                 ),
                 "p": Style(
                   fontSize: FontSize(fontSize),
                   textAlign: TextAlign.justify,
+                  color: htmlTextColor,
+                ),
+                "div": Style(
+                  color: htmlTextColor,
+                ),
+                "span": Style(
+                  color: htmlTextColor,
+                ),
+                "strong": Style(
+                  color: htmlTextColor,
+                  fontWeight: FontWeight.bold,
+                ),
+                "b": Style(
+                  color: htmlTextColor,
+                  fontWeight: FontWeight.bold,
+                ),
+                "em": Style(
+                  color: htmlTextColor,
+                  fontStyle: FontStyle.italic,
+                ),
+                "i": Style(
+                  color: htmlTextColor,
+                  fontStyle: FontStyle.italic,
+                ),
+                "u": Style(
+                  color: htmlTextColor,
+                  textDecoration: TextDecoration.underline,
+                ),
+                "a": Style(
+                  color: htmlTextColor,
+                  textDecoration: TextDecoration.underline,
                 ),
                 "ul": Style(
                   fontSize: FontSize(fontSize),
                   textAlign: TextAlign.justify,
-                  listStyleType: ListStyleType.disc, // Show bullet points for unordered lists
+                  listStyleType: ListStyleType.disc,
                   padding: HtmlPaddings.only(left: 20),
+                  color: htmlTextColor,
                 ),
                 "ol": Style(
                   fontSize: FontSize(fontSize),
                   textAlign: TextAlign.justify,
-                  listStyleType: ListStyleType.none, // Remove numbering
+                  listStyleType: ListStyleType.none,
                   padding: HtmlPaddings.only(left: 20),
                   margin: Margins.zero,
                   display: Display.block,
+                  color: htmlTextColor,
                 ),
                 "li": Style(
                   fontSize: FontSize(fontSize),
                   textAlign: TextAlign.justify,
                   padding: HtmlPaddings.only(bottom: 8),
+                  color: htmlTextColor,
+                ),
+                "h1": Style(
+                  color: htmlTextColor,
+                  fontWeight: FontWeight.bold,
+                ),
+                "h2": Style(
+                  color: htmlTextColor,
+                  fontWeight: FontWeight.bold,
+                ),
+                "h3": Style(
+                  color: htmlTextColor,
+                  fontWeight: FontWeight.bold,
+                ),
+                "h4": Style(
+                  color: htmlTextColor,
+                  fontWeight: FontWeight.bold,
+                ),
+                "h5": Style(
+                  color: htmlTextColor,
+                  fontWeight: FontWeight.bold,
+                ),
+                "h6": Style(
+                  color: htmlTextColor,
+                  fontWeight: FontWeight.bold,
                 ),
                 "img": Style(
                   width: Width(double.infinity),

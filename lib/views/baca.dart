@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/baca.dart' as model;
 import '../services/getlistsurah.dart' as getlist;
 import '../services/download_service.dart';
+import '../utils/theme_helper.dart';
 
 class BacaPage extends StatefulWidget {
   @override
@@ -220,72 +221,163 @@ class _BacaPageState extends State<BacaPage> {
           ),
         ],
       ),
-      body: Stack(
-        children: [
-          Image.asset(
-            'assets/images/bg.jpg',
-            fit: BoxFit.cover,
-            width: double.infinity,
-            height: double.infinity,
-          ),
-          Container(
-            padding: EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                // Page indicator
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 8.0),
-                  child: totalPages == 0 ? Text(
-                    'Halaman ${currentPage + 1}',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ) : Text(
-                    'Halaman ${currentPage + 1} dari $totalPages',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
-                Divider(color: Colors.white),
-                
-                // Content area
-                Expanded(
-                  child: Container(
-                    padding: EdgeInsets.all(16.0),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Scrollbar(
-                      controller: _scrollController,
-                      thumbVisibility: true,
-                      thickness: 2.0,
-                      radius: Radius.circular(4.0),
-                      child: SingleChildScrollView(
-                        controller: _scrollController,
-                        child: model.buildSurahBody(
-                          context, 
-                          surahData, 
-                          model.bodyContent(surahIndex, currentPage)
+      body: FutureBuilder<String>(
+        future: ThemeHelper.getThemeName(),
+        builder: (context, snapshot) {
+          final themeName = snapshot.data ?? 'Terang';
+          final backgroundColor = ThemeHelper.getContentBackgroundColor(themeName);
+          final textColor = ThemeHelper.getTextColor(themeName);
+          final isDark = themeName == 'Gelap';
+          
+          return Stack(
+            children: [
+              // Background image with dark overlay in dark mode
+              Image.asset(
+                'assets/images/bg.jpg',
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+                color: isDark ? Colors.black54 : null,
+                colorBlendMode: isDark ? BlendMode.darken : null,
+              ),
+              Container(
+                padding: EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    // Page indicator
+                    Container(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: totalPages == 0 ? Text(
+                        'Halaman ${currentPage + 1}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                        ),
+                      ) : Text(
+                        'Halaman ${currentPage + 1} dari $totalPages',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
                         ),
                       ),
                     ),
-                  ),
+                    Divider(color: textColor.withOpacity(0.3)),
+                    
+                    // Content area
+                    Expanded(
+                      child: Container(
+                        padding: EdgeInsets.all(16.0),
+                        decoration: BoxDecoration(
+                          color: backgroundColor,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Scrollbar(
+                          controller: _scrollController,
+                          thumbVisibility: true,
+                          thickness: 2.0,
+                          radius: Radius.circular(4.0),
+                          child: SingleChildScrollView(
+                            controller: _scrollController,
+                            child: _buildSurahBodyWithTheme(
+                              context, 
+                              surahData, 
+                              model.bodyContent(surahIndex, currentPage, isDark, textColor),
+                              textColor,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    
+                    // Navigation buttons
+                    _buildPageIndicatorWithTheme(
+                      currentPage, 
+                      totalPages, 
+                      _previousPage, 
+                      _nextPage,
+                      isDark,
+                    ),
+                  ],
                 ),
-                
-                // Navigation buttons
-                model.buildPageIndicator(
-                  currentPage, 
-                  totalPages, 
-                  _previousPage, 
-                  _nextPage
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  // Theme-aware surah body builder
+  Widget _buildSurahBodyWithTheme(
+    BuildContext context,
+    Map<String, String> surahData,
+    Widget bodyContent,
+    Color textColor,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Surah header
+        Center(
+          child: Column(
+            children: [
+              Text(
+                '${surahData['pageTitle'] ?? surahData['name'] ?? ''}',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
                 ),
-              ],
+              ),
+              SizedBox(height: 20),
+              Image.asset(
+                'assets/images/bismillah.png',
+                fit: BoxFit.contain,
+                width: MediaQuery.of(context).size.width * 0.6,
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: 30),
+
+        // Content placeholder
+        bodyContent,
+      ],
+    );
+  }
+
+  // Theme-aware page indicator builder
+  Widget _buildPageIndicatorWithTheme(
+    int currentPage,
+    int totalPages,
+    Function() onPrevious,
+    Function() onNext,
+    bool isDark,
+  ) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          ElevatedButton.icon(
+            onPressed: currentPage > 0 ? onPrevious : null,
+            icon: Icon(Icons.arrow_back),
+            label: Text('Sebelum'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isDark ? Colors.blue[700] : Colors.blue,
+              foregroundColor: Colors.white,
+            ),
+          ),
+          ElevatedButton.icon(
+            onPressed: currentPage < totalPages - 1 ? onNext : null,
+            icon: Icon(Icons.arrow_forward),
+            label: Text('Selepas'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isDark ? Colors.blue[700] : Colors.blue,
+              foregroundColor: Colors.white,
             ),
           ),
         ],

@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/download_service.dart';
+import '../utils/theme_helper.dart';
 
 class SettingsPage extends StatefulWidget {
+  final Function(String)? onThemeChanged;
+  
+  SettingsPage({this.onThemeChanged});
+  
   @override
   _SettingsPageState createState() => _SettingsPageState();
 }
@@ -10,7 +15,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   String _selectedFont = 'Default';
   double _fontSize = 16.0;
-  String _selectedTheme = 'Light';
+  String _selectedTheme = 'Terang';
   bool _isInitialized = false;
 
   final List<String> _fontOptions = [
@@ -22,10 +27,8 @@ class _SettingsPageState extends State<SettingsPage> {
   ];
 
   final List<String> _themeOptions = [
-    'Light',
-    'Dark',
-    'Sepia',
-    'Green'
+    'Gelap',
+    'Terang'
   ];
 
   @override
@@ -39,7 +42,7 @@ class _SettingsPageState extends State<SettingsPage> {
     setState(() {
       _selectedFont = prefs.getString('selected_font') ?? 'Default';
       _fontSize = prefs.getDouble('font_size') ?? 16.0;
-      _selectedTheme = prefs.getString('selected_theme') ?? 'Light';
+      _selectedTheme = prefs.getString('selected_theme') ?? 'Terang';
       _isInitialized = true;
     });
   }
@@ -93,11 +96,17 @@ class _SettingsPageState extends State<SettingsPage> {
                   title: Text(theme),
                   value: theme,
                   groupValue: _selectedTheme,
-                  onChanged: (String? value) {
+                  onChanged: (String? value) async {
                     setState(() {
                       _selectedTheme = value!;
                     });
-                    _saveSettings();
+                    await _saveSettings();
+                    // Notify parent widget about theme change
+                    if (widget.onThemeChanged != null) {
+                      widget.onThemeChanged!(value!);
+                    }
+                    // Rebuild this page to show theme changes
+                    setState(() {});
                     Navigator.of(context).pop();
                   },
                 );
@@ -267,210 +276,265 @@ class _SettingsPageState extends State<SettingsPage> {
           icon: Icon(Icons.arrow_back, color: Colors.white),
         ),
       ),
-      body: Stack(
-        children: [
-          Image.asset(
-            'assets/images/bg.jpg',
-            fit: BoxFit.cover,
-            width: double.infinity,
-            height: double.infinity,
-          ),
-          Container(
-            padding: EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                // Font Selection
-                // Container(
-                //   padding: EdgeInsets.all(16.0),
-                //   decoration: BoxDecoration(
-                //     color: Colors.white.withOpacity(0.9),
-                //     borderRadius: BorderRadius.circular(10),
-                //   ),
-                //   child: Column(
-                //     crossAxisAlignment: CrossAxisAlignment.start,
-                //     children: [
-                //       Text(
-                //         'Tulisan',
-                //         style: TextStyle(
-                //           fontSize: 18,
-                //           fontWeight: FontWeight.bold,
-                //           color: Colors.black,
-                //         ),
-                //       ),
-                //       SizedBox(height: 10),
-                //       InkWell(
-                //         onTap: _showFontDialog,
-                //         child: Container(
-                //           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                //           decoration: BoxDecoration(
-                //             border: Border.all(color: Colors.grey),
-                //             borderRadius: BorderRadius.circular(8),
-                //           ),
-                //           child: Row(
-                //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                //             children: [
-                //               Text(_selectedFont),
-                //               Icon(Icons.arrow_drop_down),
-                //             ],
-                //           ),
-                //         ),
-                //       ),
-                //     ],
-                //   ),
-                // ),
-                // SizedBox(height: 16),
+      body: FutureBuilder<String>(
+        future: ThemeHelper.getThemeName(),
+        builder: (context, snapshot) {
+          final themeName = snapshot.data ?? 'Terang';
+          final isDark = themeName == 'Gelap';
+          
+          return Stack(
+            children: [
+              // Background image with dark overlay in dark mode
+              Image.asset(
+                'assets/images/bg.jpg',
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+                color: isDark ? Colors.black54 : null,
+                colorBlendMode: isDark ? BlendMode.darken : null,
+              ),
+              Container(
+                padding: EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    // Font Selection
+                    // Container(
+                    //   padding: EdgeInsets.all(16.0),
+                    //   decoration: BoxDecoration(
+                    //     color: Colors.white.withOpacity(0.9),
+                    //     borderRadius: BorderRadius.circular(10),
+                    //   ),
+                    //   child: Column(
+                    //     crossAxisAlignment: CrossAxisAlignment.start,
+                    //     children: [
+                    //       Text(
+                    //         'Tulisan',
+                    //         style: TextStyle(
+                    //           fontSize: 18,
+                    //           fontWeight: FontWeight.bold,
+                    //           color: Colors.black,
+                    //         ),
+                    //       ),
+                    //       SizedBox(height: 10),
+                    //       InkWell(
+                    //         onTap: _showFontDialog,
+                    //         child: Container(
+                    //           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    //           decoration: BoxDecoration(
+                    //             border: Border.all(color: Colors.grey),
+                    //             borderRadius: BorderRadius.circular(8),
+                    //           ),
+                    //           child: Row(
+                    //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    //             children: [
+                    //               Text(_selectedFont),
+                    //               Icon(Icons.arrow_drop_down),
+                    //             ],
+                    //           ),
+                    //         ),
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
+                    // SizedBox(height: 16),
 
-                // Font Size
-                Container(
-                  padding: EdgeInsets.all(16.0),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    // Font Size
+                    FutureBuilder<String>(
+                      future: ThemeHelper.getThemeName(),
+                      builder: (context, snapshot) {
+                        final themeName = snapshot.data ?? 'Terang';
+                        return Container(
+                          padding: EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            color: ThemeHelper.getContentBackgroundColor(themeName),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Saiz Tulisan'),
-                          SizedBox(width: 10),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.grey[300],
-                              foregroundColor: Colors.black,
-                              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                            ),
-                            onPressed: _resetFontSize,
-                            child: Text('Reset'),
-                          )
-                        ],
-                      ),
-                      SizedBox(height: 10),
-                      Row(
-                        children: [
-                          Text('Kecil'),
-                          Expanded(
-                            child: Slider(
-                              value: _fontSize,
-                              min: 12.0,
-                              max: 24.0,
-                              divisions: 12,
-                              onChanged: (value) {
-                                setState(() {
-                                  _fontSize = value;
-                                });
-                                _saveSettings();
-                              },
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Saiz Tulisan'),
+                              SizedBox(width: 10),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.grey[300],
+                                  foregroundColor: Colors.black,
+                                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                ),
+                                onPressed: _resetFontSize,
+                                child: Text('Reset'),
+                              )
+                            ],
+                          ),
+                          SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Text('Kecil'),
+                              Expanded(
+                                child: Slider(
+                                  value: _fontSize,
+                                  min: 12.0,
+                                  max: 24.0,
+                                  divisions: 12,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _fontSize = value;
+                                    });
+                                    _saveSettings();
+                                  },
+                                ),
+                              ),
+                              Text('Besar'),
+                            ],
+                          ),
+                          Center(
+                            child: Text(
+                              'Saiz: ${_fontSize.round()}',
+                              style: TextStyle(fontSize: _fontSize),
                             ),
                           ),
-                          Text('Besar'),
                         ],
                       ),
-                      Center(
+                        );
+                      },
+                    ),
+                    SizedBox(height: 16),
+
+                    // // Theme Selection
+                    // Container(
+                    //   padding: EdgeInsets.all(16.0),
+                    //   decoration: BoxDecoration(
+                    //     color: Colors.white.withOpacity(0.9),
+                    //     borderRadius: BorderRadius.circular(10),
+                    //   ),
+                    //   child: Column(
+                    //     crossAxisAlignment: CrossAxisAlignment.start,
+                    //     children: [
+                    //       Text(
+                    //         'Tema',
+                    //         style: TextStyle(
+                    //           fontSize: 18,
+                    //           fontWeight: FontWeight.bold,
+                    //           color: Colors.black,
+                    //         ),
+                    //       ),
+                    //       SizedBox(height: 10),
+                    //       InkWell(
+                    //         onTap: _showThemeDialog,
+                    //         child: Container(
+                    //           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    //           decoration: BoxDecoration(
+                    //             border: Border.all(color: Colors.grey),
+                    //             borderRadius: BorderRadius.circular(8),
+                    //           ),
+                    //           child: Row(
+                    //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    //             children: [
+                    //               Text(_selectedTheme),
+                    //               Icon(Icons.arrow_drop_down),
+                    //             ],
+                    //           ),
+                    //         ),
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
+                    // Theme Selection
+                    FutureBuilder<String>(
+                      future: ThemeHelper.getThemeName(),
+                      builder: (context, snapshot) {
+                        final themeName = snapshot.data ?? 'Terang';
+                        return Container(
+                          padding: EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            color: ThemeHelper.getContentBackgroundColor(themeName),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Tema'),
+                          SizedBox(height: 10),
+                          InkWell(
+                            onTap: _showThemeDialog,
+                            child: Container(
+                              padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(_selectedTheme),
+                                  Icon(Icons.arrow_drop_down),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                        );
+                      },
+                    ),
+                    SizedBox(height: 16),
+
+                    // How to Use Button
+                    Container(
+                      width: MediaQuery.of(context).size.width * 0.7,
+                      child: ElevatedButton(
+                        onPressed: _showHowToUse,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color.fromARGB(255, 52, 21, 104),
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
                         child: Text(
-                          'Saiz: ${_fontSize.round()}',
-                          style: TextStyle(fontSize: _fontSize),
+                          'Cara Menggunakan',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                    SizedBox(height: 16),
+                    
+                    // Clear Cache Button
+                    Container(
+                      width: MediaQuery.of(context).size.width * 0.7,
+                      child: ElevatedButton(
+                        onPressed: _showClearCacheDialog,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red[700],
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          'Kosongkan Cache',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(height: 16),
-
-                // // Theme Selection
-                // Container(
-                //   padding: EdgeInsets.all(16.0),
-                //   decoration: BoxDecoration(
-                //     color: Colors.white.withOpacity(0.9),
-                //     borderRadius: BorderRadius.circular(10),
-                //   ),
-                //   child: Column(
-                //     crossAxisAlignment: CrossAxisAlignment.start,
-                //     children: [
-                //       Text(
-                //         'Tema',
-                //         style: TextStyle(
-                //           fontSize: 18,
-                //           fontWeight: FontWeight.bold,
-                //           color: Colors.black,
-                //         ),
-                //       ),
-                //       SizedBox(height: 10),
-                //       InkWell(
-                //         onTap: _showThemeDialog,
-                //         child: Container(
-                //           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                //           decoration: BoxDecoration(
-                //             border: Border.all(color: Colors.grey),
-                //             borderRadius: BorderRadius.circular(8),
-                //           ),
-                //           child: Row(
-                //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                //             children: [
-                //               Text(_selectedTheme),
-                //               Icon(Icons.arrow_drop_down),
-                //             ],
-                //           ),
-                //         ),
-                //       ),
-                //     ],
-                //   ),
-                // ),
-                // SizedBox(height: 16),
-
-                // How to Use Button
-                Container(
-                  width: MediaQuery.of(context).size.width * 0.7,
-                  child: ElevatedButton(
-                    onPressed: _showHowToUse,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 52, 21, 104),
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: Text(
-                      'Cara Menggunakan',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 16),
-                
-                // Clear Cache Button
-                Container(
-                  width: MediaQuery.of(context).size.width * 0.7,
-                  child: ElevatedButton(
-                    onPressed: _showClearCacheDialog,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red[700],
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: Text(
-                      'Kosongkan Cache',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }
