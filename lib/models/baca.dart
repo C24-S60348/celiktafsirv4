@@ -108,54 +108,143 @@ String _processHtmlForWeb(String htmlContent) {
   });
 }
 
-/// Extension builder for network images with theme support
+/// Extension builder for network images with theme support and zoom capability
 Widget Function(ExtensionContext) networkImageExtensionBuilderWithTheme(bool isDark) {
-  return (ExtensionContext context) {
-    final src = context.attributes['src'];
+  return (ExtensionContext extensionContext) {
+    final src = extensionContext.attributes['src'];
     if (src != null && src.isNotEmpty) {
       // Proxy the image URL for web to bypass CORS
       final proxiedUrl = _getProxiedImageUrl(src);
       
-      return Image.network(
-        proxiedUrl,
-        fit: BoxFit.contain,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return Center(
-            child: CircularProgressIndicator(
-              value: loadingProgress.expectedTotalBytes != null
-                  ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                  : null,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                isDark ? Colors.deepPurple[300]! : Color.fromARGB(255, 52, 21, 104),
-              ),
-            ),
-          );
+      return GestureDetector(
+        onTap: () {
+          // Get the BuildContext from the extension context
+          final buildContext = extensionContext.buildContext;
+          if (buildContext != null) {
+            _showImageZoomDialog(buildContext, proxiedUrl, isDark);
+          }
         },
-        errorBuilder: (context, error, stackTrace) {
-          print('Error loading image from: $proxiedUrl');
-          print('Error: $error');
-          return Container(
-            width: double.infinity,
-            height: 200,
-            color: Colors.grey[300],
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.broken_image, size: 48, color: Colors.grey[600]),
-                SizedBox(height: 8),
-                Text(
-                  'Gagal memuatkan gambar',
-                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
+        child: Image.network(
+          proxiedUrl,
+          fit: BoxFit.contain,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                    : null,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  isDark ? Colors.deepPurple[300]! : Color.fromARGB(255, 52, 21, 104),
                 ),
-              ],
-            ),
-          );
-        },
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            print('Error loading image from: $proxiedUrl');
+            print('Error: $error');
+            return Container(
+              width: double.infinity,
+              height: 200,
+              color: Colors.grey[300],
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.broken_image, size: 48, color: Colors.grey[600]),
+                  SizedBox(height: 8),
+                  Text(
+                    'Gagal memuatkan gambar',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       );
     }
     return SizedBox.shrink();
   };
+}
+
+/// Show image in a zoomable full-screen dialog
+void _showImageZoomDialog(BuildContext context, String imageUrl, bool isDark) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Dialog(
+        backgroundColor: Colors.black,
+        insetPadding: EdgeInsets.all(0),
+        child: Stack(
+          children: [
+            // Zoomable image
+            InteractiveViewer(
+              minScale: 0.5,
+              maxScale: 4.0,
+              child: Center(
+                child: Image.network(
+                  imageUrl,
+                  fit: BoxFit.contain,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Center(
+                      child: CircularProgressIndicator(
+                        value: loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                            : null,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          isDark ? Colors.deepPurple[300]! : Colors.white,
+                        ),
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.broken_image, size: 64, color: Colors.white),
+                          SizedBox(height: 16),
+                          Text(
+                            'Gagal memuatkan gambar',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            // Close button
+            Positioned(
+              top: 40,
+              right: 20,
+              child: IconButton(
+                icon: Icon(Icons.close, color: Colors.white, size: 30),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+            // Zoom hint text
+            Positioned(
+              bottom: 40,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
 }
 
 Future<double> getFontSize() async {
