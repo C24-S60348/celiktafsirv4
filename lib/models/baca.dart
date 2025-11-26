@@ -108,49 +108,54 @@ String _processHtmlForWeb(String htmlContent) {
   });
 }
 
-/// Extension builder for network images
-Widget networkImageExtensionBuilder(ExtensionContext context) {
-  final src = context.attributes['src'];
-  if (src != null && src.isNotEmpty) {
-    // Proxy the image URL for web to bypass CORS
-    final proxiedUrl = _getProxiedImageUrl(src);
-    
-    return Image.network(
-      proxiedUrl,
-      fit: BoxFit.contain,
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return Center(
-          child: CircularProgressIndicator(
-            value: loadingProgress.expectedTotalBytes != null
-                ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                : null,
-          ),
-        );
-      },
-      errorBuilder: (context, error, stackTrace) {
-        print('Error loading image from: $proxiedUrl');
-        print('Error: $error');
-        return Container(
-          width: double.infinity,
-          height: 200,
-          color: Colors.grey[300],
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.broken_image, size: 48, color: Colors.grey[600]),
-              SizedBox(height: 8),
-              Text(
-                'Gagal memuatkan gambar',
-                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+/// Extension builder for network images with theme support
+Widget Function(ExtensionContext) networkImageExtensionBuilderWithTheme(bool isDark) {
+  return (ExtensionContext context) {
+    final src = context.attributes['src'];
+    if (src != null && src.isNotEmpty) {
+      // Proxy the image URL for web to bypass CORS
+      final proxiedUrl = _getProxiedImageUrl(src);
+      
+      return Image.network(
+        proxiedUrl,
+        fit: BoxFit.contain,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(
+            child: CircularProgressIndicator(
+              value: loadingProgress.expectedTotalBytes != null
+                  ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                  : null,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                isDark ? Colors.deepPurple[300]! : Color.fromARGB(255, 52, 21, 104),
               ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-  return SizedBox.shrink();
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          print('Error loading image from: $proxiedUrl');
+          print('Error: $error');
+          return Container(
+            width: double.infinity,
+            height: 200,
+            color: Colors.grey[300],
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.broken_image, size: 48, color: Colors.grey[600]),
+                SizedBox(height: 8),
+                Text(
+                  'Gagal memuatkan gambar',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    }
+    return SizedBox.shrink();
+  };
 }
 
 Future<double> getFontSize() async {
@@ -196,6 +201,7 @@ Widget buildSurahBody(
   BuildContext context,
   Map<String, String> surahData,
   Widget bodyContent,
+  {bool isDark = false}
 ) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -211,7 +217,9 @@ Widget buildSurahBody(
             ),
             SizedBox(height: 20),
             Image.asset(
-              'assets/images/bismillah.png',
+              isDark 
+                ? 'assets/images/bismillah_darkmode.png'
+                : 'assets/images/bismillah.png',
               fit: BoxFit.contain,
               width: MediaQuery.of(context).size.width * 0.6,
             ),
@@ -240,7 +248,7 @@ Widget bodyContent(surahIndex, currentPage, [bool isDark = false, Color? textCol
                 children: [
                   CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      Color.fromARGB(255, 52, 21, 104),
+                      isDark ? Colors.deepPurple[300]! : Color.fromARGB(255, 52, 21, 104),
                     ),
                   ),
                   SizedBox(height: 16),
@@ -364,7 +372,7 @@ Widget bodyContent(surahIndex, currentPage, [bool isDark = false, Color? textCol
               extensions: [
                 TagExtension(
                   tagsToExtend: {"img"},
-                  builder: networkImageExtensionBuilder,
+                  builder: networkImageExtensionBuilderWithTheme(isDark),
                 ),
               ],
             );
