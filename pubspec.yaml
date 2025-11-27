@@ -81,6 +81,8 @@ flutter:
     - assets/images/nomborplace_darkmode.png
     - assets/images/surahplace.png
     - assets/images/surahplace_darkmode.png
+    - assets/images/bismillah_darkmode.png
+    - assets/images/bismillah.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
