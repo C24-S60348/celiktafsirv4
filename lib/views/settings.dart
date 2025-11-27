@@ -27,8 +27,8 @@ class _SettingsPageState extends State<SettingsPage> {
   ];
 
   final List<String> _themeOptions = [
-    'Gelap',
-    'Terang'
+    'Terang',
+    'Gelap'
   ];
 
   @override
