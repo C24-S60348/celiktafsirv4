@@ -10,7 +10,7 @@ class GetListSurah {
   static const String _cacheSurahUrlsKey = 'cached_surah_urls'; // Cache for scraped URLs per surah
   static const String _cacheTimestampKey = 'cached_surah_list_timestamp';
   static const String _cacheVersionKey = 'surah_cache_version';
-  static const int _currentCacheVersion = 2; // Increment when cache structure changes
+  static const int _currentCacheVersion = 4; // Increment when cache structure changes - v4: Sort by publication date
   static const String _baseUrl = 'https://celiktafsir.net';
   
   // CORS Proxy for Web - using custom proxy server
@@ -332,7 +332,7 @@ class GetListSurah {
         
         // Find all post links - look for links that match post URL pattern
         // Post URLs typically match pattern: /YYYY/MM/DD/post-slug/
-        final postUrlPattern = RegExp(r'/\d{4}/\d{2}/\d{2}/[^/]+/$');
+        final postUrlPattern = RegExp(r'/(\d{4})/(\d{2})/(\d{2})/[^/]+/$');
         final allLinks = document.querySelectorAll('a');
         
         bool foundNewLinks = false;
@@ -343,18 +343,26 @@ class GetListSurah {
             final absoluteUrl = href.startsWith('http') ? href : '$_baseUrl$href';
             
             // Check if it's a post URL (matches date pattern) and is from celiktafsir.net
+            final dateMatch = postUrlPattern.firstMatch(absoluteUrl);
             if (absoluteUrl.contains('celiktafsir.net') && 
-                postUrlPattern.hasMatch(absoluteUrl) &&
+                dateMatch != null &&
                 !urlTitles.any((item) => item['url'] == absoluteUrl) &&
                 !absoluteUrl.contains('/category/') &&
                 !absoluteUrl.contains('/tag/') &&
                 !absoluteUrl.contains('/author/') &&
                 !absoluteUrl.contains('/page/')) {
+              // Extract date from URL for sorting
+              final year = dateMatch.group(1)!;
+              final month = dateMatch.group(2)!;
+              final day = dateMatch.group(3)!;
+              final dateString = '$year$month$day';
+              
               // Extract title from URL
               final title = _extractTitleFromUrl(absoluteUrl);
               urlTitles.add({
                 'url': absoluteUrl,
                 'title': title,
+                'date': dateString, // Store date for sorting
               });
               foundNewLinks = true;
             }
@@ -382,8 +390,13 @@ class GetListSurah {
       }
     }
     
-    // Sort by URL to maintain order
-    urlTitles.sort((a, b) => a['url']!.compareTo(b['url']!));
+    // Sort by date (chronologically) to maintain the website's intended order
+    // This ensures pages appear in the order they were published
+    urlTitles.sort((a, b) {
+      final dateA = a['date'] ?? '';
+      final dateB = b['date'] ?? '';
+      return dateA.compareTo(dateB);
+    });
     
     return urlTitles;
   }
