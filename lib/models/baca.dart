@@ -300,7 +300,7 @@ Widget buildSurahBody(
         child: Column(
           children: [
             Text(
-              '${surahData['pageTitle'] ?? surahData['name'] ?? ''}',
+              surahData['pageTitle'] ?? surahData['name'] ?? '',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),

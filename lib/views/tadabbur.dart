@@ -4,6 +4,8 @@ import '../services/getlistsurah.dart' as getlist;
 import '../utils/theme_helper.dart';
 
 class TadabburPage extends StatefulWidget {
+  const TadabburPage({super.key});
+
   @override
   _TadabburPageState createState() => _TadabburPageState();
 }

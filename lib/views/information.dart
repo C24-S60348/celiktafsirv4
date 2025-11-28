@@ -4,6 +4,8 @@ import '../utils/uihelper.dart';
 import '../utils/theme_helper.dart';
 
 class InformationPage extends StatelessWidget {
+  const InformationPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -104,11 +106,11 @@ class InformationPage extends StatelessWidget {
                         ),
                         GestureDetector(
                           onTap: () {
-                            launchUrl(Uri.parse('mailto:af1gaming01@gmail.com'));
+                            launchUrl(Uri.parse('mailto:celiktafsirpro@gmail.com'));
                           },
                           child: Center(
                             child: Text(
-                              'af1gaming01@gmail.com',
+                              'celiktafsirpro@gmail.com',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,

@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import '../utils/theme_helper.dart';
 
 class SurahPagesPage extends StatefulWidget {
+  const SurahPagesPage({super.key});
+
   @override
   _SurahPagesPageState createState() => _SurahPagesPageState();
 }

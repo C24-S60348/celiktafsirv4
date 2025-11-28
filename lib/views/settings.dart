@@ -6,7 +6,7 @@ import '../utils/theme_helper.dart';
 class SettingsPage extends StatefulWidget {
   final Function(String)? onThemeChanged;
   
-  SettingsPage({this.onThemeChanged});
+  const SettingsPage({super.key, this.onThemeChanged});
   
   @override
   _SettingsPageState createState() => _SettingsPageState();
@@ -484,7 +484,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     SizedBox(height: 16),
 
                     // How to Use Button
-                    Container(
+                    SizedBox(
                       width: MediaQuery.of(context).size.width * 0.7,
                       child: ElevatedButton(
                         onPressed: _showHowToUse,
@@ -508,7 +508,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     SizedBox(height: 16),
                     
                     // Clear Cache Button
-                    Container(
+                    SizedBox(
                       width: MediaQuery.of(context).size.width * 0.7,
                       child: ElevatedButton(
                         onPressed: _showClearCacheDialog,

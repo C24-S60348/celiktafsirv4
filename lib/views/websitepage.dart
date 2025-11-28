@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class WebsitePage extends StatefulWidget {
+  const WebsitePage({super.key});
+
   @override
   _WebsitePageState createState() => _WebsitePageState();
 }

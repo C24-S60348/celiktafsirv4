@@ -5,6 +5,8 @@ import '../models/tadabbur.dart' as surahlist;
 import '../utils/theme_helper.dart';
 
 class BookmarksPage extends StatefulWidget {
+  const BookmarksPage({super.key});
+
   @override
   _BookmarksPageState createState() => _BookmarksPageState();
 }
