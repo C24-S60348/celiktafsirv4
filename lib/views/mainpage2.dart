@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
 
-class MainPage extends StatefulWidget {
-  const MainPage({super.key});
+class MainPage2 extends StatefulWidget {
+  const MainPage2({super.key});
 
   @override
-  _MainPageState createState() => _MainPageState();
+  _MainPage2State createState() => _MainPage2State();
 }
 
-class _MainPageState extends State<MainPage> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
-
+class _MainPage2State extends State<MainPage2> {
   @override
   Widget build(BuildContext context) {
-    var buttonsize = Size(150, 200);
-    var buttonstyle = ElevatedButton.styleFrom(
-      minimumSize: buttonsize,
+    // Get screen dimensions
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    
+    // Calculate button size and positions based on typical 2x2 grid layout
+    // Adjust these values based on the actual image layout
+    var buttonSize = Size(screenWidth * 0.4, screenHeight * 0.25);
+    var buttonStyle = ElevatedButton.styleFrom(
+      minimumSize: buttonSize,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
@@ -27,45 +27,36 @@ class _MainPageState extends State<MainPage> {
       elevation: 0,
       foregroundColor: Colors.white,
     );
+
     return Scaffold(
       backgroundColor: Colors.black,
-      // appBar: AppBar(
-      //   title: Text('Celik Tafsir', style: TextStyle(color: Colors.white),),
-      //   centerTitle: true,
-      //   automaticallyImplyLeading: false, // Disables back button
-      //   backgroundColor: Colors.black,
-      // ),
       body: Container(
         color: Colors.black,
-        height: MediaQuery.of(context).size.height,
+        height: screenHeight,
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Image.asset(
-            //   'assets/images/bg.jpg',
-            //   fit: BoxFit.cover,
-            //   width: double.infinity,
-            //   height: double.infinity,
-            // ),
+            // Background image - Kandungan 2.png
             Image.asset(
-              'assets/images/Kandungan.png', 
+              'assets/images/Kandungan 2.png',
               fit: BoxFit.contain,
               alignment: Alignment.center,
             ),
-            // Button to navigate to Kandungan 2 page (top right)
+            // Back button to navigate back to mainpage with slide transition
             Positioned(
               top: 40,
-              right: 16,
+              left: 16,
               child: SafeArea(
                 child: IconButton(
                   icon: Icon(
-                    Icons.arrow_forward,
+                    Icons.arrow_back,
                     color: Colors.white,
                     size: 28,
                   ),
                   onPressed: () {
-                    // Navigate to mainpage2 with slide transition
-                    Navigator.of(context).pushNamed('/mainpage2');
+                    // Navigate back to mainpage with slide transition
+                    // The slide transition will automatically reverse (slide from left to right)
+                    Navigator.of(context).pop();
                   },
                   style: IconButton.styleFrom(
                     backgroundColor: Colors.black.withOpacity(0.5),
@@ -74,47 +65,54 @@ class _MainPageState extends State<MainPage> {
                 ),
               ),
             ),
+            // 4 Clickable boxes positioned over the image
             Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  SizedBox(height: 65),
+                  SizedBox(height: screenHeight * 0.15), // Adjust based on image layout
+                  // First row - 2 boxes
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      // Box 1 - Top Left (Glosari)
                       ElevatedButton(
-                        style: buttonstyle,
+                        style: buttonStyle,
                         onPressed: () {
-                          Navigator.of(context).pushNamed('/tadabbur');
+                          Navigator.of(context).pushNamed('/glosari');
                         },
                         child: SizedBox(),
                       ),
-                      SizedBox(width: 10),
+                      SizedBox(width: screenWidth * 0.05), // Spacing between boxes
+                      // Box 2 - Top Right (Hujjah)
                       ElevatedButton(
-                        style: buttonstyle,
+                        style: buttonStyle,
                         onPressed: () {
-                          Navigator.of(context).pushNamed('/bookmarks');
+                          Navigator.of(context).pushNamed('/hujjah');
                         },
                         child: SizedBox(),
                       ),
                     ],
                   ),
-                  SizedBox(height: 10),
+                  SizedBox(height: screenHeight * 0.02), // Spacing between rows
+                  // Second row - 2 boxes
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      // Box 3 - Bottom Left (Asmaul Husna)
                       ElevatedButton(
-                        style: buttonstyle,
+                        style: buttonStyle,
                         onPressed: () {
-                          Navigator.of(context).pushNamed('/settings');
+                          Navigator.of(context).pushNamed('/asmaul-husna');
                         },
                         child: SizedBox(),
                       ),
-                      SizedBox(width: 10),
+                      SizedBox(width: screenWidth * 0.05), // Spacing between boxes
+                      // Box 4 - Bottom Right (Asal Usul Tafsir)
                       ElevatedButton(
-                        style: buttonstyle,
+                        style: buttonStyle,
                         onPressed: () {
-                          Navigator.of(context).pushNamed('/info');
+                          Navigator.of(context).pushNamed('/asal-usul-tafsir');
                         },
                         child: SizedBox(),
                       ),
@@ -129,3 +127,4 @@ class _MainPageState extends State<MainPage> {
     );
   }
 }
+

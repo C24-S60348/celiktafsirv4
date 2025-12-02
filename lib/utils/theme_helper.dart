@@ -35,8 +35,7 @@ class ThemeHelper {
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      cardColor: Colors.white,
-      dialogBackgroundColor: Colors.white,
+      cardColor: Colors.white, dialogTheme: DialogThemeData(backgroundColor: Colors.white),
     );
   }
 
@@ -54,8 +53,7 @@ class ThemeHelper {
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      cardColor: const Color(0xFF1E1E1E),
-      dialogBackgroundColor: const Color(0xFF1E1E1E),
+      cardColor: const Color(0xFF1E1E1E), dialogTheme: DialogThemeData(backgroundColor: const Color(0xFF1E1E1E)),
     );
   }
 

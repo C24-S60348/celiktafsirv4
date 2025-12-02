@@ -717,6 +717,12 @@ class GetListSurah {
     }
     return null;
   }
+  
+  /// Scrape URLs and titles from any category URL (public method)
+  /// This can be used for Asmaul Husna or other category pages
+  static Future<List<Map<String, String>>> scrapeCategoryUrls(String categoryUrl) async {
+    return await _scrapeSurahUrls(categoryUrl);
+  }
 }
 
 /*

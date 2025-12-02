@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_html/flutter_html.dart';
-import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import '../services/getlistsurah.dart' as getlist;
 import '../services/baca.dart' as service;
-import '../services/download_service.dart';
 
 /// Remove numbering from unordered list items and clean up nested list structures
 String _removeNumbersFromUnorderedLists(String html) {
@@ -252,83 +249,27 @@ Future<double> getFontSize() async {
   return prefs.getDouble('font_size') ?? 16.0;
 }
 
-Widget buildPageIndicator(
-  int currentPage,
-  int totalPages,
-  Function() onPrevious,
-  Function() onNext,
-) {
-  return Padding(
-    padding: EdgeInsets.symmetric(vertical: 16.0),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        ElevatedButton.icon(
-          onPressed: currentPage > 0 ? onPrevious : null,
-          icon: Icon(Icons.arrow_back),
-          label: Text('Sebelum'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue,
-            foregroundColor: Colors.white,
-          ),
-        ),
-        ElevatedButton.icon(
-          onPressed: currentPage < totalPages - 1 ? onNext : null,
-          icon: Icon(Icons.arrow_forward),
-          label: Text('Selepas'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue,
-            foregroundColor: Colors.white,
-          ),
-        ),
-      ],
-    ),
-  );
+/// Get content for a specific ilmu usul tafsir post
+Future<String?> _getAsalUsulTafsirContent(String url) async {
+  final content = await service.BacaService.fetchContentFromUrl(url, 'entry-content');
+  if (content != null) {
+    // Process HTML content to proxy images for web
+    return _processHtmlForWeb(content);
+  }
+  return null;
 }
 
-Widget buildSurahBody(
-  BuildContext context,
-  Map<String, String> surahData,
-  Widget bodyContent,
-  {bool isDark = false}
-) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      // Surah header
-      Center(
-        child: Column(
-          children: [
-            Text(
-              surahData['pageTitle'] ?? surahData['name'] ?? '',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-            Image.asset(
-              isDark 
-                ? 'assets/images/bismillah_darkmode.png'
-                : 'assets/images/bismillah.png',
-              fit: BoxFit.contain,
-              width: MediaQuery.of(context).size.width * 0.6,
-            ),
-          ],
-        ),
-      ),
-      SizedBox(height: 30),
-
-      // Content placeholder
-      bodyContent,
-    ],
-  );
+/// Get content for a specific ilmu usul tafsir post (public access)
+Future<String?> getAsalUsulTafsirContent(String url) async {
+  return _getAsalUsulTafsirContent(url);
 }
 
-Widget bodyContent(surahIndex, currentPage, [bool isDark = false, Color? textColor]) {
+Widget bodyContent(String url, [bool isDark = false, Color? textColor]) {
   return FutureBuilder<double>(
     future: getFontSize(),
     builder: (context, fontSizeSnapshot) {
       return FutureBuilder<String?>(
-        future: _getPageContent(surahIndex, currentPage),
+        future: _getAsalUsulTafsirContent(url),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
@@ -483,99 +424,3 @@ Widget bodyContent(surahIndex, currentPage, [bool isDark = false, Color? textCol
   );
 }
 
-/// Get content for a specific page (cached or fetch)
-Future<String?> _getPageContent(int surahIndex, int pageIndex) async {
-  // First try to get from cache
-  final cachedPage = await DownloadService.getCachedPage(surahIndex, pageIndex);
-  
-  if (cachedPage != null) {
-    // Process HTML content to proxy images for web
-    final htmlContent = cachedPage['htmlContent'];
-    if (htmlContent != null && htmlContent is String) {
-      return _processHtmlForWeb(htmlContent);
-    }
-  }
-  
-  // If not cached, fetch from URL
-  final url = await getlist.GetListSurah.getSurahUrl(surahIndex, pageIndex);
-  if (url != null) {
-    final content = await service.BacaService.fetchContentFromUrl(url, 'entry-content');
-    if (content != null) {
-      // Process HTML content to proxy images for web
-      return _processHtmlForWeb(content);
-    }
-  }
-  
-  return null;
-}
-
-// Database functions for bookmarks
-Future<List<Map<String, dynamic>>> getBookmarks() async {
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    final bookmarksJson = prefs.getString('bookmarks');
-    if (bookmarksJson != null) {
-      final List<dynamic> bookmarksList = json.decode(bookmarksJson);
-      return bookmarksList.cast<Map<String, dynamic>>();
-    }
-    return [];
-  } catch (e) {
-    print('Error getting bookmarks: $e');
-    return [];
-  }
-}
-
-Future<void> saveBookmarks(List<Map<String, dynamic>> bookmarks) async {
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    final bookmarksJson = json.encode(bookmarks);
-    await prefs.setString('bookmarks', bookmarksJson);
-  } catch (e) {
-    print('Error saving bookmarks: $e');
-  }
-}
-
-Future<void> addBookmark(int surahIndex, int currentPage, {String? categoryUrl}) async {
-  try {
-    final bookmark = {
-      'surahIndex': surahIndex,
-      'currentPage': currentPage,
-      'categoryUrl': categoryUrl,
-      'dateAdded': DateTime.now().toIso8601String(),
-    };
-    final bookmarks = await getBookmarks();
-    
-    // Check if bookmark already exists
-    final existingIndex = bookmarks.indexWhere((b) => 
-      b['surahIndex'] == surahIndex && b['currentPage'] == currentPage);
-    
-    if (existingIndex == -1) {
-      bookmarks.add(bookmark);
-      await saveBookmarks(bookmarks);
-    }
-  } catch (e) {
-    print('Error adding bookmark: $e');
-  }
-}
-
-Future<void> removeBookmark(int surahIndex, int currentPage) async {
-  try {
-    final bookmarks = await getBookmarks();
-    bookmarks.removeWhere((b) => 
-      b['surahIndex'] == surahIndex && b['currentPage'] == currentPage);
-    await saveBookmarks(bookmarks);
-  } catch (e) {
-    print('Error removing bookmark: $e');
-  }
-}
-
-Future<bool> isBookmarked(int surahIndex, int currentPage) async {
-  try {
-    final bookmarks = await getBookmarks();
-    return bookmarks.any((b) => 
-      b['surahIndex'] == surahIndex && b['currentPage'] == currentPage);
-  } catch (e) {
-    print('Error checking bookmark: $e');
-    return false;
-  }
-}
