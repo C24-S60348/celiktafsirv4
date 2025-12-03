@@ -13,15 +13,13 @@ class _MainPage2State extends State<MainPage2> {
     // Get screen dimensions
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    
+
     // Calculate button size and positions based on typical 2x2 grid layout
     // Adjust these values based on the actual image layout
     var buttonSize = Size(screenWidth * 0.4, screenHeight * 0.25);
     var buttonStyle = ElevatedButton.styleFrom(
       minimumSize: buttonSize,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       backgroundColor: Colors.transparent,
       shadowColor: Colors.transparent,
       elevation: 0,
@@ -48,19 +46,17 @@ class _MainPage2State extends State<MainPage2> {
               left: 16,
               child: SafeArea(
                 child: IconButton(
-                  icon: Icon(
-                    Icons.arrow_back,
-                    color: Colors.white,
-                    size: 28,
-                  ),
+                  icon: Icon(Icons.arrow_back, color: Colors.black, size: 28),
                   onPressed: () {
                     // Navigate back to mainpage with slide transition
                     // The slide transition will automatically reverse (slide from left to right)
                     Navigator.of(context).pop();
                   },
                   style: IconButton.styleFrom(
-                    backgroundColor: Colors.black.withOpacity(0.5),
+                    backgroundColor: Colors.white,
                     shape: CircleBorder(),
+                    shadowColor: Colors.black,
+                    elevation: 5,
                   ),
                 ),
               ),
@@ -70,7 +66,9 @@ class _MainPage2State extends State<MainPage2> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  SizedBox(height: screenHeight * 0.15), // Adjust based on image layout
+                  SizedBox(
+                    height: screenHeight * 0.15,
+                  ), // Adjust based on image layout
                   // First row - 2 boxes
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -83,7 +81,9 @@ class _MainPage2State extends State<MainPage2> {
                         },
                         child: SizedBox(),
                       ),
-                      SizedBox(width: screenWidth * 0.05), // Spacing between boxes
+                      SizedBox(
+                        width: screenWidth * 0.05,
+                      ), // Spacing between boxes
                       // Box 2 - Top Right (Hujjah)
                       ElevatedButton(
                         style: buttonStyle,
@@ -107,7 +107,9 @@ class _MainPage2State extends State<MainPage2> {
                         },
                         child: SizedBox(),
                       ),
-                      SizedBox(width: screenWidth * 0.05), // Spacing between boxes
+                      SizedBox(
+                        width: screenWidth * 0.05,
+                      ), // Spacing between boxes
                       // Box 4 - Bottom Right (Asal Usul Tafsir)
                       ElevatedButton(
                         style: buttonStyle,
@@ -127,4 +129,3 @@ class _MainPage2State extends State<MainPage2> {
     );
   }
 }
-
