@@ -1,40 +1,24 @@
 import 'package:flutter/material.dart';
-import '../services/getlistsurah.dart' as getlist;
+import '../services/getasmaulhusna.dart' as getasmaulhusna;
 import 'package:http/http.dart' as http;
 import '../utils/theme_helper.dart';
 
-class SurahPagesPage extends StatefulWidget {
-  const SurahPagesPage({super.key});
+class AsmaulHusnaPage extends StatefulWidget {
+  const AsmaulHusnaPage({super.key});
 
   @override
-  _SurahPagesPageState createState() => _SurahPagesPageState();
+  _AsmaulHusnaPageState createState() => _AsmaulHusnaPageState();
 }
 
-class _SurahPagesPageState extends State<SurahPagesPage> {
-  late Map<String, String> surahData;
-  int surahIndex = 0;
+class _AsmaulHusnaPageState extends State<AsmaulHusnaPage> {
   List<Map<String, dynamic>> pages = [];
   bool isLoading = true;
   bool hasNoInternet = false;
 
-  String? categoryUrl;
-  
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (isLoading) {
-      final args = ModalRoute.of(context)?.settings.arguments;
-      if (args != null && args is Map<String, dynamic>) {
-        surahData = {
-          'name': args['name']?.toString() ?? '',
-          'name_arab': args['name_arab']?.toString() ?? '',
-          'number': args['number']?.toString() ?? '',
-        };
-        surahIndex = args['surahIndex'] ?? 0;
-        categoryUrl = args['category_url']?.toString();
-        _loadPages();
-      }
-    }
+  void initState() {
+    super.initState();
+    _loadPages();
   }
 
   Future<bool> _checkInternetConnection() async {
@@ -55,23 +39,17 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
     // Check internet connection first
     final hasInternet = await _checkInternetConnection();
     
-    // Pass categoryUrl to getSurahByIndex so each variant uses its specific URL
-    final surah = await getlist.GetListSurah.getSurahByIndex(surahIndex, categoryUrl: categoryUrl);
-    if (surah != null) {
-      final urls = List<String>.from(surah['urls'] as List);
-      final titles = surah['titles'] as List<String>?;
+    try {
+      // Get Asmaul Husna posts using the dedicated service
+      final urlTitles = await getasmaulhusna.GetAsmaulHusna.getAsmaulHusnaPosts();
+      
       final List<Map<String, dynamic>> pageList = [];
-
-      for (int i = 0; i < urls.length; i++) {
-        final url = urls[i];
-        // Use cached title if available, otherwise extract from URL
-        final title = (titles != null && i < titles.length) 
-            ? titles[i] 
-            : _extractTitleFromUrl(url);
+      for (int i = 0; i < urlTitles.length; i++) {
+        final urlTitle = urlTitles[i];
         pageList.add({
           'index': i,
-          'title': title,
-          'url': url,
+          'title': urlTitle['title'] ?? _extractTitleFromUrl(urlTitle['url'] ?? ''),
+          'url': urlTitle['url'] ?? '',
         });
       }
 
@@ -79,10 +57,10 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
         pages = pageList;
         isLoading = false;
         // If no pages and no internet, show message
-        hasNoInternet = (!hasInternet && urls.isEmpty);
+        hasNoInternet = (!hasInternet && urlTitles.isEmpty);
       });
-    } else {
-      // No surah data - check if it's because of no internet
+    } catch (e) {
+      print('Error loading Asmaul Husna pages: $e');
       setState(() {
         pages = [];
         isLoading = false;
@@ -137,7 +115,6 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
         // Clean up multiple spaces
         title = title.replaceAll(RegExp(r'\s+'), ' ');
         
-        
         return title.trim();
       }
     } catch (e) {
@@ -158,7 +135,7 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          '${surahData['name']}',
+          'Asmaul Husna',
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
@@ -289,7 +266,6 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
                                   itemCount: pages.length,
                                   itemBuilder: (context, index) {
                                     final page = pages[index];
-                                    // debugPrint('Page: ${page['title']}');
                                     return Card(
                                       margin: EdgeInsets.symmetric(
                                         horizontal: 8.0,
@@ -328,12 +304,10 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
                                           color: textColor,
                                         ),
                                         onTap: () {
-                                          Navigator.of(context).pushNamed('/baca', arguments: {
-                                            ...surahData,
-                                            'surahIndex': surahIndex,
+                                          Navigator.of(context).pushNamed('/baca-asmaul-husna', arguments: {
+                                            'url': page['url'],
+                                            'title': page['title'],
                                             'pageIndex': page['index'],
-                                            'pageTitle': page['title'],
-                                            'category_url': categoryUrl,
                                           });
                                         },
                                       ),
@@ -351,4 +325,3 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
     );
   }
 }
-

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class MainPage extends StatefulWidget {
+  const MainPage({super.key});
+
   @override
   _MainPageState createState() => _MainPageState();
 }
@@ -11,15 +13,12 @@ class _MainPageState extends State<MainPage> {
     super.initState();
   }
 
-
   @override
   Widget build(BuildContext context) {
     var buttonsize = Size(150, 200);
     var buttonstyle = ElevatedButton.styleFrom(
       minimumSize: buttonsize,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       backgroundColor: Colors.transparent,
       shadowColor: Colors.transparent,
       elevation: 0,
@@ -46,9 +45,33 @@ class _MainPageState extends State<MainPage> {
             //   height: double.infinity,
             // ),
             Image.asset(
-              'assets/images/Kandungan.png', 
+              'assets/images/Kandungan.png',
               fit: BoxFit.contain,
               alignment: Alignment.center,
+            ),
+            // Button to navigate to Kandungan 2 page (top right)
+            Positioned(
+              top: 40,
+              right: 16,
+              child: SafeArea(
+                child: IconButton(
+                  icon: Icon(
+                    Icons.arrow_forward,
+                    color: Colors.black,
+                    size: 28,
+                  ),
+                  onPressed: () {
+                    // Navigate to mainpage2 with slide transition
+                    Navigator.of(context).pushNamed('/mainpage2');
+                  },
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    shape: CircleBorder(),
+                    shadowColor: Colors.black,
+                    elevation: 5,
+                  ),
+                ),
+              ),
             ),
             Center(
               child: Column(

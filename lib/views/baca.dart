@@ -5,6 +5,8 @@ import '../services/download_service.dart';
 import '../utils/theme_helper.dart';
 
 class BacaPage extends StatefulWidget {
+  const BacaPage({super.key});
+
   @override
   _BacaPageState createState() => _BacaPageState();
 }
@@ -333,7 +335,7 @@ class _BacaPageState extends State<BacaPage> {
           child: Column(
             children: [
               Text(
-                '${surahData['pageTitle'] ?? surahData['name'] ?? ''}',
+                surahData['pageTitle'] ?? surahData['name'] ?? '',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 24,

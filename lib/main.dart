@@ -9,6 +9,14 @@ import 'views/bookmarks.dart';
 import 'views/websitepage.dart';
 import 'views/settings.dart';
 import 'views/surah_pages.dart';
+import 'views/mainpage2.dart';
+import 'views/glosari.dart';
+import 'views/hujjah.dart';
+import 'views/baca_hujjah.dart';
+import 'views/asmaul_husna.dart';
+import 'views/baca_asmaul_husna.dart';
+import 'views/asal_usul_tafsir.dart';
+import 'views/baca_asal_usul_tafsir.dart';
 import 'utils/uihelper.dart';
 import 'utils/theme_helper.dart';
 
@@ -92,6 +100,33 @@ class _MyAppState extends State<MyApp> {
             break;
           case '/settings':
             page = SettingsPage(onThemeChanged: _updateTheme);
+            break;
+          case '/mainpage2':
+            page = MainPage2();
+            break;
+          case '/kandungan2':
+            page = MainPage2(); // Keep old route for backward compatibility
+            break;
+          case '/glosari':
+            page = GlosariPage();
+            break;
+          case '/hujjah':
+            page = HujjahPage();
+            break;
+          case '/baca-hujjah':
+            page = BacaHujjahPage();
+            break;
+          case '/asmaul-husna':
+            page = AsmaulHusnaPage();
+            break;
+          case '/baca-asmaul-husna':
+            page = BacaAsmaulHusnaPage();
+            break;
+          case '/asal-usul-tafsir':
+            page = AsalUsulTafsirPage();
+            break;
+          case '/baca-asal-usul-tafsir':
+            page = BacaAsalUsulTafsirPage();
             break;
           default:
             page = SplashScreen();

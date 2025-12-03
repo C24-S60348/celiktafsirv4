@@ -1,40 +1,24 @@
 import 'package:flutter/material.dart';
-import '../services/getlistsurah.dart' as getlist;
-import 'package:http/http.dart' as http;
+import '../services/getasalusultafsir.dart' as getasalusultafsir;
 import '../utils/theme_helper.dart';
+import 'package:http/http.dart' as http;
 
-class SurahPagesPage extends StatefulWidget {
-  const SurahPagesPage({super.key});
+class AsalUsulTafsirPage extends StatefulWidget {
+  const AsalUsulTafsirPage({super.key});
 
   @override
-  _SurahPagesPageState createState() => _SurahPagesPageState();
+  _AsalUsulTafsirPageState createState() => _AsalUsulTafsirPageState();
 }
 
-class _SurahPagesPageState extends State<SurahPagesPage> {
-  late Map<String, String> surahData;
-  int surahIndex = 0;
-  List<Map<String, dynamic>> pages = [];
+class _AsalUsulTafsirPageState extends State<AsalUsulTafsirPage> {
+  List<Map<String, String>> posts = [];
   bool isLoading = true;
   bool hasNoInternet = false;
 
-  String? categoryUrl;
-  
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (isLoading) {
-      final args = ModalRoute.of(context)?.settings.arguments;
-      if (args != null && args is Map<String, dynamic>) {
-        surahData = {
-          'name': args['name']?.toString() ?? '',
-          'name_arab': args['name_arab']?.toString() ?? '',
-          'number': args['number']?.toString() ?? '',
-        };
-        surahIndex = args['surahIndex'] ?? 0;
-        categoryUrl = args['category_url']?.toString();
-        _loadPages();
-      }
-    }
+  void initState() {
+    super.initState();
+    _loadPosts();
   }
 
   Future<bool> _checkInternetConnection() async {
@@ -51,116 +35,24 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
     }
   }
 
-  void _loadPages() async {
+  void _loadPosts() async {
     // Check internet connection first
     final hasInternet = await _checkInternetConnection();
     
-    // Pass categoryUrl to getSurahByIndex so each variant uses its specific URL
-    final surah = await getlist.GetListSurah.getSurahByIndex(surahIndex, categoryUrl: categoryUrl);
-    if (surah != null) {
-      final urls = List<String>.from(surah['urls'] as List);
-      final titles = surah['titles'] as List<String>?;
-      final List<Map<String, dynamic>> pageList = [];
-
-      for (int i = 0; i < urls.length; i++) {
-        final url = urls[i];
-        // Use cached title if available, otherwise extract from URL
-        final title = (titles != null && i < titles.length) 
-            ? titles[i] 
-            : _extractTitleFromUrl(url);
-        pageList.add({
-          'index': i,
-          'title': title,
-          'url': url,
-        });
-      }
-
-      setState(() {
-        pages = pageList;
-        isLoading = false;
-        // If no pages and no internet, show message
-        hasNoInternet = (!hasInternet && urls.isEmpty);
-      });
-    } else {
-      // No surah data - check if it's because of no internet
-      setState(() {
-        pages = [];
-        isLoading = false;
-        hasNoInternet = !hasInternet;
-      });
-    }
-  }
-
-  String _extractTitleFromUrl(String url) {
-    try {
-      // Extract the last part of the URL (after the last /)
-      final parts = url.split('/');
-      // Filter out empty strings and get the last non-empty part
-      final nonEmptyParts = parts.where((p) => p.isNotEmpty).toList();
-      if (nonEmptyParts.isNotEmpty) {
-        String title = nonEmptyParts.last;
-        
-        // Split by hyphens
-        List<String> segments = title.split('-');
-        
-        // Process segments and join with spaces, but preserve hyphens between numbers
-        List<String> processedSegments = [];
-        for (int i = 0; i < segments.length; i++) {
-          String segment = segments[i].trim();
-          if (segment.isEmpty) continue;
-          
-          // Expand abbreviations
-          if (segment.toLowerCase() == 'bah') {
-            segment = 'bahagian';
-          }
-          
-          // Capitalize first letter, rest lowercase
-          if (segment.isNotEmpty) {
-            segment = segment[0].toUpperCase() + segment.substring(1).toLowerCase();
-          }
-          
-          processedSegments.add(segment);
-          
-          // If current and next segments are both numbers, add hyphen instead of space
-          if (i < segments.length - 1) {
-            String nextSegment = segments[i + 1].trim();
-            if (_isNumeric(segment) && _isNumeric(nextSegment)) {
-              processedSegments.add('-');
-            } else {
-              processedSegments.add(' ');
-            }
-          }
-        }
-        
-        title = processedSegments.join('');
-        
-        // Clean up multiple spaces
-        title = title.replaceAll(RegExp(r'\s+'), ' ');
-        
-        
-        return title.trim();
-      }
-    } catch (e) {
-      print('Error extracting title: $e');
-    }
+    final postList = await getasalusultafsir.GetAsalUsulTafsir.getAsalUsulTafsirPosts();
     
-    // Fallback: return page number
-    return 'Halaman ${pages.length + 1}';
-  }
-  
-  bool _isNumeric(String str) {
-    if (str.isEmpty) return false;
-    return RegExp(r'^\d+$').hasMatch(str);
+    setState(() {
+      posts = postList;
+      isLoading = false;
+      hasNoInternet = !hasInternet;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          '${surahData['name']}',
-          style: TextStyle(color: Colors.white),
-        ),
+        title: Text('Ilmu Usul Tafsir', style: TextStyle(color: Colors.white)),
         centerTitle: true,
         backgroundColor: const Color.fromARGB(255, 52, 21, 104),
         leading: IconButton(
@@ -199,7 +91,7 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
                       child: Column(
                         children: [
                           Text(
-                            'Pilih Halaman',
+                            'Pilih Artikel',
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -209,7 +101,7 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
                           SizedBox(height: 8),
                           isLoading 
                             ? SizedBox(height: 15,)
-                            : hasNoInternet && pages.isEmpty
+                            : hasNoInternet && posts.isEmpty
                               ? Text(
                                   'Tiada sambungan internet',
                                   style: TextStyle(
@@ -219,7 +111,7 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
                                   ),
                                 )
                               : Text(
-                                  'Jumlah: ${pages.length} halaman',
+                                  'Jumlah: ${posts.length} artikel',
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: isDark ? Colors.grey[300] : Colors.black87,
@@ -231,7 +123,7 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
                     Divider(color: textColor.withOpacity(0.3)),
                     SizedBox(height: 10),
 
-                    // Pages list
+                    // Posts list
                     Expanded(
                       child: isLoading
                           ? Center(
@@ -241,7 +133,7 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
                                 ),
                               ),
                             )
-                          : hasNoInternet && pages.isEmpty
+                          : hasNoInternet && posts.isEmpty
                             ? Center(
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -275,10 +167,10 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
                                   ],
                                 ),
                               )
-                            : pages.isEmpty
+                            : posts.isEmpty
                               ? Center(
                                   child: Text(
-                                    'Tiada halaman tersedia',
+                                    'Tiada artikel tersedia',
                                     style: TextStyle(
                                       fontSize: 16,
                                       color: isDark ? Colors.grey[400] : Colors.black54,
@@ -286,10 +178,9 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
                                   ),
                                 )
                               : ListView.builder(
-                                  itemCount: pages.length,
+                                  itemCount: posts.length,
                                   itemBuilder: (context, index) {
-                                    final page = pages[index];
-                                    // debugPrint('Page: ${page['title']}');
+                                    final post = posts[index];
                                     return Card(
                                       margin: EdgeInsets.symmetric(
                                         horizontal: 8.0,
@@ -301,7 +192,7 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
                                         leading: CircleAvatar(
                                           backgroundColor: Color.fromARGB(255, 52, 21, 104),
                                           child: Text(
-                                            '${page['index'] + 1}',
+                                            '${index + 1}',
                                             style: TextStyle(
                                               color: Colors.white,
                                               fontWeight: FontWeight.bold,
@@ -309,14 +200,14 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
                                           ),
                                         ),
                                         title: Text(
-                                          page['title'] as String,
+                                          post['title'] ?? 'Untitled',
                                           style: TextStyle(
                                             fontWeight: FontWeight.w500,
                                             color: textColor,
                                           ),
                                         ),
                                         subtitle: Text(
-                                          'Halaman ${page['index'] + 1}',
+                                          'Artikel ${index + 1}',
                                           style: TextStyle(
                                             fontSize: 12,
                                             color: isDark ? Colors.grey[400] : Colors.black54,
@@ -328,12 +219,9 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
                                           color: textColor,
                                         ),
                                         onTap: () {
-                                          Navigator.of(context).pushNamed('/baca', arguments: {
-                                            ...surahData,
-                                            'surahIndex': surahIndex,
-                                            'pageIndex': page['index'],
-                                            'pageTitle': page['title'],
-                                            'category_url': categoryUrl,
+                                          Navigator.of(context).pushNamed('/baca-asal-usul-tafsir', arguments: {
+                                            'url': post['url'],
+                                            'title': post['title'],
                                           });
                                         },
                                       ),

@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_html/flutter_html.dart';
-import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import '../services/getlistsurah.dart' as getlist;
 import '../services/baca.dart' as service;
-import '../services/download_service.dart';
 
 /// Remove numbering from unordered list items and clean up nested list structures
 String _removeNumbersFromUnorderedLists(String html) {
   String result = html;
-
+  
   // Remove wrapper <ol><li style="list-style-type: none"><ol>...</ol></li></ol> structures
   result = result.replaceAllMapped(
     RegExp(
@@ -20,7 +17,7 @@ String _removeNumbersFromUnorderedLists(String html) {
     ),
     (match) => match.group(1)!, // Keep only the inner <ol>
   );
-
+  
   // Remove wrapper <ul><li style="list-style-type: none"><ul>...</ul></li></ul> structures
   result = result.replaceAllMapped(
     RegExp(
@@ -30,11 +27,11 @@ String _removeNumbersFromUnorderedLists(String html) {
     ),
     (match) => match.group(1)!, // Keep only the inner <ul>
   );
-
+  
   // Process <ul> tags to remove numbers
   int maxIterations = 20;
   int iteration = 0;
-
+  
   while (iteration < maxIterations) {
     // Find the innermost <ul>...</ul> block
     final match = RegExp(
@@ -42,23 +39,23 @@ String _removeNumbersFromUnorderedLists(String html) {
       dotAll: true,
       caseSensitive: false,
     ).firstMatch(result);
-
+    
     if (match == null) break;
-
+    
     String fullMatch = match.group(0)!;
     String ulOpenTag = fullMatch.substring(0, fullMatch.indexOf('>') + 1);
     String ulContent = match.group(1)!;
-
+    
     // Remove number patterns from <li> tags within this <ul>
     String cleanedContent = ulContent.replaceAllMapped(
       RegExp(r'(<li[^>]*>)\s*(\d+\.\s+)', caseSensitive: false),
       (m) => m.group(1)!,
     );
-
+    
     result = result.replaceFirst(fullMatch, '$ulOpenTag$cleanedContent</ul>');
     iteration++;
   }
-
+  
   return result;
 }
 
@@ -75,7 +72,7 @@ String _getProxiedImageUrl(String imageUrl) {
       absoluteUrl = '$baseUrl/$imageUrl';
     }
   }
-
+  
   if (kIsWeb) {
     // For web, use CORS proxy for images
     const corsProxy = 'https://afwanhaziq.vps.webdock.cloud/proxy?url=';
@@ -91,36 +88,31 @@ String _processHtmlForWeb(String htmlContent) {
     // For mobile, return content as-is
     return htmlContent;
   }
-
+  
   // For web, proxy all image URLs in the HTML
   // Replace src="..." in img tags
-  final imgPattern = RegExp(
-    r'<img([^>]*)\s+src="([^"]*)"([^>]*)>',
-    caseSensitive: false,
-  );
-
+  final imgPattern = RegExp(r'<img([^>]*)\s+src="([^"]*)"([^>]*)>', caseSensitive: false);
+  
   return htmlContent.replaceAllMapped(imgPattern, (match) {
     final beforeSrc = match.group(1) ?? '';
     final originalSrc = match.group(2) ?? '';
     final afterSrc = match.group(3) ?? '';
-
+    
     // Get proxied URL
     final proxiedSrc = _getProxiedImageUrl(originalSrc);
-
+    
     return '<img$beforeSrc src="$proxiedSrc"$afterSrc>';
   });
 }
 
 /// Extension builder for network images with theme support and zoom capability
-Widget Function(ExtensionContext) networkImageExtensionBuilderWithTheme(
-  bool isDark,
-) {
+Widget Function(ExtensionContext) networkImageExtensionBuilderWithTheme(bool isDark) {
   return (ExtensionContext extensionContext) {
     final src = extensionContext.attributes['src'];
     if (src != null && src.isNotEmpty) {
       // Proxy the image URL for web to bypass CORS
       final proxiedUrl = _getProxiedImageUrl(src);
-
+      
       return GestureDetector(
         onTap: () {
           // Get the BuildContext from the extension context
@@ -137,13 +129,10 @@ Widget Function(ExtensionContext) networkImageExtensionBuilderWithTheme(
             return Center(
               child: CircularProgressIndicator(
                 value: loadingProgress.expectedTotalBytes != null
-                    ? loadingProgress.cumulativeBytesLoaded /
-                          loadingProgress.expectedTotalBytes!
+                    ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
                     : null,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  isDark
-                      ? Colors.deepPurple[300]!
-                      : Color.fromARGB(255, 52, 21, 104),
+                  isDark ? Colors.deepPurple[300]! : Color.fromARGB(255, 52, 21, 104),
                 ),
               ),
             );
@@ -190,45 +179,37 @@ void _showImageZoomDialog(BuildContext context, String imageUrl, bool isDark) {
               minScale: 0.5,
               maxScale: 4.0,
               child: Center(
-                child: Container(
-                  color: Colors.white,
-                  child: Image.network(
-                    imageUrl,
-                    fit: BoxFit.contain,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Center(
-                        child: CircularProgressIndicator(
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
-                              : null,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Color.fromARGB(255, 52, 21, 104),
+                child: Image.network(
+                  imageUrl,
+                  fit: BoxFit.contain,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Center(
+                      child: CircularProgressIndicator(
+                        value: loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                            : null,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          isDark ? Colors.deepPurple[300]! : Colors.white,
+                        ),
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.broken_image, size: 64, color: Colors.white),
+                          SizedBox(height: 16),
+                          Text(
+                            'Gagal memuatkan gambar',
+                            style: TextStyle(color: Colors.white),
                           ),
-                        ),
-                      );
-                    },
-                    errorBuilder: (context, error, stackTrace) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.broken_image,
-                              size: 64,
-                              color: Colors.grey[600],
-                            ),
-                            SizedBox(height: 16),
-                            Text(
-                              'Gagal memuatkan gambar',
-                              style: TextStyle(color: Colors.grey[800]),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
@@ -239,6 +220,21 @@ void _showImageZoomDialog(BuildContext context, String imageUrl, bool isDark) {
               child: IconButton(
                 icon: Icon(Icons.close, color: Colors.white, size: 30),
                 onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+            // Zoom hint text
+            Positioned(
+              bottom: 40,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
               ),
             ),
           ],
@@ -253,88 +249,27 @@ Future<double> getFontSize() async {
   return prefs.getDouble('font_size') ?? 16.0;
 }
 
-Widget buildPageIndicator(
-  int currentPage,
-  int totalPages,
-  Function() onPrevious,
-  Function() onNext,
-) {
-  return Padding(
-    padding: EdgeInsets.symmetric(vertical: 16.0),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        ElevatedButton.icon(
-          onPressed: currentPage > 0 ? onPrevious : null,
-          icon: Icon(Icons.arrow_back),
-          label: Text('Sebelum'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue,
-            foregroundColor: Colors.white,
-          ),
-        ),
-        ElevatedButton.icon(
-          onPressed: currentPage < totalPages - 1 ? onNext : null,
-          icon: Icon(Icons.arrow_forward),
-          label: Text('Selepas'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue,
-            foregroundColor: Colors.white,
-          ),
-        ),
-      ],
-    ),
-  );
+/// Get content for a specific hujjah post
+Future<String?> _getHujjahContent(String url) async {
+  final content = await service.BacaService.fetchContentFromUrl(url, 'entry-content');
+  if (content != null) {
+    // Process HTML content to proxy images for web
+    return _processHtmlForWeb(content);
+  }
+  return null;
 }
 
-Widget buildSurahBody(
-  BuildContext context,
-  Map<String, String> surahData,
-  Widget bodyContent, {
-  bool isDark = false,
-}) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      // Surah header
-      Center(
-        child: Column(
-          children: [
-            Text(
-              surahData['pageTitle'] ?? surahData['name'] ?? '',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-            Image.asset(
-              isDark
-                  ? 'assets/images/bismillah_darkmode.png'
-                  : 'assets/images/bismillah.png',
-              fit: BoxFit.contain,
-              width: MediaQuery.of(context).size.width * 0.6,
-            ),
-          ],
-        ),
-      ),
-      SizedBox(height: 30),
-
-      // Content placeholder
-      bodyContent,
-    ],
-  );
+/// Get content for a specific hujjah post (public access)
+Future<String?> getHujjahContent(String url) async {
+  return _getHujjahContent(url);
 }
 
-Widget bodyContent(
-  surahIndex,
-  currentPage, [
-  bool isDark = false,
-  Color? textColor,
-]) {
+Widget bodyContent(String url, [bool isDark = false, Color? textColor]) {
   return FutureBuilder<double>(
     future: getFontSize(),
     builder: (context, fontSizeSnapshot) {
       return FutureBuilder<String?>(
-        future: _getPageContent(surahIndex, currentPage),
+        future: _getHujjahContent(url),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
@@ -343,9 +278,7 @@ Widget bodyContent(
                 children: [
                   CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      isDark
-                          ? Colors.deepPurple[300]!
-                          : Color.fromARGB(255, 52, 21, 104),
+                      isDark ? Colors.deepPurple[300]! : Color.fromARGB(255, 52, 21, 104),
                     ),
                   ),
                   SizedBox(height: 16),
@@ -367,15 +300,11 @@ Widget bodyContent(
           } else if (snapshot.hasData) {
             final fontSize = fontSizeSnapshot.data ?? 16.0;
             // Remove numbers from unordered list items
-            final cleanedHtml = _removeNumbersFromUnorderedLists(
-              snapshot.data!,
-            );
-
+            final cleanedHtml = _removeNumbersFromUnorderedLists(snapshot.data!);
+            
             // Get text color - white for dark mode, black for light mode
-            final htmlTextColor = isDark
-                ? Colors.white
-                : (textColor ?? Colors.black);
-
+            final htmlTextColor = isDark ? Colors.white : (textColor ?? Colors.black);
+            
             return Html(
               data: cleanedHtml,
               style: {
@@ -389,15 +318,28 @@ Widget bodyContent(
                   textAlign: TextAlign.justify,
                   color: htmlTextColor,
                 ),
-                "div": Style(color: htmlTextColor),
-                "span": Style(color: htmlTextColor),
+                "div": Style(
+                  color: htmlTextColor,
+                ),
+                "span": Style(
+                  color: htmlTextColor,
+                ),
                 "strong": Style(
                   color: htmlTextColor,
                   fontWeight: FontWeight.bold,
                 ),
-                "b": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "em": Style(color: htmlTextColor, fontStyle: FontStyle.italic),
-                "i": Style(color: htmlTextColor, fontStyle: FontStyle.italic),
+                "b": Style(
+                  color: htmlTextColor,
+                  fontWeight: FontWeight.bold,
+                ),
+                "em": Style(
+                  color: htmlTextColor,
+                  fontStyle: FontStyle.italic,
+                ),
+                "i": Style(
+                  color: htmlTextColor,
+                  fontStyle: FontStyle.italic,
+                ),
                 "u": Style(
                   color: htmlTextColor,
                   textDecoration: TextDecoration.underline,
@@ -428,12 +370,30 @@ Widget bodyContent(
                   padding: HtmlPaddings.only(bottom: 8),
                   color: htmlTextColor,
                 ),
-                "h1": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "h2": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "h3": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "h4": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "h5": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "h6": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
+                "h1": Style(
+                  color: htmlTextColor,
+                  fontWeight: FontWeight.bold,
+                ),
+                "h2": Style(
+                  color: htmlTextColor,
+                  fontWeight: FontWeight.bold,
+                ),
+                "h3": Style(
+                  color: htmlTextColor,
+                  fontWeight: FontWeight.bold,
+                ),
+                "h4": Style(
+                  color: htmlTextColor,
+                  fontWeight: FontWeight.bold,
+                ),
+                "h5": Style(
+                  color: htmlTextColor,
+                  fontWeight: FontWeight.bold,
+                ),
+                "h6": Style(
+                  color: htmlTextColor,
+                  fontWeight: FontWeight.bold,
+                ),
                 "img": Style(
                   width: Width(double.infinity),
                   height: Height(200),
@@ -464,109 +424,3 @@ Widget bodyContent(
   );
 }
 
-/// Get content for a specific page (cached or fetch)
-Future<String?> _getPageContent(int surahIndex, int pageIndex) async {
-  // First try to get from cache
-  final cachedPage = await DownloadService.getCachedPage(surahIndex, pageIndex);
-
-  if (cachedPage != null) {
-    // Process HTML content to proxy images for web
-    final htmlContent = cachedPage['htmlContent'];
-    if (htmlContent != null && htmlContent is String) {
-      return _processHtmlForWeb(htmlContent);
-    }
-  }
-
-  // If not cached, fetch from URL
-  final url = await getlist.GetListSurah.getSurahUrl(surahIndex, pageIndex);
-  if (url != null) {
-    final content = await service.BacaService.fetchContentFromUrl(
-      url,
-      'entry-content',
-    );
-    if (content != null) {
-      // Process HTML content to proxy images for web
-      return _processHtmlForWeb(content);
-    }
-  }
-
-  return null;
-}
-
-// Database functions for bookmarks
-Future<List<Map<String, dynamic>>> getBookmarks() async {
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    final bookmarksJson = prefs.getString('bookmarks');
-    if (bookmarksJson != null) {
-      final List<dynamic> bookmarksList = json.decode(bookmarksJson);
-      return bookmarksList.cast<Map<String, dynamic>>();
-    }
-    return [];
-  } catch (e) {
-    print('Error getting bookmarks: $e');
-    return [];
-  }
-}
-
-Future<void> saveBookmarks(List<Map<String, dynamic>> bookmarks) async {
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    final bookmarksJson = json.encode(bookmarks);
-    await prefs.setString('bookmarks', bookmarksJson);
-  } catch (e) {
-    print('Error saving bookmarks: $e');
-  }
-}
-
-Future<void> addBookmark(
-  int surahIndex,
-  int currentPage, {
-  String? categoryUrl,
-}) async {
-  try {
-    final bookmark = {
-      'surahIndex': surahIndex,
-      'currentPage': currentPage,
-      'categoryUrl': categoryUrl,
-      'dateAdded': DateTime.now().toIso8601String(),
-    };
-    final bookmarks = await getBookmarks();
-
-    // Check if bookmark already exists
-    final existingIndex = bookmarks.indexWhere(
-      (b) => b['surahIndex'] == surahIndex && b['currentPage'] == currentPage,
-    );
-
-    if (existingIndex == -1) {
-      bookmarks.add(bookmark);
-      await saveBookmarks(bookmarks);
-    }
-  } catch (e) {
-    print('Error adding bookmark: $e');
-  }
-}
-
-Future<void> removeBookmark(int surahIndex, int currentPage) async {
-  try {
-    final bookmarks = await getBookmarks();
-    bookmarks.removeWhere(
-      (b) => b['surahIndex'] == surahIndex && b['currentPage'] == currentPage,
-    );
-    await saveBookmarks(bookmarks);
-  } catch (e) {
-    print('Error removing bookmark: $e');
-  }
-}
-
-Future<bool> isBookmarked(int surahIndex, int currentPage) async {
-  try {
-    final bookmarks = await getBookmarks();
-    return bookmarks.any(
-      (b) => b['surahIndex'] == surahIndex && b['currentPage'] == currentPage,
-    );
-  } catch (e) {
-    print('Error checking bookmark: $e');
-    return false;
-  }
-}
