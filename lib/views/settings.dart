@@ -487,7 +487,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     SizedBox(
                       width: MediaQuery.of(context).size.width * 0.7,
                       child: ElevatedButton(
-                        onPressed: _showHowToUse,
+                        onPressed: () => Navigator.of(context).pushNamed('/tutorial'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color.fromARGB(255, 52, 21, 104),
                           padding: EdgeInsets.symmetric(vertical: 16),
