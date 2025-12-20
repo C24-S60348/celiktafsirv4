@@ -236,9 +236,15 @@ void _showImageZoomDialog(BuildContext context, String imageUrl, bool isDark) {
             Positioned(
               top: 40,
               right: 20,
-              child: IconButton(
-                icon: Icon(Icons.close, color: Colors.white, size: 30),
-                onPressed: () => Navigator.of(context).pop(),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  icon: Icon(Icons.close, color: Colors.white, size: 30),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
               ),
             ),
           ],
@@ -371,39 +377,34 @@ Widget bodyContent(
               snapshot.data!,
             );
 
-            // Get text color - white for dark mode, black for light mode
-            final htmlTextColor = isDark
-                ? Colors.white
-                : (textColor ?? Colors.black);
-
             return Html(
               data: cleanedHtml,
               style: {
                 "body": Style(
                   fontSize: FontSize(fontSize),
                   textAlign: TextAlign.justify,
-                  color: htmlTextColor,
+                  color: isDark ? Colors.white : null,
                 ),
                 "p": Style(
                   fontSize: FontSize(fontSize),
                   textAlign: TextAlign.justify,
-                  color: htmlTextColor,
+                  color: isDark ? Colors.white : null,
                 ),
-                "div": Style(color: htmlTextColor),
-                "span": Style(color: htmlTextColor),
+                "div": Style(color: isDark ? Colors.white : null),
+                "span": Style(color: isDark ? Colors.white : null),
                 "strong": Style(
-                  color: htmlTextColor,
+                  color: isDark ? Colors.white : null,
                   fontWeight: FontWeight.bold,
                 ),
-                "b": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "em": Style(color: htmlTextColor, fontStyle: FontStyle.italic),
-                "i": Style(color: htmlTextColor, fontStyle: FontStyle.italic),
+                "b": Style(color: isDark ? Colors.white : null, fontWeight: FontWeight.bold),
+                "em": Style(color: isDark ? Colors.white : null, fontStyle: FontStyle.italic),
+                "i": Style(color: isDark ? Colors.white : null, fontStyle: FontStyle.italic),
                 "u": Style(
-                  color: htmlTextColor,
+                  color: isDark ? Colors.white : null,
                   textDecoration: TextDecoration.underline,
                 ),
                 "a": Style(
-                  color: htmlTextColor,
+                  color: isDark ? Colors.white : null,
                   textDecoration: TextDecoration.underline,
                 ),
                 "ul": Style(
@@ -411,7 +412,7 @@ Widget bodyContent(
                   textAlign: TextAlign.justify,
                   listStyleType: ListStyleType.disc,
                   padding: HtmlPaddings.only(left: 20),
-                  color: htmlTextColor,
+                  color: isDark ? Colors.white : null,
                 ),
                 "ol": Style(
                   fontSize: FontSize(fontSize),
@@ -420,20 +421,20 @@ Widget bodyContent(
                   padding: HtmlPaddings.only(left: 20),
                   margin: Margins.zero,
                   display: Display.block,
-                  color: htmlTextColor,
+                  color: isDark ? Colors.white : null,
                 ),
                 "li": Style(
                   fontSize: FontSize(fontSize),
                   textAlign: TextAlign.justify,
                   padding: HtmlPaddings.only(bottom: 8),
-                  color: htmlTextColor,
+                  color: isDark ? Colors.white : null,
                 ),
-                "h1": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "h2": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "h3": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "h4": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "h5": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "h6": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
+                "h1": Style(color: isDark ? Colors.white : null, fontWeight: FontWeight.bold),
+                "h2": Style(color: isDark ? Colors.white : null, fontWeight: FontWeight.bold),
+                "h3": Style(color: isDark ? Colors.white : null, fontWeight: FontWeight.bold),
+                "h4": Style(color: isDark ? Colors.white : null, fontWeight: FontWeight.bold),
+                "h5": Style(color: isDark ? Colors.white : null, fontWeight: FontWeight.bold),
+                "h6": Style(color: isDark ? Colors.white : null, fontWeight: FontWeight.bold),
                 "img": Style(
                   width: Width(double.infinity),
                   height: Height(200),

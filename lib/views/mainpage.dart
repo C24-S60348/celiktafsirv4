@@ -213,10 +213,10 @@ class _MainPageState extends State<MainPage> {
                             child: Container(
                               margin: EdgeInsets.symmetric(horizontal: 50, vertical: 12),
                               constraints: BoxConstraints(
-                                minHeight: 75,
-                                maxHeight: 90,
+                                minHeight: 73,
+                                maxHeight: 80,
                               ),
-                              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                               decoration: BoxDecoration(
                                 color: Color(0xFF2C2C2C), // Dark grey matching the bottom bar in Kandungan.png
                                 borderRadius: BorderRadius.circular(20), // Fully rounded
@@ -277,8 +277,8 @@ class _MainPageState extends State<MainPage> {
                                       children: [
                                         // Outer decorative rings
                                         Container(
-                                          width: 45,
-                                          height: 45,
+                                          width: 40,
+                                          height: 40,
                                           decoration: BoxDecoration(
                                             shape: BoxShape.circle,
                                             border: Border.all(
@@ -288,8 +288,8 @@ class _MainPageState extends State<MainPage> {
                                           ),
                                         ),
                                         Container(
-                                          width: 38,
-                                          height: 38,
+                                          width: 35,
+                                          height: 35,
                                           decoration: BoxDecoration(
                                             shape: BoxShape.circle,
                                             border: Border.all(
@@ -300,7 +300,7 @@ class _MainPageState extends State<MainPage> {
                                         ),
                                         // Center floral pattern
                                         CustomPaint(
-                                          size: Size(30, 30),
+                                          size: Size(20, 20),
                                           painter: FloralOrnamentPainter(),
                                         ),
                                       ],
@@ -327,7 +327,7 @@ class _MainPageState extends State<MainPage> {
                                             textAlign: TextAlign.center,
                                           ),
                                         ),
-                                        SizedBox(height: 4),
+                                        SizedBox(height: 2),
                                         FittedBox(
                                           fit: BoxFit.scaleDown,
                                           child: Text(
@@ -344,7 +344,7 @@ class _MainPageState extends State<MainPage> {
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
-                                        SizedBox(height: 3),
+                                        SizedBox(height: 2),
                                         FittedBox(
                                           fit: BoxFit.scaleDown,
                                           child: Builder(
