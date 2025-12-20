@@ -368,49 +368,74 @@ Widget bodyContent(String url, [bool isDark = false, Color? textColor]) {
               snapshot.data!,
             );
 
-            // Get text color - white for dark mode, black for light mode
-            final htmlTextColor = isDark
-                ? Colors.white
-                : (textColor ?? Colors.black);
+            // Get text color - only apply in dark mode to preserve original API colors in light theme
+            final htmlTextColor = isDark ? Colors.white : null;
+
+            // Helper function to create Style with optional color
+            Style createStyle({
+              FontSize? fontSize,
+              TextAlign? textAlign,
+              Color? color,
+              FontWeight? fontWeight,
+              FontStyle? fontStyle,
+              TextDecoration? textDecoration,
+              ListStyleType? listStyleType,
+              HtmlPaddings? padding,
+              Margins? margin,
+              Display? display,
+            }) {
+              return Style(
+                fontSize: fontSize,
+                textAlign: textAlign,
+                color: color,
+                fontWeight: fontWeight,
+                fontStyle: fontStyle,
+                textDecoration: textDecoration,
+                listStyleType: listStyleType,
+                padding: padding,
+                margin: margin,
+                display: display,
+              );
+            }
 
             return Html(
               data: cleanedHtml,
               style: {
-                "body": Style(
+                "body": createStyle(
                   fontSize: FontSize(fontSize),
                   textAlign: TextAlign.justify,
                   color: htmlTextColor,
                 ),
-                "p": Style(
+                "p": createStyle(
                   fontSize: FontSize(fontSize),
                   textAlign: TextAlign.justify,
                   color: htmlTextColor,
                 ),
-                "div": Style(color: htmlTextColor),
-                "span": Style(color: htmlTextColor),
-                "strong": Style(
+                "div": createStyle(color: htmlTextColor),
+                "span": createStyle(color: htmlTextColor),
+                "strong": createStyle(
                   color: htmlTextColor,
                   fontWeight: FontWeight.bold,
                 ),
-                "b": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "em": Style(color: htmlTextColor, fontStyle: FontStyle.italic),
-                "i": Style(color: htmlTextColor, fontStyle: FontStyle.italic),
-                "u": Style(
+                "b": createStyle(color: htmlTextColor, fontWeight: FontWeight.bold),
+                "em": createStyle(color: htmlTextColor, fontStyle: FontStyle.italic),
+                "i": createStyle(color: htmlTextColor, fontStyle: FontStyle.italic),
+                "u": createStyle(
                   color: htmlTextColor,
                   textDecoration: TextDecoration.underline,
                 ),
-                "a": Style(
+                "a": createStyle(
                   color: htmlTextColor,
                   textDecoration: TextDecoration.underline,
                 ),
-                "ul": Style(
+                "ul": createStyle(
                   fontSize: FontSize(fontSize),
                   textAlign: TextAlign.justify,
                   listStyleType: ListStyleType.disc,
                   padding: HtmlPaddings.only(left: 20),
                   color: htmlTextColor,
                 ),
-                "ol": Style(
+                "ol": createStyle(
                   fontSize: FontSize(fontSize),
                   textAlign: TextAlign.justify,
                   listStyleType: ListStyleType.decimal,
@@ -419,18 +444,18 @@ Widget bodyContent(String url, [bool isDark = false, Color? textColor]) {
                   display: Display.block,
                   color: htmlTextColor,
                 ),
-                "li": Style(
+                "li": createStyle(
                   fontSize: FontSize(fontSize),
                   textAlign: TextAlign.justify,
                   padding: HtmlPaddings.only(bottom: 8),
                   color: htmlTextColor,
                 ),
-                "h1": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "h2": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "h3": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "h4": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "h5": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "h6": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
+                "h1": createStyle(color: htmlTextColor, fontWeight: FontWeight.bold),
+                "h2": createStyle(color: htmlTextColor, fontWeight: FontWeight.bold),
+                "h3": createStyle(color: htmlTextColor, fontWeight: FontWeight.bold),
+                "h4": createStyle(color: htmlTextColor, fontWeight: FontWeight.bold),
+                "h5": createStyle(color: htmlTextColor, fontWeight: FontWeight.bold),
+                "h6": createStyle(color: htmlTextColor, fontWeight: FontWeight.bold),
                 "img": Style(
                   width: Width(double.infinity),
                   height: Height(200),

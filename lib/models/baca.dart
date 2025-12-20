@@ -570,3 +570,43 @@ Future<bool> isBookmarked(int surahIndex, int currentPage) async {
     return false;
   }
 }
+
+// Database functions for last read
+Future<Map<String, dynamic>?> getLastRead() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final lastReadJson = prefs.getString('lastRead');
+    if (lastReadJson != null) {
+      final Map<String, dynamic> lastRead = json.decode(lastReadJson);
+      return lastRead;
+    }
+    return null;
+  } catch (e) {
+    print('Error getting last read: $e');
+    return null;
+  }
+}
+
+Future<void> saveLastRead(
+  int surahIndex,
+  int pageIndex,
+  String surahName,
+  String? pageTitle, {
+  String? categoryUrl,
+}) async {
+  try {
+    final lastRead = {
+      'surahIndex': surahIndex,
+      'pageIndex': pageIndex,
+      'surahName': surahName,
+      'pageTitle': pageTitle ?? '',
+      'categoryUrl': categoryUrl,
+      'lastReadDate': DateTime.now().toIso8601String(),
+    };
+    final prefs = await SharedPreferences.getInstance();
+    final lastReadJson = json.encode(lastRead);
+    await prefs.setString('lastRead', lastReadJson);
+  } catch (e) {
+    print('Error saving last read: $e');
+  }
+}
