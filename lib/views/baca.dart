@@ -212,17 +212,24 @@ class _BacaPageState extends State<BacaPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          '${surahData['name']}',
-          style: TextStyle(color: Colors.white),
+          surahData['pageTitle'] ?? surahData['name'] ?? '',
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         backgroundColor: const Color.fromARGB(255, 52, 21, 104),
-        leading: IconButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+        leading: Align(
+          alignment: Alignment.centerLeft,
+          child: IconButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            padding: EdgeInsets.only(left: 8),
+            icon: Icon(Icons.arrow_back, color: Colors.white),
+          ),
         ),
+        leadingWidth: 96, // Match width of 2 action buttons
         actions: [
           IconButton(
             onPressed: _toggleBookmark,
