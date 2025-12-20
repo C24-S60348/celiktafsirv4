@@ -371,74 +371,49 @@ Widget bodyContent(
               snapshot.data!,
             );
 
-            // Get text color - only apply in dark mode to preserve original API colors in light theme
-            final htmlTextColor = isDark ? Colors.white : null;
-
-            // Helper function to create Style with optional color
-            Style createStyle({
-              FontSize? fontSize,
-              TextAlign? textAlign,
-              Color? color,
-              FontWeight? fontWeight,
-              FontStyle? fontStyle,
-              TextDecoration? textDecoration,
-              ListStyleType? listStyleType,
-              HtmlPaddings? padding,
-              Margins? margin,
-              Display? display,
-            }) {
-              return Style(
-                fontSize: fontSize,
-                textAlign: textAlign,
-                color: color,
-                fontWeight: fontWeight,
-                fontStyle: fontStyle,
-                textDecoration: textDecoration,
-                listStyleType: listStyleType,
-                padding: padding,
-                margin: margin,
-                display: display,
-              );
-            }
+            // Get text color - white for dark mode, black for light mode
+            final htmlTextColor = isDark
+                ? Colors.white
+                : (textColor ?? Colors.black);
 
             return Html(
               data: cleanedHtml,
               style: {
-                "body": createStyle(
+                "body": Style(
                   fontSize: FontSize(fontSize),
                   textAlign: TextAlign.justify,
                   color: htmlTextColor,
                 ),
-                "p": createStyle(
+                "p": Style(
                   fontSize: FontSize(fontSize),
                   textAlign: TextAlign.justify,
                   color: htmlTextColor,
                 ),
-                "div": createStyle(color: htmlTextColor),
-                "span": createStyle(color: htmlTextColor),
-                "strong": createStyle(
+                "div": Style(color: htmlTextColor),
+                "span": Style(color: htmlTextColor),
+                "strong": Style(
                   color: htmlTextColor,
                   fontWeight: FontWeight.bold,
                 ),
-                "b": createStyle(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "em": createStyle(color: htmlTextColor, fontStyle: FontStyle.italic),
-                "i": createStyle(color: htmlTextColor, fontStyle: FontStyle.italic),
-                "u": createStyle(
+                "b": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
+                "em": Style(color: htmlTextColor, fontStyle: FontStyle.italic),
+                "i": Style(color: htmlTextColor, fontStyle: FontStyle.italic),
+                "u": Style(
                   color: htmlTextColor,
                   textDecoration: TextDecoration.underline,
                 ),
-                "a": createStyle(
+                "a": Style(
                   color: htmlTextColor,
                   textDecoration: TextDecoration.underline,
                 ),
-                "ul": createStyle(
+                "ul": Style(
                   fontSize: FontSize(fontSize),
                   textAlign: TextAlign.justify,
                   listStyleType: ListStyleType.disc,
                   padding: HtmlPaddings.only(left: 20),
                   color: htmlTextColor,
                 ),
-                "ol": createStyle(
+                "ol": Style(
                   fontSize: FontSize(fontSize),
                   textAlign: TextAlign.justify,
                   listStyleType: ListStyleType.none,
@@ -447,18 +422,18 @@ Widget bodyContent(
                   display: Display.block,
                   color: htmlTextColor,
                 ),
-                "li": createStyle(
+                "li": Style(
                   fontSize: FontSize(fontSize),
                   textAlign: TextAlign.justify,
                   padding: HtmlPaddings.only(bottom: 8),
                   color: htmlTextColor,
                 ),
-                "h1": createStyle(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "h2": createStyle(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "h3": createStyle(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "h4": createStyle(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "h5": createStyle(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "h6": createStyle(color: htmlTextColor, fontWeight: FontWeight.bold),
+                "h1": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
+                "h2": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
+                "h3": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
+                "h4": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
+                "h5": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
+                "h6": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
                 "img": Style(
                   width: Width(double.infinity),
                   height: Height(200),
@@ -593,5 +568,45 @@ Future<bool> isBookmarked(int surahIndex, int currentPage) async {
   } catch (e) {
     print('Error checking bookmark: $e');
     return false;
+  }
+}
+
+// Database functions for last read
+Future<Map<String, dynamic>?> getLastRead() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final lastReadJson = prefs.getString('lastRead');
+    if (lastReadJson != null) {
+      final Map<String, dynamic> lastRead = json.decode(lastReadJson);
+      return lastRead;
+    }
+    return null;
+  } catch (e) {
+    print('Error getting last read: $e');
+    return null;
+  }
+}
+
+Future<void> saveLastRead(
+  int surahIndex,
+  int pageIndex,
+  String surahName,
+  String? pageTitle, {
+  String? categoryUrl,
+}) async {
+  try {
+    final lastRead = {
+      'surahIndex': surahIndex,
+      'pageIndex': pageIndex,
+      'surahName': surahName,
+      'pageTitle': pageTitle ?? '',
+      'categoryUrl': categoryUrl,
+      'lastReadDate': DateTime.now().toIso8601String(),
+    };
+    final prefs = await SharedPreferences.getInstance();
+    final lastReadJson = json.encode(lastRead);
+    await prefs.setString('lastRead', lastReadJson);
+  } catch (e) {
+    print('Error saving last read: $e');
   }
 }

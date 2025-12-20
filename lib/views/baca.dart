@@ -73,6 +73,9 @@ class _BacaPageState extends State<BacaPage> {
         });
       }
       
+      // Save last read
+      _saveLastRead();
+      
       // Start downloading this surah in background
       _downloadSurahInBackground();
     } else {
@@ -140,6 +143,7 @@ class _BacaPageState extends State<BacaPage> {
       });
       _updatePageTitle(); // Update page title when navigating
       _checkBookmark(); // Check bookmark after page change
+      _saveLastRead(); // Save last read when navigating
     }
   }
 
@@ -150,6 +154,7 @@ class _BacaPageState extends State<BacaPage> {
       });
       _updatePageTitle(); // Update page title when navigating
       _checkBookmark(); // Check bookmark after page change
+      _saveLastRead(); // Save last read when navigating
     }
   }
 
@@ -174,6 +179,21 @@ class _BacaPageState extends State<BacaPage> {
       setState(() {
         isBookmarked = bookmarked;
       });
+    }
+  }
+
+  void _saveLastRead() async {
+    try {
+      final pageTitle = surahData['pageTitle'] ?? surahData['name'] ?? '';
+      await model.saveLastRead(
+        surahIndex,
+        currentPage,
+        surahData['name'] ?? '',
+        pageTitle,
+        categoryUrl: categoryUrl,
+      );
+    } catch (e) {
+      print('Error saving last read: $e');
     }
   }
 
