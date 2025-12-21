@@ -357,8 +357,23 @@ class GetListSurah {
               final day = dateMatch.group(3)!;
               final dateString = '$year$month$day';
               
-              // Extract title from URL
-              final title = _extractTitleFromUrl(absoluteUrl);
+              // Get title from link text (actual page title) or fallback to URL extraction
+              String title = link.text.trim();
+              
+              // If link text is empty or too short, try to get from title attribute or extract from URL
+              if (title.isEmpty || title.length < 3) {
+                final titleAttr = link.attributes['title'];
+                if (titleAttr != null && titleAttr.isNotEmpty) {
+                  title = titleAttr.trim();
+                } else {
+                  // Fallback: extract from URL
+                  title = _extractTitleFromUrl(absoluteUrl);
+                }
+              }
+              
+              // Clean up the title - remove extra whitespace and newlines
+              title = title.replaceAll(RegExp(r'\s+'), ' ').trim();
+              
               urlTitles.add({
                 'url': absoluteUrl,
                 'title': title,
@@ -690,8 +705,8 @@ class GetListSurah {
   }
   
   /// Get a specific URL from a specific surah
-  static Future<String?> getSurahUrl(int surahIndex, int pageIndex) async {
-    final surah = await getSurahByIndex(surahIndex);
+  static Future<String?> getSurahUrl(int surahIndex, int pageIndex, {String? categoryUrl}) async {
+    final surah = await getSurahByIndex(surahIndex, categoryUrl: categoryUrl);
     if (surah != null) {
       final urls = List<String>.from(surah['urls'] as List);
       if (pageIndex >= 0 && pageIndex < urls.length) {
@@ -702,15 +717,15 @@ class GetListSurah {
   }
   
   /// Get a specific page title from a specific surah
-  static Future<String?> getSurahPageTitle(int surahIndex, int pageIndex) async {
-    final surah = await getSurahByIndex(surahIndex);
+  static Future<String?> getSurahPageTitle(int surahIndex, int pageIndex, {String? categoryUrl}) async {
+    final surah = await getSurahByIndex(surahIndex, categoryUrl: categoryUrl);
     if (surah != null) {
       final titles = surah['titles'] as List<String>?;
       if (titles != null && pageIndex >= 0 && pageIndex < titles.length) {
         return titles[pageIndex];
       }
       // Fallback: extract from URL if titles not available
-      final url = await getSurahUrl(surahIndex, pageIndex);
+      final url = await getSurahUrl(surahIndex, pageIndex, categoryUrl: categoryUrl);
       if (url != null) {
         return _extractTitleFromUrl(url);
       }

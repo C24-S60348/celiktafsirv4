@@ -21,6 +21,16 @@ class DownloadService {
     }
   }
   
+  /// Generate cache key with categoryUrl hash to distinguish between different variants (e.g., Juzuk 1, 2, 3)
+  static String _getCacheKey(int surahIndex, int pageIndex, String? categoryUrl) {
+    if (categoryUrl == null || categoryUrl.isEmpty) {
+      return '${surahIndex}_$pageIndex';
+    }
+    // Use hashCode of categoryUrl to create a unique identifier
+    final urlHash = categoryUrl.hashCode.abs();
+    return '${surahIndex}_${pageIndex}_$urlHash';
+  }
+
   /// Download all pages for a specific surah
   static Future<void> downloadSurahPages(int surahIndex, {String? categoryUrl}) async {
     try {
@@ -36,7 +46,7 @@ class DownloadService {
       final totalPages = surah['totalPages'] as int;
       final urls = List<String>.from(surah['urls'] as List);
       
-      print('Downloading surah $surahIndex: $totalPages pages');
+      print('Downloading surah $surahIndex (categoryUrl: $categoryUrl): $totalPages pages');
       
       // Get cached content
       final cachedContent = await _getCachedContent();
@@ -44,9 +54,9 @@ class DownloadService {
       // Download each page
       for (int pageIndex = 0; pageIndex < totalPages; pageIndex++) {
         final url = urls[pageIndex];
-        final cacheKey = '${surahIndex}_$pageIndex';
+        final cacheKey = _getCacheKey(surahIndex, pageIndex, categoryUrl);
         
-        print('Processing page $pageIndex: $url');
+        print('Processing page $pageIndex: $url (cacheKey: $cacheKey)');
         
         // Skip if already cached
         if (cachedContent.containsKey(cacheKey)) {
@@ -69,6 +79,7 @@ class DownloadService {
               'htmlContent': content,
               'textContent': textContent,
               'downloadTime': DateTime.now().toIso8601String(),
+              'categoryUrl': categoryUrl, // Store categoryUrl for reference
             };
             
             // Save to cache
@@ -90,12 +101,12 @@ class DownloadService {
   }
   
   /// Get cached content for a specific page
-  static Future<Map<String, dynamic>?> getCachedPage(int surahIndex, int pageIndex) async {
+  static Future<Map<String, dynamic>?> getCachedPage(int surahIndex, int pageIndex, {String? categoryUrl}) async {
     // Check cache version before accessing cache
     await _checkCacheVersion();
     
     final cachedContent = await _getCachedContent();
-    final cacheKey = '${surahIndex}_$pageIndex';
+    final cacheKey = _getCacheKey(surahIndex, pageIndex, categoryUrl);
     return cachedContent[cacheKey];
   }
   
@@ -109,7 +120,7 @@ class DownloadService {
       final cachedContent = await _getCachedContent();
       
       for (int pageIndex = 0; pageIndex < totalPages; pageIndex++) {
-        final cacheKey = '${surahIndex}_$pageIndex';
+        final cacheKey = _getCacheKey(surahIndex, pageIndex, categoryUrl);
         if (!cachedContent.containsKey(cacheKey)) {
           return false;
         }
@@ -137,12 +148,12 @@ class DownloadService {
     }
     
     final totalPages = surah['totalPages'] as int;
-    print('Debug: Surah $surahIndex has $totalPages pages');
+    print('Debug: Surah $surahIndex (categoryUrl: $categoryUrl) has $totalPages pages');
     
     for (int pageIndex = 0; pageIndex < totalPages; pageIndex++) {
-      final cacheKey = '${surahIndex}_$pageIndex';
+      final cacheKey = _getCacheKey(surahIndex, pageIndex, categoryUrl);
       final isCached = cachedContent.containsKey(cacheKey);
-      print('Page $pageIndex: ${isCached ? 'CACHED' : 'NOT CACHED'}');
+      print('Page $pageIndex (cacheKey: $cacheKey): ${isCached ? 'CACHED' : 'NOT CACHED'}');
     }
   }
   

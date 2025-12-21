@@ -335,12 +335,13 @@ Widget bodyContent(
   currentPage, [
   bool isDark = false,
   Color? textColor,
+  String? categoryUrl,
 ]) {
   return FutureBuilder<double>(
     future: getFontSize(),
     builder: (context, fontSizeSnapshot) {
       return FutureBuilder<String?>(
-        future: _getPageContent(surahIndex, currentPage),
+        future: _getPageContent(surahIndex, currentPage, categoryUrl: categoryUrl),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
@@ -466,9 +467,9 @@ Widget bodyContent(
 }
 
 /// Get content for a specific page (cached or fetch)
-Future<String?> _getPageContent(int surahIndex, int pageIndex) async {
+Future<String?> _getPageContent(int surahIndex, int pageIndex, {String? categoryUrl}) async {
   // First try to get from cache
-  final cachedPage = await DownloadService.getCachedPage(surahIndex, pageIndex);
+  final cachedPage = await DownloadService.getCachedPage(surahIndex, pageIndex, categoryUrl: categoryUrl);
 
   if (cachedPage != null) {
     // Process HTML content to proxy images for web
@@ -479,7 +480,7 @@ Future<String?> _getPageContent(int surahIndex, int pageIndex) async {
   }
 
   // If not cached, fetch from URL
-  final url = await getlist.GetListSurah.getSurahUrl(surahIndex, pageIndex);
+  final url = await getlist.GetListSurah.getSurahUrl(surahIndex, pageIndex, categoryUrl: categoryUrl);
   if (url != null) {
     final content = await service.BacaService.fetchContentFromUrl(
       url,

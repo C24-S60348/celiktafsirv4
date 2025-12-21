@@ -213,11 +213,10 @@ class _BacaPageState extends State<BacaPage> {
       appBar: AppBar(
         title: Text(
           surahData['pageTitle'] ?? surahData['name'] ?? '',
-          textAlign: TextAlign.center,
+          textAlign: TextAlign.left,
           maxLines: 2,
-          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
         ),
-        centerTitle: true,
         backgroundColor: const Color.fromARGB(255, 52, 21, 104),
         leading: Align(
           alignment: Alignment.centerLeft,
@@ -229,7 +228,6 @@ class _BacaPageState extends State<BacaPage> {
             icon: Icon(Icons.arrow_back, color: Colors.white),
           ),
         ),
-        leadingWidth: 96, // Match width of 2 action buttons
         actions: [
           IconButton(
             onPressed: _toggleBookmark,
@@ -319,7 +317,7 @@ class _BacaPageState extends State<BacaPage> {
                             child: _buildSurahBodyWithTheme(
                               context, 
                               surahData, 
-                              model.bodyContent(surahIndex, currentPage, isDark, textColor),
+                              model.bodyContent(surahIndex, currentPage, isDark, textColor, categoryUrl),
                               textColor,
                               isDark,
                             ),
