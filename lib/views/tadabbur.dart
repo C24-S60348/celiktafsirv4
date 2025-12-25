@@ -102,6 +102,14 @@ class _TadabburPageState extends State<TadabburPage> {
           },
           icon: Icon(Icons.arrow_back, color: Colors.white),
         ),
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).pushNamed('/info');
+            },
+            icon: Icon(Icons.info_outline, color: Colors.white),
+          ),
+        ],
       ),
       body: FutureBuilder<String>(
         future: ThemeHelper.getThemeName(),
