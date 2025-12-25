@@ -325,56 +325,63 @@ class _SettingsPageState extends State<SettingsPage> {
                       required String label,
                       required String value,
                       required VoidCallback onTap,
+                      bool isEnabled = true,
                     }) {
-                      return Row(
-                        children: [
-                          // Label column
-                          Expanded(
-                            flex: 3,
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    label,
-                                    style: labelStyle,
-                                  ),
-                                  SizedBox(width: 4),
-                                  Text(
-                                    ':',
-                                    style: labelStyle,
-                                  ),
-                                ],
+                      return Opacity(
+                        opacity: isEnabled ? 1.0 : 0.5,
+                        child: Row(
+                          children: [
+                            // Label column
+                            Expanded(
+                              flex: 3,
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      label,
+                                      style: labelStyle,
+                                    ),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      ':',
+                                      style: labelStyle,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                          SizedBox(width: screenWidth * 0.04),
-                          // Dropdown column
-                          Expanded(
-                            flex: 7,
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: FractionallySizedBox(
-                                widthFactor: 0.8,
-                                child: GestureDetector(
-                                  onTap: onTap,
-                                  child: Container(
-                                    height: dropdownHeight,
-                                    padding: EdgeInsets.symmetric(horizontal: 24),
-                                    decoration: BoxDecoration(
-                                      color: isDark
-                                          ? const Color(0xFF3A2A12)
-                                          : Colors.white,
-                                      borderRadius: BorderRadius.circular(dropdownHeight / 2),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: const Color(0xFF6B4A16),
-                                          offset: Offset(0, 4),
-                                          blurRadius: 0,
-                                        ),
-                                      ],
-                                    ),
+                            SizedBox(width: screenWidth * 0.04),
+                            // Dropdown column
+                            Expanded(
+                              flex: 7,
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: FractionallySizedBox(
+                                  widthFactor: 0.8,
+                                  child: GestureDetector(
+                                    onTap: isEnabled ? onTap : null,
+                                    child: Container(
+                                      height: dropdownHeight,
+                                      padding: EdgeInsets.symmetric(horizontal: 24),
+                                      decoration: BoxDecoration(
+                                        color: isEnabled 
+                                            ? (isDark
+                                                ? const Color(0xFF3A2A12)
+                                                : Colors.white)
+                                            : (isDark
+                                                ? const Color(0xFF2A1A08)
+                                                : Colors.grey[300]),
+                                        borderRadius: BorderRadius.circular(dropdownHeight / 2),
+                                        boxShadow: isEnabled ? [
+                                          BoxShadow(
+                                            color: const Color(0xFF6B4A16),
+                                            offset: Offset(0, 4),
+                                            blurRadius: 0,
+                                          ),
+                                        ] : [],
+                                      ),
                                     child: Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
@@ -397,6 +404,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             ),
                           ),
                         ],
+                        ),
                       );
                     }
 
@@ -414,6 +422,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             label: 'Tulisan',
                             value: _selectedFont,
                             onTap: _showFontDialog,
+                            isEnabled: false,
                           ),
                           SizedBox(height: screenHeight * 0.045),
                           // Saiz dropdown row
