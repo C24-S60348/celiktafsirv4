@@ -92,15 +92,24 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    var buttonsize = Size(150, 200);
+    // Get screen dimensions
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    
+    // Calculate button size to match the background image buttons
+    // Based on the Kandungan.png image analysis:
+    // - Buttons take up approximately 36% of width and 27% of height each
+    // - With rounded corners matching the image
+    var buttonsize = Size(screenWidth * 0.36, screenHeight * 0.27);
     var buttonstyle = ElevatedButton.styleFrom(
       minimumSize: buttonsize,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       backgroundColor: Colors.transparent,
       shadowColor: Colors.transparent,
       elevation: 0,
       foregroundColor: Colors.white,
     );
+    
     return Scaffold(
       backgroundColor: Colors.black,
       // appBar: AppBar(
@@ -111,7 +120,7 @@ class _MainPageState extends State<MainPage> {
       // ),
       body: Container(
         color: Colors.black,
-        height: MediaQuery.of(context).size.height,
+        height: screenHeight,
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -154,10 +163,11 @@ class _MainPageState extends State<MainPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  SizedBox(height: 65),
+                  SizedBox(height: screenHeight * 0.22), // Top spacing to match image
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      // Tadabbur button (top-left, green)
                       ElevatedButton(
                         style: buttonstyle,
                         onPressed: () {
@@ -165,7 +175,8 @@ class _MainPageState extends State<MainPage> {
                         },
                         child: SizedBox(),
                       ),
-                      SizedBox(width: 10),
+                      SizedBox(width: screenWidth * 0.04), // Spacing between buttons
+                      // Bookmarks button (top-right, beige)
                       ElevatedButton(
                         style: buttonstyle,
                         onPressed: () {
@@ -175,10 +186,11 @@ class _MainPageState extends State<MainPage> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 10),
+                  SizedBox(height: screenHeight * 0.015), // Spacing between rows
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      // Settings button (bottom-left, light purple)
                       ElevatedButton(
                         style: buttonstyle,
                         onPressed: () {
@@ -186,7 +198,8 @@ class _MainPageState extends State<MainPage> {
                         },
                         child: SizedBox(),
                       ),
-                      SizedBox(width: 10),
+                      SizedBox(width: screenWidth * 0.04), // Spacing between buttons
+                      // Info button (bottom-right, brown)
                       ElevatedButton(
                         style: buttonstyle,
                         onPressed: () {
@@ -196,199 +209,204 @@ class _MainPageState extends State<MainPage> {
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-            // Last Read Section - prominent black rounded bottom banner with silver floral ornament
-            Positioned(
-              bottom: 90,
-              left: 0,
-              right: 0,
-              child: SafeArea(
-                child: isLoadingLastRead
-                    ? SizedBox.shrink()
-                    : lastRead != null
-                        ? GestureDetector(
-                            onTap: _navigateToLastRead,
-                            child: Container(
-                              margin: EdgeInsets.symmetric(horizontal: 50, vertical: 12),
-                              constraints: BoxConstraints(
-                                minHeight: 73,
-                                maxHeight: 80,
-                              ),
-                              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Color(0xFF2C2C2C), // Dark grey matching the bottom bar in Kandungan.png
-                                borderRadius: BorderRadius.circular(20), // Fully rounded
-                                border: Border.all(
-                                  color: Color(0xFF4A4A4A).withOpacity(0.3), // Subtle warm grey border
-                                  width: 1,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.6),
-                                    blurRadius: 12,
-                                    spreadRadius: 1,
-                                    offset: Offset(0, -3),
+                  // Last Read Section - integrated into vertical layout
+                  SizedBox(height: screenHeight * 0.04),
+                  if (!isLoadingLastRead && lastRead != null)
+                    LayoutBuilder(
+                            builder: (context, constraints) {
+                              // Responsive sizing based on screen dimensions to match background image
+                              final horizontalMargin = screenWidth * 0.1; // 10% margin on each side
+                              final ornamentSize = screenHeight * 0.06; // 6% of screen height
+                              final containerHeight = screenHeight * 0.095; // 9.5% of screen height
+                              final titleFontSize = screenHeight * 0.015; // 1.5% of screen height
+                              final nameFontSize = screenHeight * 0.019; // 1.9% of screen height
+                              final subtitleFontSize = screenHeight * 0.015; // 1.5% of screen height
+                              
+                              return GestureDetector(
+                                onTap: _navigateToLastRead,
+                                child: Container(
+                                  margin: EdgeInsets.symmetric(
+                                    horizontal: horizontalMargin,
+                                    vertical: screenHeight * 0.015,
                                   ),
-                                  BoxShadow(
-                                    color: Color(0xFF3A3A3A).withOpacity(0.2),
-                                    blurRadius: 6,
-                                    spreadRadius: -1,
-                                    offset: Offset(0, -1),
+                                  constraints: BoxConstraints(
+                                    minHeight: containerHeight * 0.85,
+                                    maxHeight: containerHeight,
                                   ),
-                                ],
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  // Silver floral ornament on the left
-                                  Container(
-                                    width: 50,
-                                    height: 50,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      gradient: RadialGradient(
-                                        colors: [
-                                          Color(0xFFD4D4D4), // Silver-grey center matching Kandungan.png
-                                          Color(0xFFB8B8B8), // Medium silver-grey
-                                          Color(0xFF9C9C9C), // Darker silver-grey edge
-                                        ],
-                                        stops: [0.0, 0.6, 1.0],
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: screenWidth * 0.03,
+                                    vertical: screenHeight * 0.01,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Color(0xFF2C2C2C), // Dark grey matching the bottom bar in Kandungan.png
+                                    borderRadius: BorderRadius.circular(20), // Fully rounded
+                                    border: Border.all(
+                                      color: Color(0xFF4A4A4A).withOpacity(0.3), // Subtle warm grey border
+                                      width: 1,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.6),
+                                        blurRadius: 12,
+                                        spreadRadius: 1,
+                                        offset: Offset(0, -3),
                                       ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Color(0xFFB8B8B8).withOpacity(0.5),
-                                          blurRadius: 10,
-                                          spreadRadius: 2,
-                                          offset: Offset(0, 2),
-                                        ),
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.3),
-                                          blurRadius: 6,
-                                          spreadRadius: -1,
-                                          offset: Offset(0, -2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Stack(
-                                      alignment: Alignment.center,
-                                      children: [
-                                        // Outer decorative rings
-                                        Container(
-                                          width: 40,
-                                          height: 40,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color: Color(0xFFE0E0E0).withOpacity(0.5),
-                                              width: 1.5,
-                                            ),
-                                          ),
-                                        ),
-                                        Container(
-                                          width: 35,
-                                          height: 35,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color: Color(0xFFE0E0E0).withOpacity(0.3),
-                                              width: 1,
-                                            ),
-                                          ),
-                                        ),
-                                        // Center floral pattern
-                                        CustomPaint(
-                                          size: Size(20, 20),
-                                          painter: FloralOrnamentPainter(),
-                                        ),
-                                      ],
-                                    ),
+                                      BoxShadow(
+                                        color: Color(0xFF3A3A3A).withOpacity(0.2),
+                                        blurRadius: 6,
+                                        spreadRadius: -1,
+                                        offset: Offset(0, -1),
+                                      ),
+                                    ],
                                   ),
-                                  SizedBox(width: 16),
-                                  // Centered text content with proper constraints
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        FittedBox(
-                                          fit: BoxFit.scaleDown,
-                                          child: Text(
-                                            'Bacaan Terakhir',
-                                            style: TextStyle(
-                                              color: Colors.white.withOpacity(0.7),
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w500,
-                                              letterSpacing: 1.0,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      // Silver floral ornament on the left
+                                      Container(
+                                        width: ornamentSize,
+                                        height: ornamentSize,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          gradient: RadialGradient(
+                                            colors: [
+                                              Color(0xFFD4D4D4), // Silver-grey center matching Kandungan.png
+                                              Color(0xFFB8B8B8), // Medium silver-grey
+                                              Color(0xFF9C9C9C), // Darker silver-grey edge
+                                            ],
+                                            stops: [0.0, 0.6, 1.0],
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Color(0xFFB8B8B8).withOpacity(0.5),
+                                              blurRadius: 10,
+                                              spreadRadius: 2,
+                                              offset: Offset(0, 2),
                                             ),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ),
-                                        SizedBox(height: 2),
-                                        FittedBox(
-                                          fit: BoxFit.scaleDown,
-                                          child: Text(
-                                            lastRead!['surahName'] as String? ?? '',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.bold,
-                                              letterSpacing: 0.3,
-                                              height: 1.2,
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.3),
+                                              blurRadius: 6,
+                                              spreadRadius: -1,
+                                              offset: Offset(0, -2),
                                             ),
-                                            textAlign: TextAlign.center,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
+                                          ],
                                         ),
-                                        SizedBox(height: 2),
-                                        FittedBox(
-                                          fit: BoxFit.scaleDown,
-                                          child: Builder(
-                                            builder: (context) {
-                                              if (lastRead!['pageTitle'] != null && 
-                                                  (lastRead!['pageTitle'] as String).isNotEmpty) {
-                                                return Text(
-                                                  lastRead!['pageTitle'] as String,
-                                                  style: TextStyle(
-                                                    color: Colors.white.withOpacity(0.9),
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w400,
-                                                    height: 1.3,
-                                                  ),
-                                                  textAlign: TextAlign.center,
-                                                  maxLines: 2,
-                                                  overflow: TextOverflow.ellipsis,
-                                                );
-                                              } else {
-                                                return Text(
-                                                  'Halaman ${(lastRead!['pageIndex'] as int) + 1}',
-                                                  style: TextStyle(
-                                                    color: Colors.white.withOpacity(0.9),
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w400,
-                                                    height: 1.3,
-                                                  ),
-                                                  textAlign: TextAlign.center,
-                                                  maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
-                                                );
-                                              }
-                                            },
-                                          ),
+                                        child: Stack(
+                                          alignment: Alignment.center,
+                                          children: [
+                                            // Outer decorative rings
+                                            Container(
+                                              width: ornamentSize * 0.8,
+                                              height: ornamentSize * 0.8,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                border: Border.all(
+                                                  color: Color(0xFFE0E0E0).withOpacity(0.5),
+                                                  width: 1.5,
+                                                ),
+                                              ),
+                                            ),
+                                            Container(
+                                              width: ornamentSize * 0.7,
+                                              height: ornamentSize * 0.7,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                border: Border.all(
+                                                  color: Color(0xFFE0E0E0).withOpacity(0.3),
+                                                  width: 1,
+                                                ),
+                                              ),
+                                            ),
+                                            // Center floral pattern
+                                            CustomPaint(
+                                              size: Size(ornamentSize * 0.4, ornamentSize * 0.4),
+                                              painter: FloralOrnamentPainter(),
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                      SizedBox(width: screenWidth * 0.03),
+                                      // Text content with proper constraints
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              'Bacaan Terakhir',
+                                              style: TextStyle(
+                                                color: Colors.white.withOpacity(0.7),
+                                                fontSize: titleFontSize,
+                                                fontWeight: FontWeight.w500,
+                                                letterSpacing: 1.0,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            SizedBox(height: screenHeight * 0.003),
+                                            Text(
+                                              lastRead!['surahName'] as String? ?? '',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: nameFontSize,
+                                                fontWeight: FontWeight.bold,
+                                                letterSpacing: 0.3,
+                                                height: 1.2,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            SizedBox(height: screenHeight * 0.003),
+                                            Builder(
+                                              builder: (context) {
+                                                if (lastRead!['pageTitle'] != null && 
+                                                    (lastRead!['pageTitle'] as String).isNotEmpty) {
+                                                  return Text(
+                                                    lastRead!['pageTitle'] as String,
+                                                    style: TextStyle(
+                                                      color: Colors.white.withOpacity(0.9),
+                                                      fontSize: subtitleFontSize,
+                                                      fontWeight: FontWeight.w400,
+                                                      height: 1.3,
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
+                                                  );
+                                                } else {
+                                                  return Text(
+                                                    'Halaman ${(lastRead!['pageIndex'] as int) + 1}',
+                                                    style: TextStyle(
+                                                      color: Colors.white.withOpacity(0.9),
+                                                      fontSize: subtitleFontSize,
+                                                      fontWeight: FontWeight.w400,
+                                                      height: 1.3,
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
+                                                  );
+                                                }
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      SizedBox(width: screenWidth * 0.02),
+                                      // Arrow icon to indicate it's tappable
+                                      Icon(
+                                        Icons.arrow_forward_ios,
+                                        color: Colors.white.withOpacity(0.5),
+                                        size: screenHeight * 0.02,
+                                      ),
+                                      SizedBox(width: screenWidth * 0.01),
+                                    ],
                                   ),
-                                  SizedBox(width: 16), // Balance spacing on right
-                                ],
-                              ),
-                            ),
-                          )
-                        : SizedBox.shrink(),
+                                ),
+                              );
+                            },
+                          ),
+                ],
               ),
             ),
           ],

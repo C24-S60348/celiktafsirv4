@@ -10,7 +10,7 @@ class GetListSurah {
   static const String _cacheSurahUrlsKey = 'cached_surah_urls'; // Cache for scraped URLs per surah
   static const String _cacheTimestampKey = 'cached_surah_list_timestamp';
   static const String _cacheVersionKey = 'surah_cache_version';
-  static const int _currentCacheVersion = 4; // Increment when cache structure changes - v4: Sort by publication date
+  static const int _currentCacheVersion = 5; // Increment when cache structure changes - v5: Sort by ayat number instead of date
   static const String _baseUrl = 'https://celiktafsir.net';
   
   // CORS Proxy for Web - using custom proxy server
@@ -47,9 +47,27 @@ class GetListSurah {
   }
   
   /// Get list of surah names (including juzuk variants) for tadabbur page
-  /// Always tries to fetch fresh data if internet is available
-  /// Only uses cache if fetch fails (no internet or network error)
+  /// TODO: Re-enable caching after webapp is perfected
+  /// Always fetches fresh data from website (cache disabled)
   static Future<List<Map<String, String>>> getSurahNames() async {
+    // Cache disabled - always fetch fresh data
+    try {
+      print('Fetching surah names from celiktafsir.net...');
+      final surahNames = await _scrapeSurahNamesFromWebsite();
+      
+      if (surahNames.isNotEmpty) {
+        print('Successfully scraped ${surahNames.length} surah names from website');
+        return surahNames;
+      } else {
+        print('No surah names found on website');
+        return [];
+      }
+    } catch (e) {
+      print('Error scraping website: $e');
+      return [];
+    }
+    
+    /* CACHE DISABLED - Original code with caching:
     // Check cache version first
     await _checkCacheVersion();
     
@@ -97,6 +115,7 @@ class GetListSurah {
       print('No cached data available');
       return [];
     }
+    */
   }
   
   /// Scrape surah names (including juzuk variants) from celiktafsir.net website
@@ -351,12 +370,6 @@ class GetListSurah {
                 !absoluteUrl.contains('/tag/') &&
                 !absoluteUrl.contains('/author/') &&
                 !absoluteUrl.contains('/page/')) {
-              // Extract date from URL for sorting
-              final year = dateMatch.group(1)!;
-              final month = dateMatch.group(2)!;
-              final day = dateMatch.group(3)!;
-              final dateString = '$year$month$day';
-              
               // Get title from link text (actual page title) or fallback to URL extraction
               String title = link.text.trim();
               
@@ -377,7 +390,6 @@ class GetListSurah {
               urlTitles.add({
                 'url': absoluteUrl,
                 'title': title,
-                'date': dateString, // Store date for sorting
               });
               foundNewLinks = true;
             }
@@ -405,14 +417,8 @@ class GetListSurah {
       }
     }
     
-    // Sort by date (chronologically) to maintain the website's intended order
-    // This ensures pages appear in the order they were published
-    urlTitles.sort((a, b) {
-      final dateA = a['date'] ?? '';
-      final dateB = b['date'] ?? '';
-      return dateA.compareTo(dateB);
-    });
-    
+    // Don't sort - preserve the order from the website's HTML
+    // The website already presents pages in the correct order
     return urlTitles;
   }
   
@@ -605,10 +611,45 @@ class GetListSurah {
   }
   
   /// Get a specific surah by index - scrapes URLs on-demand
+  /// TODO: Re-enable caching after webapp is perfected
   /// If categoryUrl is provided, it will be used instead of looking it up
   static Future<Map<String, dynamic>?> getSurahByIndex(int surahIndex, {String? categoryUrl}) async {
     final surahNumber = surahIndex + 1; // surahIndex is 0-based, surahNumber is 1-based
     
+    // Cache disabled - always fetch fresh data
+    // Get category URL for this surah (use provided one or look it up)
+    final String? finalCategoryUrl = categoryUrl ?? await _getCategoryUrlForSurah(surahNumber);
+    if (finalCategoryUrl == null) {
+      print('No category URL found for surah $surahNumber');
+      return null;
+    }
+    
+    // Scrape URLs and titles for this specific surah
+    try {
+      print('Scraping URLs and titles for surah $surahNumber from $finalCategoryUrl...');
+      final urlTitles = await _scrapeSurahUrls(finalCategoryUrl);
+      
+      return {
+        'surahNumber': surahNumber,
+        'surahIndex': surahIndex,
+        'urls': urlTitles.map((item) => item['url']!).toList(),
+        'titles': urlTitles.map((item) => item['title']!).toList(),
+        'urlTitles': urlTitles,
+        'totalPages': urlTitles.length,
+      };
+    } catch (e) {
+      print('Error scraping surah $surahNumber: $e');
+      return {
+        'surahNumber': surahNumber,
+        'surahIndex': surahIndex,
+        'urls': <String>[],
+        'titles': <String>[],
+        'urlTitles': <Map<String, String>>[],
+        'totalPages': 0,
+      };
+    }
+    
+    /* CACHE DISABLED - Original code with caching:
     // Check if we have internet connection
     final hasInternet = await _hasInternetConnection();
     
@@ -702,6 +743,7 @@ class GetListSurah {
         };
       }
     }
+    */
   }
   
   /// Get a specific URL from a specific surah

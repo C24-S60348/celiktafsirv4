@@ -84,47 +84,50 @@ class _BacaPageState extends State<BacaPage> {
   }
 
   void _downloadSurahInBackground() async {
-    try {
-      // Check if surah is already downloaded
-      final isDownloaded = await DownloadService.isSurahDownloaded(surahIndex, categoryUrl: categoryUrl);
+    // try {
+    //   // Check if surah is already downloaded
+    //   final isDownloaded = await DownloadService.isSurahDownloaded(surahIndex, categoryUrl: categoryUrl);
       
-      if (!isDownloaded) {
-        // Get theme to determine snackbar color
-        final themeName = await ThemeHelper.getThemeName();
-        final isDark = themeName == 'Gelap';
+    //   if (!isDownloaded) {
+    //     // Get theme to determine snackbar color
+    //     final themeName = await ThemeHelper.getThemeName();
+    //     final isDark = themeName == 'Gelap';
         
-        // Show a subtle notification that download is starting
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Memuat kandungan...',
-              style: TextStyle(color: Colors.white),
-            ),
-            duration: Duration(seconds: 2),
-            backgroundColor: isDark ? Colors.grey[850] : Color.fromARGB(255, 52, 21, 104),
-          ),
-        );
+    //     // Show a subtle notification that download is starting
+    //     ScaffoldMessenger.of(context).showSnackBar(
+    //       SnackBar(
+    //         content: Text(
+    //           'Memuat kandungan...',
+    //           style: TextStyle(color: Colors.white),
+    //         ),
+    //         duration: Duration(seconds: 2),
+    //         backgroundColor: isDark ? Colors.grey[850] : Color.fromARGB(255, 52, 21, 104),
+    //       ),
+    //     );
         
-        // Download in background with correct categoryUrl
-        await DownloadService.downloadSurahPages(surahIndex, categoryUrl: categoryUrl);
+    //     // Download in background with correct categoryUrl
+    //     await DownloadService.downloadSurahPages(surahIndex, categoryUrl: categoryUrl);
         
-        // Show completion notification
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Kandungan berjaya dimuatkan!'),
-              duration: Duration(seconds: 2),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
+    //     // Show completion notification
+    //     if (mounted) {
+    //       ScaffoldMessenger.of(context).showSnackBar(
+    //         SnackBar(
+    //           content: Text('Kandungan berjaya dimuatkan!'),
+    //           duration: Duration(seconds: 2),
+    //           backgroundColor: Colors.green,
+    //         ),
+    //       );
+    //     }
         
-        // Debug: Check cached pages
-        await DownloadService.debugCachedPages(surahIndex, categoryUrl: categoryUrl);
-      }
-    } catch (e) {
-      print('Error memuat kandungan: $e');
-    }
+    //     // Debug: Check cached pages
+    //     await DownloadService.debugCachedPages(surahIndex, categoryUrl: categoryUrl);
+    //   }
+    // } catch (e) {
+    //   print('Error memuat kandungan: $e');
+    // }
+    // Cache/download disabled for now
+    // TODO: Re-enable after webapp is perfected
+    print('Cache/download disabled - using direct fetch only');
   }
 
   void _updatePageTitle() {
@@ -274,67 +277,70 @@ class _BacaPageState extends State<BacaPage> {
                 color: isDark ? Colors.black54 : null,
                 colorBlendMode: isDark ? BlendMode.darken : null,
               ),
-              Container(
-                padding: EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    // Page indicator
-                    Container(
-                      padding: EdgeInsets.symmetric(vertical: 8.0),
-                      child: totalPages == 0 ? Text(
-                        'Halaman ${currentPage + 1}',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: textColor,
-                        ),
-                      ) : Text(
-                        'Halaman ${currentPage + 1} dari $totalPages',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: textColor,
+              Center(
+                child: Container(
+                  constraints: BoxConstraints(maxWidth: 800), // Max width for larger screens
+                  padding: EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      // Page indicator
+                      Container(
+                        padding: EdgeInsets.symmetric(vertical: 8.0),
+                        child: totalPages == 0 ? Text(
+                          'Halaman ${currentPage + 1}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: textColor,
+                          ),
+                        ) : Text(
+                          'Halaman ${currentPage + 1} dari $totalPages',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: textColor,
+                          ),
                         ),
                       ),
-                    ),
-                    Divider(color: textColor.withOpacity(0.3)),
-                    
-                    // Content area
-                    Expanded(
-                      child: Container(
-                        padding: EdgeInsets.all(16.0),
-                        decoration: BoxDecoration(
-                          color: backgroundColor,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Scrollbar(
-                          controller: _scrollController,
-                          thumbVisibility: true,
-                          thickness: 2.0,
-                          radius: Radius.circular(4.0),
-                          child: SingleChildScrollView(
+                      Divider(color: textColor.withOpacity(0.3)),
+                      
+                      // Content area
+                      Expanded(
+                        child: Container(
+                          padding: EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            color: backgroundColor,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Scrollbar(
                             controller: _scrollController,
-                            child: _buildSurahBodyWithTheme(
-                              context, 
-                              surahData, 
-                              model.bodyContent(surahIndex, currentPage, isDark, textColor, categoryUrl),
-                              textColor,
-                              isDark,
+                            thumbVisibility: true,
+                            thickness: 2.0,
+                            radius: Radius.circular(4.0),
+                            child: SingleChildScrollView(
+                              controller: _scrollController,
+                              child: _buildSurahBodyWithTheme(
+                                context, 
+                                surahData, 
+                                model.bodyContent(surahIndex, currentPage, isDark, textColor, categoryUrl),
+                                textColor,
+                                isDark,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    
-                    // Navigation buttons
-                    _buildPageIndicatorWithTheme(
-                      currentPage, 
-                      totalPages, 
-                      _previousPage, 
-                      _nextPage,
-                      isDark,
-                    ),
-                  ],
+                      
+                      // Navigation buttons
+                      _buildPageIndicatorWithTheme(
+                        currentPage, 
+                        totalPages, 
+                        _previousPage, 
+                        _nextPage,
+                        isDark,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -352,38 +358,45 @@ class _BacaPageState extends State<BacaPage> {
     Color textColor,
     bool isDark,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Surah header
-        Center(
-          child: Column(
-            children: [
-              Text(
-                surahData['pageTitle'] ?? surahData['name'] ?? '',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
-                ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Calculate bismillah width based on available space (respects max width constraint)
+        final bismillahWidth = constraints.maxWidth * 0.7;
+        
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Surah header
+            Center(
+              child: Column(
+                children: [
+                  Text(
+                    surahData['pageTitle'] ?? surahData['name'] ?? '',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  Image.asset(
+                    isDark 
+                      ? 'assets/images/bismillah_darkmode.png'
+                      : 'assets/images/bismillah.png',
+                    fit: BoxFit.contain,
+                    width: bismillahWidth,
+                  ),
+                ],
               ),
-              SizedBox(height: 20),
-              Image.asset(
-                isDark 
-                  ? 'assets/images/bismillah_darkmode.png'
-                  : 'assets/images/bismillah.png',
-                fit: BoxFit.contain,
-                width: MediaQuery.of(context).size.width * 0.6,
-              ),
-            ],
-          ),
-        ),
-        SizedBox(height: 30),
+            ),
+            SizedBox(height: 30),
 
-        // Content placeholder
-        bodyContent,
-      ],
+            // Content placeholder
+            bodyContent,
+          ],
+        );
+      },
     );
   }
 

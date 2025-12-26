@@ -390,6 +390,11 @@ Widget bodyContent(
                   fontSize: FontSize(fontSize),
                   textAlign: TextAlign.justify,
                   color: isDark ? Colors.white : null,
+                  // margin: Margins.only(top: 4, bottom: 4), // Reduce top and bottom spacing
+                  // padding: HtmlPaddings.zero, // Remove padding
+                ),
+                "hr": Style(
+                  margin: Margins.only(top: 12, bottom: 4), // Reduce spacing around hr
                 ),
                 "div": Style(color: isDark ? Colors.white : null),
                 "span": Style(color: isDark ? Colors.white : null),
@@ -468,18 +473,10 @@ Widget bodyContent(
 
 /// Get content for a specific page (cached or fetch)
 Future<String?> _getPageContent(int surahIndex, int pageIndex, {String? categoryUrl}) async {
-  // First try to get from cache
-  final cachedPage = await DownloadService.getCachedPage(surahIndex, pageIndex, categoryUrl: categoryUrl);
-
-  if (cachedPage != null) {
-    // Process HTML content to proxy images for web
-    final htmlContent = cachedPage['htmlContent'];
-    if (htmlContent != null && htmlContent is String) {
-      return _processHtmlForWeb(htmlContent);
-    }
-  }
-
-  // If not cached, fetch from URL
+  // Cache disabled for now - always fetch from URL
+  // TODO: Re-enable cache after webapp is perfected
+  
+  // Fetch from URL
   final url = await getlist.GetListSurah.getSurahUrl(surahIndex, pageIndex, categoryUrl: categoryUrl);
   if (url != null) {
     final content = await service.BacaService.fetchContentFromUrl(

@@ -68,6 +68,7 @@ class _MyAppState extends State<MyApp> {
     }
 
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Celik Tafsir',
       theme: ThemeHelper.getThemeData(_currentTheme),
       onGenerateRoute: (settings) {
