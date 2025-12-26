@@ -31,19 +31,17 @@ class _TutorialContentState extends State<TutorialContent> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.pink[50],
+      backgroundColor: const Color.fromARGB(255, 253, 255, 251),
       appBar: AppBar(
-        title: Text("Tutorial / Cara penggunaan", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+        title: Text("Tutorial / Cara penggunaan", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),),
         centerTitle: true,
-        backgroundColor: Colors.pink[50],
-        // actions: [
-        //   IconButton(
-        //     onPressed: () {
-        //       Navigator.of(context).pop();
-        //     },
-        //     icon: Icon(Icons.close),
-        //   ),
-        // ],
+        backgroundColor: const Color.fromARGB(255, 253, 255, 251),
+        leading: IconButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          icon: Icon(Icons.arrow_back, color: Colors.black),
+        ),
       ),
       body: Column(
         children: [
@@ -75,13 +73,28 @@ class _TutorialContentState extends State<TutorialContent> {
           SizedBox(
             height: 10,
           ),
-          if (_pageViewIndex != 3) // Assuming last page index is 2
+          if (_pageViewIndex != 4) // Assuming last page index is 2
            SizedBox(
               width: MediaQuery.of(context).size.width * 0.5,
-              child: myButton(context, "Geser ----->", () {
+              child: ElevatedButton(
+                onPressed: () {
                   _pageController.nextPage(duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
-                })
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text("Geser", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),),
+                    SizedBox(width: 8),
+                    Icon(Icons.arrow_forward),
+                  ],
+                ),
               )
+            )
           else 
             SizedBox(
               width: MediaQuery.of(context).size.width * 0.5,

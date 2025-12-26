@@ -236,9 +236,15 @@ void _showImageZoomDialog(BuildContext context, String imageUrl, bool isDark) {
             Positioned(
               top: 40,
               right: 20,
-              child: IconButton(
-                icon: Icon(Icons.close, color: Colors.white, size: 30),
-                onPressed: () => Navigator.of(context).pop(),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  icon: Icon(Icons.close, color: Colors.white, size: 30),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
               ),
             ),
           ],
@@ -329,12 +335,13 @@ Widget bodyContent(
   currentPage, [
   bool isDark = false,
   Color? textColor,
+  String? categoryUrl,
 ]) {
   return FutureBuilder<double>(
     future: getFontSize(),
     builder: (context, fontSizeSnapshot) {
       return FutureBuilder<String?>(
-        future: _getPageContent(surahIndex, currentPage),
+        future: _getPageContent(surahIndex, currentPage, categoryUrl: categoryUrl),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
@@ -371,39 +378,39 @@ Widget bodyContent(
               snapshot.data!,
             );
 
-            // Get text color - white for dark mode, black for light mode
-            final htmlTextColor = isDark
-                ? Colors.white
-                : (textColor ?? Colors.black);
-
             return Html(
               data: cleanedHtml,
               style: {
                 "body": Style(
                   fontSize: FontSize(fontSize),
                   textAlign: TextAlign.justify,
-                  color: htmlTextColor,
+                  color: isDark ? Colors.white : null,
                 ),
                 "p": Style(
                   fontSize: FontSize(fontSize),
                   textAlign: TextAlign.justify,
-                  color: htmlTextColor,
+                  color: isDark ? Colors.white : null,
+                  // margin: Margins.only(top: 4, bottom: 4), // Reduce top and bottom spacing
+                  // padding: HtmlPaddings.zero, // Remove padding
                 ),
-                "div": Style(color: htmlTextColor),
-                "span": Style(color: htmlTextColor),
+                "hr": Style(
+                  margin: Margins.only(top: 12, bottom: 4), // Reduce spacing around hr
+                ),
+                "div": Style(color: isDark ? Colors.white : null),
+                "span": Style(color: isDark ? Colors.white : null),
                 "strong": Style(
-                  color: htmlTextColor,
+                  color: isDark ? Colors.white : null,
                   fontWeight: FontWeight.bold,
                 ),
-                "b": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "em": Style(color: htmlTextColor, fontStyle: FontStyle.italic),
-                "i": Style(color: htmlTextColor, fontStyle: FontStyle.italic),
+                "b": Style(color: isDark ? Colors.white : null, fontWeight: FontWeight.bold),
+                "em": Style(color: isDark ? Colors.white : null, fontStyle: FontStyle.italic),
+                "i": Style(color: isDark ? Colors.white : null, fontStyle: FontStyle.italic),
                 "u": Style(
-                  color: htmlTextColor,
+                  color: isDark ? Colors.white : null,
                   textDecoration: TextDecoration.underline,
                 ),
                 "a": Style(
-                  color: htmlTextColor,
+                  color: isDark ? Colors.white : null,
                   textDecoration: TextDecoration.underline,
                 ),
                 "ul": Style(
@@ -411,7 +418,7 @@ Widget bodyContent(
                   textAlign: TextAlign.justify,
                   listStyleType: ListStyleType.disc,
                   padding: HtmlPaddings.only(left: 20),
-                  color: htmlTextColor,
+                  color: isDark ? Colors.white : null,
                 ),
                 "ol": Style(
                   fontSize: FontSize(fontSize),
@@ -420,20 +427,20 @@ Widget bodyContent(
                   padding: HtmlPaddings.only(left: 20),
                   margin: Margins.zero,
                   display: Display.block,
-                  color: htmlTextColor,
+                  color: isDark ? Colors.white : null,
                 ),
                 "li": Style(
                   fontSize: FontSize(fontSize),
                   textAlign: TextAlign.justify,
                   padding: HtmlPaddings.only(bottom: 8),
-                  color: htmlTextColor,
+                  color: isDark ? Colors.white : null,
                 ),
-                "h1": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "h2": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "h3": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "h4": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "h5": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
-                "h6": Style(color: htmlTextColor, fontWeight: FontWeight.bold),
+                "h1": Style(color: isDark ? Colors.white : null, fontWeight: FontWeight.bold),
+                "h2": Style(color: isDark ? Colors.white : null, fontWeight: FontWeight.bold),
+                "h3": Style(color: isDark ? Colors.white : null, fontWeight: FontWeight.bold),
+                "h4": Style(color: isDark ? Colors.white : null, fontWeight: FontWeight.bold),
+                "h5": Style(color: isDark ? Colors.white : null, fontWeight: FontWeight.bold),
+                "h6": Style(color: isDark ? Colors.white : null, fontWeight: FontWeight.bold),
                 "img": Style(
                   width: Width(double.infinity),
                   height: Height(200),
@@ -465,20 +472,12 @@ Widget bodyContent(
 }
 
 /// Get content for a specific page (cached or fetch)
-Future<String?> _getPageContent(int surahIndex, int pageIndex) async {
-  // First try to get from cache
-  final cachedPage = await DownloadService.getCachedPage(surahIndex, pageIndex);
-
-  if (cachedPage != null) {
-    // Process HTML content to proxy images for web
-    final htmlContent = cachedPage['htmlContent'];
-    if (htmlContent != null && htmlContent is String) {
-      return _processHtmlForWeb(htmlContent);
-    }
-  }
-
-  // If not cached, fetch from URL
-  final url = await getlist.GetListSurah.getSurahUrl(surahIndex, pageIndex);
+Future<String?> _getPageContent(int surahIndex, int pageIndex, {String? categoryUrl}) async {
+  // Cache disabled for now - always fetch from URL
+  // TODO: Re-enable cache after webapp is perfected
+  
+  // Fetch from URL
+  final url = await getlist.GetListSurah.getSurahUrl(surahIndex, pageIndex, categoryUrl: categoryUrl);
   if (url != null) {
     final content = await service.BacaService.fetchContentFromUrl(
       url,
@@ -523,12 +522,14 @@ Future<void> addBookmark(
   int surahIndex,
   int currentPage, {
   String? categoryUrl,
+  String? pageTitle,
 }) async {
   try {
     final bookmark = {
       'surahIndex': surahIndex,
       'currentPage': currentPage,
       'categoryUrl': categoryUrl,
+      'pageTitle': pageTitle,
       'dateAdded': DateTime.now().toIso8601String(),
     };
     final bookmarks = await getBookmarks();
@@ -568,5 +569,45 @@ Future<bool> isBookmarked(int surahIndex, int currentPage) async {
   } catch (e) {
     print('Error checking bookmark: $e');
     return false;
+  }
+}
+
+// Database functions for last read
+Future<Map<String, dynamic>?> getLastRead() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final lastReadJson = prefs.getString('lastRead');
+    if (lastReadJson != null) {
+      final Map<String, dynamic> lastRead = json.decode(lastReadJson);
+      return lastRead;
+    }
+    return null;
+  } catch (e) {
+    print('Error getting last read: $e');
+    return null;
+  }
+}
+
+Future<void> saveLastRead(
+  int surahIndex,
+  int pageIndex,
+  String surahName,
+  String? pageTitle, {
+  String? categoryUrl,
+}) async {
+  try {
+    final lastRead = {
+      'surahIndex': surahIndex,
+      'pageIndex': pageIndex,
+      'surahName': surahName,
+      'pageTitle': pageTitle ?? '',
+      'categoryUrl': categoryUrl,
+      'lastReadDate': DateTime.now().toIso8601String(),
+    };
+    final prefs = await SharedPreferences.getInstance();
+    final lastReadJson = json.encode(lastRead);
+    await prefs.setString('lastRead', lastReadJson);
+  } catch (e) {
+    print('Error saving last read: $e');
   }
 }

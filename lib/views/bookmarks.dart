@@ -228,8 +228,9 @@ class _BookmarksPageState extends State<BookmarksPage> {
                                                   child: Column(
                                                     crossAxisAlignment: CrossAxisAlignment.start,
                                                     children: [
+                                                      // Show page title if available, otherwise show surah name
                                                       Text(
-                                                        '${surahlist.surahList[surah['surahIndex']]['name']} (${surahlist.surahList[surah['surahIndex']]['name_arab']})',
+                                                        bookmark['pageTitle'] ?? '${surahlist.surahList[surah['surahIndex']]['name']} (${surahlist.surahList[surah['surahIndex']]['name_arab']})',
                                                         style: TextStyle(
                                                           fontSize: 16,
                                                           fontWeight: FontWeight.bold,
@@ -237,6 +238,17 @@ class _BookmarksPageState extends State<BookmarksPage> {
                                                         ),
                                                       ),
                                                       SizedBox(height: 4),
+                                                      // Show surah name as subtitle if page title exists
+                                                      if (bookmark['pageTitle'] != null)
+                                                        Text(
+                                                          '${surahlist.surahList[surah['surahIndex']]['name']} (${surahlist.surahList[surah['surahIndex']]['name_arab']})',
+                                                          style: TextStyle(
+                                                            fontSize: 13,
+                                                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                                                          ),
+                                                        ),
+                                                      if (bookmark['pageTitle'] != null)
+                                                        SizedBox(height: 4),
                                                       Text(
                                                         'Halaman ${bookmark['currentPage'] + 1}',
                                                         style: TextStyle(
@@ -258,7 +270,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
                                             ),
                                             SizedBox(height: 8),
                                             Text(
-                                              'Added ${_formatDate(DateTime.parse(bookmark['dateAdded']))}',
+                                              'Ditambah ${_formatDate(DateTime.parse(bookmark['dateAdded']))}',
                                               style: TextStyle(
                                                 fontSize: 12,
                                                 color: isDark ? Colors.grey[400] : Colors.grey[500],
@@ -286,13 +298,19 @@ class _BookmarksPageState extends State<BookmarksPage> {
     final difference = now.difference(date);
 
     if (difference.inDays == 0) {
-      return 'today';
+      return 'hari ini';
     } else if (difference.inDays == 1) {
-      return 'yesterday';
+      return 'semalam';
     } else if (difference.inDays < 7) {
-      return '${difference.inDays} days ago';
+      return '${difference.inDays} hari lalu';
+    } else if (difference.inDays < 30) {
+      final weeks = (difference.inDays / 7).floor();
+      return weeks == 1 ? 'seminggu lalu' : '$weeks minggu lalu';
+    } else if (difference.inDays < 365) {
+      final months = (difference.inDays / 30).floor();
+      return months == 1 ? 'sebulan lalu' : '$months bulan lalu';
     } else {
-      return '${date.day}/${date.month}/${date.year}';
+      return 'pada ${date.day}/${date.month}/${date.year}';
     }
   }
 }

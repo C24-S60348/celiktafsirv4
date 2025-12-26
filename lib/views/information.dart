@@ -75,7 +75,8 @@ class InformationPage extends StatelessWidget {
                           '▪Bahasa tafsir yang santai dan bersahaja\n'
                           '▪Loncat dari surah ke surah dengan cepat\n'
                           '▪Boleh copy & paste ayat tafsir.\n\n'
-                          'Moga dengan adanya apps, jiwa kita makin terpandu dengan panduan daripada Qur\'an.',
+                          'Moga dengan adanya apps, jiwa kita makin terpandu dengan panduan daripada Qur\'an.\n\n'
+                          'Kandungan ini disediakan bagi tujuan pendidikan, berdasarkan tafsir muktabar Ahlus Sunnah wal Jamaah, dan tidak bertujuan menggantikan rujukan kitab asal atau fatwa pihak berautoriti.',
                           style: TextStyle(
                             fontSize: 16,
                             color: textColor,
@@ -86,7 +87,7 @@ class InformationPage extends StatelessWidget {
                         Divider(color: textColor.withOpacity(0.3)),
                         SizedBox(height: 10),
                         Text(
-                          'Versi: 1.0.16',
+                          'Versi: 1.0.19',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,

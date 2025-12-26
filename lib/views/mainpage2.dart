@@ -14,12 +14,12 @@ class _MainPage2State extends State<MainPage2> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    // Calculate button size and positions based on typical 2x2 grid layout
-    // Adjust these values based on the actual image layout
-    var buttonSize = Size(screenWidth * 0.4, screenHeight * 0.25);
+    // Calculate button size to match the background image buttons
+    // Using EXACT same values as mainpage for consistency
+    var buttonSize = Size(screenWidth * 0.36, screenHeight * 0.27);
     var buttonStyle = ElevatedButton.styleFrom(
       minimumSize: buttonSize,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       backgroundColor: Colors.transparent,
       shadowColor: Colors.transparent,
       elevation: 0,
@@ -66,14 +66,12 @@ class _MainPage2State extends State<MainPage2> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  SizedBox(
-                    height: screenHeight * 0.15,
-                  ), // Adjust based on image layout
+                  SizedBox(height: screenHeight * 0.22), // Top spacing - SAME as mainpage
                   // First row - 2 boxes
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Box 1 - Top Left (Glosari)
+                      // Glosari button (top-left, green)
                       ElevatedButton(
                         style: buttonStyle,
                         onPressed: () {
@@ -81,10 +79,8 @@ class _MainPage2State extends State<MainPage2> {
                         },
                         child: SizedBox(),
                       ),
-                      SizedBox(
-                        width: screenWidth * 0.05,
-                      ), // Spacing between boxes
-                      // Box 2 - Top Right (Hujjah)
+                      SizedBox(width: screenWidth * 0.04), // Spacing - SAME as mainpage
+                      // Hujjah button (top-right, beige)
                       ElevatedButton(
                         style: buttonStyle,
                         onPressed: () {
@@ -94,12 +90,12 @@ class _MainPage2State extends State<MainPage2> {
                       ),
                     ],
                   ),
-                  SizedBox(height: screenHeight * 0.02), // Spacing between rows
+                  SizedBox(height: screenHeight * 0.015), // Spacing - SAME as mainpage
                   // Second row - 2 boxes
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Box 3 - Bottom Left (Asmaul Husna)
+                      // Asmaul Husna button (bottom-left, light purple)
                       ElevatedButton(
                         style: buttonStyle,
                         onPressed: () {
@@ -107,10 +103,8 @@ class _MainPage2State extends State<MainPage2> {
                         },
                         child: SizedBox(),
                       ),
-                      SizedBox(
-                        width: screenWidth * 0.05,
-                      ), // Spacing between boxes
-                      // Box 4 - Bottom Right (Asal Usul Tafsir)
+                      SizedBox(width: screenWidth * 0.04), // Spacing - SAME as mainpage
+                      // Asal Usul Tafsir button (bottom-right, brown)
                       ElevatedButton(
                         style: buttonStyle,
                         onPressed: () {
@@ -119,6 +113,20 @@ class _MainPage2State extends State<MainPage2> {
                         child: SizedBox(),
                       ),
                     ],
+                  ),
+                  // Hidden "Bacaan Terakhir" placeholder to match mainpage layout and centering
+                  SizedBox(height: screenHeight * 0.04),
+                  // Invisible placeholder with same height as "Bacaan Terakhir" in mainpage
+                  Container(
+                    margin: EdgeInsets.symmetric(
+                      horizontal: screenWidth * 0.1,
+                      vertical: screenHeight * 0.015,
+                    ),
+                    constraints: BoxConstraints(
+                      minHeight: screenHeight * 0.095 * 0.85,
+                      maxHeight: screenHeight * 0.095,
+                    ),
+                    color: Colors.transparent, // Invisible
                   ),
                 ],
               ),
