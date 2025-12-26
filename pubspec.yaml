@@ -65,6 +65,11 @@ flutter_launcher_icons:
   remove_alpha_ios: true
   adaptive_icon_background: "#ffffff"
   adaptive_icon_foreground: "assets/images/logo.png"
+  web:
+    generate: true
+    image_path: "assets/images/logo.png"
+    background_color: "#ffffff"
+    theme_color: "#340068"
 
 # The following section is specific to Flutter packages.
 flutter:
