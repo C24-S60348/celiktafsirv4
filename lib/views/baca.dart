@@ -167,8 +167,13 @@ class _BacaPageState extends State<BacaPage> {
       await model.removeBookmark(surahIndex, currentPage);
       _showBookmarkMessage('Bookmark removed');
     } else {
-      // Add bookmark with category URL
-      await model.addBookmark(surahIndex, currentPage, categoryUrl: categoryUrl);
+      // Add bookmark with category URL and page title
+      await model.addBookmark(
+        surahIndex, 
+        currentPage, 
+        categoryUrl: categoryUrl,
+        pageTitle: surahData['pageTitle'] ?? surahData['name'],
+      );
       _showBookmarkMessage('Bookmark added');
     }
     

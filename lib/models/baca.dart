@@ -522,12 +522,14 @@ Future<void> addBookmark(
   int surahIndex,
   int currentPage, {
   String? categoryUrl,
+  String? pageTitle,
 }) async {
   try {
     final bookmark = {
       'surahIndex': surahIndex,
       'currentPage': currentPage,
       'categoryUrl': categoryUrl,
+      'pageTitle': pageTitle,
       'dateAdded': DateTime.now().toIso8601String(),
     };
     final bookmarks = await getBookmarks();
