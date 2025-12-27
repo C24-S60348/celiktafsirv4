@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import '../models/baca.dart' as model;
 import '../services/getlistsurah.dart' as getlist;
 import '../models/tadabbur.dart' as surahlist;
+import '../services/version_checker.dart';
+import '../widgets/update_dialog.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -19,6 +21,40 @@ class _MainPageState extends State<MainPage> {
   void initState() {
     super.initState();
     _loadLastRead();
+    _checkForUpdates();
+  }
+  
+  void _checkForUpdates() async {
+    // Wait a bit for the page to load
+    await Future.delayed(Duration(seconds: 2));
+    
+    try {
+      print('🔄 Auto-checking for updates on app start...');
+      final notifications = await VersionChecker.checkForUpdate();
+      
+      print('📬 Found ${notifications.length} notification(s)');
+      
+      // Show all notifications (update first, then news) one by one
+      if (notifications.isNotEmpty && mounted) {
+        // Sort so updates come before news
+        notifications.sort((a, b) {
+          if (a.isNews == b.isNews) return 0;
+          return a.isNews ? 1 : -1; // Updates (isNews=false) first
+        });
+        
+        for (var i = 0; i < notifications.length; i++) {
+          final notification = notifications[i];
+          print('📢 Showing notification ${i + 1}/${notifications.length}: ${notification.title ?? (notification.isNews ? "News" : "Update")}');
+          if (mounted) {
+            await UpdateDialog.show(context, notification);
+          }
+        }
+      } else {
+        print('✅ No updates or news to show (or already dismissed)');
+      }
+    } catch (e) {
+      print('❌ Error checking for updates: $e');
+    }
   }
 
   @override
@@ -346,19 +382,19 @@ class _MainPageState extends State<MainPage> {
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                             SizedBox(height: screenHeight * 0.003),
-                                            Text(
-                                              lastRead!['surahName'] as String? ?? '',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: nameFontSize,
-                                                fontWeight: FontWeight.bold,
-                                                letterSpacing: 0.3,
-                                                height: 1.2,
-                                              ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            SizedBox(height: screenHeight * 0.003),
+                                            // Text(
+                                            //   lastRead!['surahName'] as String? ?? '',
+                                            //   style: TextStyle(
+                                            //     color: Colors.white,
+                                            //     fontSize: nameFontSize,
+                                            //     fontWeight: FontWeight.bold,
+                                            //     letterSpacing: 0.3,
+                                            //     height: 1.2,
+                                            //   ),
+                                            //   maxLines: 1,
+                                            //   overflow: TextOverflow.ellipsis,
+                                            // ),
+                                            // SizedBox(height: screenHeight * 0.003),
                                             Builder(
                                               builder: (context) {
                                                 if (lastRead!['pageTitle'] != null && 
@@ -371,7 +407,7 @@ class _MainPageState extends State<MainPage> {
                                                       fontWeight: FontWeight.w400,
                                                       height: 1.3,
                                                     ),
-                                                    maxLines: 1,
+                                                    maxLines: 2,
                                                     overflow: TextOverflow.ellipsis,
                                                   );
                                                 } else {
@@ -383,7 +419,7 @@ class _MainPageState extends State<MainPage> {
                                                       fontWeight: FontWeight.w400,
                                                       height: 1.3,
                                                     ),
-                                                    maxLines: 1,
+                                                    maxLines: 2,
                                                     overflow: TextOverflow.ellipsis,
                                                   );
                                                 }

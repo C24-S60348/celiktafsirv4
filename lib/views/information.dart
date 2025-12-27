@@ -1,10 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../utils/uihelper.dart';
 import '../utils/theme_helper.dart';
 
-class InformationPage extends StatelessWidget {
+class InformationPage extends StatefulWidget {
   const InformationPage({super.key});
+
+  @override
+  _InformationPageState createState() => _InformationPageState();
+}
+
+class _InformationPageState extends State<InformationPage> {
+  String _version = 'Loading...';
+  String _buildNumber = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVersion();
+  }
+
+  Future<void> _loadVersion() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      setState(() {
+        _version = packageInfo.version;
+        _buildNumber = packageInfo.buildNumber;
+      });
+    } catch (e) {
+      setState(() {
+        _version = 'Unknown';
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +116,7 @@ class InformationPage extends StatelessWidget {
                         Divider(color: textColor.withOpacity(0.3)),
                         SizedBox(height: 10),
                         Text(
-                          'Versi: 1.0.19',
+                          'Versi: $_version${_buildNumber.isNotEmpty ? " ($_buildNumber)" : ""}',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
