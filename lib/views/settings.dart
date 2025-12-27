@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/download_service.dart';
 import '../utils/theme_helper.dart';
+import '../services/version_checker.dart';
+import '../widgets/update_dialog.dart';
 
 class SettingsPage extends StatefulWidget {
   final Function(String)? onThemeChanged;
@@ -249,6 +251,69 @@ class _SettingsPageState extends State<SettingsPage> {
         );
       },
     );
+  }
+
+  Future<void> _checkForUpdates() async {
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 20),
+            Text('Memeriksa kemas kini...'),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      // Clear dismissed versions so we can show the dialog again
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('dismissed_version');
+      
+      // Force check by bypassing cache - returns list of notifications
+      final notifications = await VersionChecker.checkForUpdate(forceCheck: true);
+      
+      // Close loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+
+      if (notifications.isNotEmpty && mounted) {
+        // Show all notifications one by one
+        for (var notification in notifications) {
+          await UpdateDialog.show(context, notification);
+        }
+      } else if (mounted) {
+        // No update or news available
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Tiada kemas kini atau berita baharu'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+      
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ralat memeriksa kemas kini: $e'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -522,28 +587,62 @@ class _SettingsPageState extends State<SettingsPage> {
                             ),
                           ),
                           SizedBox(height: 12),
-                          // Kosongkan Cache button
+                          // Semak Kemas Kini button
                           SizedBox(
                             width: screenWidth * 0.55,
                             child: ElevatedButton(
-                              onPressed: _showClearCacheDialog,
+                              onPressed: _checkForUpdates,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red[700],
+                                backgroundColor: const Color(0xFFFF7744),
                                 padding: EdgeInsets.symmetric(vertical: 16),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                               ),
-                              child: Text(
-                                'Kosongkan Cache',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.system_update_outlined,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Semak Kemas Kini',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
+                          SizedBox(height: 12),
+                          // Kosongkan Cache button
+                          // SizedBox(
+                          //   width: screenWidth * 0.55,
+                          //   child: ElevatedButton(
+                          //     onPressed: _showClearCacheDialog,
+                          //     style: ElevatedButton.styleFrom(
+                          //       backgroundColor: Colors.red[700],
+                          //       padding: EdgeInsets.symmetric(vertical: 16),
+                          //       shape: RoundedRectangleBorder(
+                          //         borderRadius: BorderRadius.circular(10),
+                          //       ),
+                          //     ),
+                          //     child: Text(
+                          //       'Kosongkan Cache',
+                          //       style: TextStyle(
+                          //         color: Colors.white,
+                          //         fontSize: 16,
+                          //         fontWeight: FontWeight.bold,
+                          //       ),
+                          //     ),
+                          //   ),
+                          // ),
                           Spacer(),
                         ],
                       ),
