@@ -5,6 +5,7 @@ import '../services/getlistsurah.dart' as getlist;
 import '../models/tadabbur.dart' as surahlist;
 import '../services/version_checker.dart';
 import '../widgets/update_dialog.dart';
+import '../utils/uihelper.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -154,7 +155,10 @@ class _MainPageState extends State<MainPage> {
       //   automaticallyImplyLeading: false, // Disables back button
       //   backgroundColor: Colors.black,
       // ),
-      body: Container(
+      body: mainPageSwipeWrapper(
+        context: context,
+        onSwipeUp: () => Navigator.of(context).pushNamed('/mainpage2'),
+        child: Container(
         color: Colors.black,
         height: screenHeight,
         child: Stack(
@@ -170,30 +174,6 @@ class _MainPageState extends State<MainPage> {
               'assets/images/Kandungan.png',
               fit: BoxFit.contain,
               alignment: Alignment.center,
-            ),
-            // Button to navigate to Kandungan 2 page (top right)
-            Positioned(
-              top: 40,
-              right: 16,
-              child: SafeArea(
-                child: IconButton(
-                  icon: Icon(
-                    Icons.arrow_forward,
-                    color: Colors.black,
-                    size: 28,
-                  ),
-                  onPressed: () {
-                    // Navigate to mainpage2 with slide transition
-                    Navigator.of(context).pushNamed('/mainpage2');
-                  },
-                  style: IconButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    shape: CircleBorder(),
-                    shadowColor: Colors.black,
-                    elevation: 5,
-                  ),
-                ),
-              ),
             ),
             Center(
               child: Column(
@@ -447,6 +427,7 @@ class _MainPageState extends State<MainPage> {
             ),
           ],
         ),
+      ),
       ),
     );
   }
