@@ -10,6 +10,7 @@ import 'views/websitepage.dart';
 import 'views/settings.dart';
 import 'views/surah_pages.dart';
 import 'views/mainpage2.dart';
+import 'views/mainpage3.dart';
 import 'views/glosari.dart';
 import 'views/hujjah.dart';
 import 'views/baca_hujjah.dart';
@@ -17,6 +18,10 @@ import 'views/asmaul_husna.dart';
 import 'views/baca_asmaul_husna.dart';
 import 'views/asal_usul_tafsir.dart';
 import 'views/baca_asal_usul_tafsir.dart';
+import 'views/laa_tahzan.dart';
+import 'views/baca_laa_tahzan.dart';
+import 'views/hadis_40.dart';
+import 'views/baca_hadis_40.dart';
 import 'utils/uihelper.dart';
 import 'utils/theme_helper.dart';
 
@@ -108,6 +113,9 @@ class _MyAppState extends State<MyApp> {
           case '/kandungan2':
             page = MainPage2(); // Keep old route for backward compatibility
             break;
+          case '/mainpage3':
+            page = MainPage3();
+            break;
           case '/glosari':
             page = GlosariPage();
             break;
@@ -129,10 +137,26 @@ class _MyAppState extends State<MyApp> {
           case '/baca-asal-usul-tafsir':
             page = BacaAsalUsulTafsirPage();
             break;
+          case '/laa-tahzan':
+            page = LaaTahzanPage();
+            break;
+          case '/baca-laa-tahzan':
+            page = BacaLaaTahzanPage();
+            break;
+          case '/hadis-40':
+            page = Hadis40Page();
+            break;
+          case '/baca-hadis-40':
+            page = BacaHadis40Page();
+            break;
           default:
             page = SplashScreen();
         }
-        
+
+        // Main page flow uses vertical slide (swipe up/down); others use horizontal slide
+        if (settings.name == '/mainpage2' || settings.name == '/mainpage3') {
+          return verticalSlideRoute(page, arguments: settings.arguments);
+        }
         return slideRoute(page, arguments: settings.arguments);
       },
       // home: Tutorial(),

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import '../utils/uihelper.dart';
 
-class MainPage2 extends StatefulWidget {
-  const MainPage2({super.key});
+class MainPage3 extends StatefulWidget {
+  const MainPage3({super.key});
 
   @override
-  _MainPage2State createState() => _MainPage2State();
+  _MainPage3State createState() => _MainPage3State();
 }
 
-class _MainPage2State extends State<MainPage2> {
+class _MainPage3State extends State<MainPage3> {
   @override
   Widget build(BuildContext context) {
     // Get screen dimensions
@@ -16,7 +16,7 @@ class _MainPage2State extends State<MainPage2> {
     final screenHeight = MediaQuery.of(context).size.height;
 
     // Calculate button size to match the background image buttons
-    // Using EXACT same values as mainpage for consistency
+    // Using EXACT same values as mainpage and mainpage2 for consistency
     var buttonSize = Size(screenWidth * 0.36, screenHeight * 0.27);
     var buttonStyle = ElevatedButton.styleFrom(
       minimumSize: buttonSize,
@@ -31,7 +31,6 @@ class _MainPage2State extends State<MainPage2> {
       backgroundColor: Colors.black,
       body: mainPageSwipeWrapper(
         context: context,
-        onSwipeUp: () => Navigator.of(context).pushNamed('/mainpage3'),
         onSwipeDown: () => Navigator.of(context).pop(),
         child: Container(
         color: Colors.black,
@@ -39,9 +38,9 @@ class _MainPage2State extends State<MainPage2> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Background image - Kandungan 2.png
+            // Background image - Kandungan 3.png
             Image.asset(
-              'assets/images/Kandungan 2.png',
+              'assets/images/Kandungan 3.png',
               fit: BoxFit.contain,
               alignment: Alignment.center,
             ),
@@ -50,49 +49,53 @@ class _MainPage2State extends State<MainPage2> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  SizedBox(height: screenHeight * 0.22), // Top spacing - SAME as mainpage
+                  SizedBox(height: screenHeight * 0.22), // Top spacing - SAME as mainpage and mainpage2
                   // First row - 2 boxes
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Glosari button (top-left, green)
+                      // First button (top-left)
                       ElevatedButton(
                         style: buttonStyle,
                         onPressed: () {
-                          Navigator.of(context).pushNamed('/glosari');
+                          // Add navigation here when needed
+                          Navigator.of(context).pushNamed('/hadis-40');
                         },
                         child: SizedBox(),
                       ),
-                      SizedBox(width: screenWidth * 0.04), // Spacing - SAME as mainpage
-                      // Hujjah button (top-right, beige)
+                      SizedBox(width: screenWidth * 0.04), // Spacing - SAME as mainpage and mainpage2
+                      // Second button (top-right)
                       ElevatedButton(
                         style: buttonStyle,
                         onPressed: () {
-                          Navigator.of(context).pushNamed('/hujjah');
+                          // La Tahzan (Jangan Bersedih)
+                          Navigator.of(context).pushNamed('/laa-tahzan');
                         },
                         child: SizedBox(),
                       ),
                     ],
                   ),
-                  SizedBox(height: screenHeight * 0.015), // Spacing - SAME as mainpage
+                  SizedBox(height: screenHeight * 0.015), // Spacing - SAME as mainpage and mainpage2
                   // Second row - 2 boxes
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Asmaul Husna button (bottom-left, light purple)
+                      // Third button (bottom-left)
                       ElevatedButton(
                         style: buttonStyle,
                         onPressed: () {
-                          Navigator.of(context).pushNamed('/asmaul-husna');
+                          // Add navigation here when needed
+                          // Navigator.of(context).pushNamed('/some-route');
                         },
                         child: SizedBox(),
                       ),
-                      SizedBox(width: screenWidth * 0.04), // Spacing - SAME as mainpage
-                      // Asal Usul Tafsir button (bottom-right, brown)
+                      SizedBox(width: screenWidth * 0.04), // Spacing - SAME as mainpage and mainpage2
+                      // Fourth button (bottom-right)
                       ElevatedButton(
                         style: buttonStyle,
                         onPressed: () {
-                          Navigator.of(context).pushNamed('/asal-usul-tafsir');
+                          // Add navigation here when needed
+                          // Navigator.of(context).pushNamed('/some-route');
                         },
                         child: SizedBox(),
                       ),
