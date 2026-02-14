@@ -36,14 +36,15 @@ class _GlosariPageState extends State<GlosariPage> {
       
       // Show a subtle notification that loading is starting
       if (mounted) {
+        final themeName = isDark ? 'Gelap' : 'Terang';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               'Memuat kandungan...',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: isDark ? Colors.white : Colors.black),
             ),
             duration: Duration(seconds: 2),
-            backgroundColor: isDark ? Colors.grey[850] : Color.fromARGB(255, 52, 21, 104),
+            backgroundColor: ThemeHelper.getAppBarColor(themeName),
           ),
         );
       }
@@ -51,25 +52,14 @@ class _GlosariPageState extends State<GlosariPage> {
       // Actually load the content to ensure it's fetched
       final content = await model.getGlosariContent();
       
-      // Show completion notification after content is loaded
-      if (mounted) {
-        if (content != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Kandungan berjaya dimuatkan!'),
-              duration: Duration(seconds: 2),
-              backgroundColor: Colors.green,
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Gagal memuatkan kandungan'),
-              duration: Duration(seconds: 2),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
+      if (mounted && content == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal memuatkan kandungan'),
+            duration: Duration(seconds: 2),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } catch (e) {
       print('Error memuat kandungan: $e');
@@ -89,14 +79,13 @@ class _GlosariPageState extends State<GlosariPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Glosari', style: TextStyle(color: Colors.white)),
+        title: Text('Glosari'),
         centerTitle: true,
-        backgroundColor: const Color.fromARGB(255, 52, 21, 104),
         leading: IconButton(
           onPressed: () {
             Navigator.of(context).pop();
           },
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back),
         ),
         actions: [
           IconButton(
@@ -108,7 +97,6 @@ class _GlosariPageState extends State<GlosariPage> {
             },
             icon: Icon(
               Icons.language,
-              color: Colors.white,
             ),
           ),
         ],

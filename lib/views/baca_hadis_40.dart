@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/hadis_40.dart' as model;
 import '../utils/theme_helper.dart';
+import '../widgets/article_read_bottom_nav.dart';
 
 class BacaHadis40Page extends StatefulWidget {
   const BacaHadis40Page({super.key});
@@ -15,6 +16,9 @@ class _BacaHadis40PageState extends State<BacaHadis40Page> {
   final ScrollController _scrollController = ScrollController();
   String? postUrl;
   String? postTitle;
+  int _currentIndex = 0;
+  int _total = 0;
+  List<Map<String, dynamic>>? _items;
 
   @override
   void dispose() {
@@ -31,6 +35,9 @@ class _BacaHadis40PageState extends State<BacaHadis40Page> {
         postData = args.cast<String, String>();
         postUrl = args['url']?.toString();
         postTitle = args['title']?.toString() ?? 'Hadis 40 Imam Nawawi';
+        _currentIndex = args['index'] as int? ?? 0;
+        _total = args['total'] as int? ?? 0;
+        _items = args['items'] as List<Map<String, dynamic>>?;
         _isInitialized = true;
         _loadHadis40Content();
       }
@@ -39,46 +46,20 @@ class _BacaHadis40PageState extends State<BacaHadis40Page> {
 
   void _loadHadis40Content() async {
     try {
-      // Get theme to determine snackbar color
       final themeName = await ThemeHelper.getThemeName();
-      final isDark = themeName == 'Gelap';
-
-      // Show a subtle notification that loading is starting
       if (mounted && postUrl != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text(
-              'Memuat kandungan...',
-              style: TextStyle(color: Colors.white),
-            ),
-            duration: const Duration(seconds: 2),
-            backgroundColor:
-                isDark ? Colors.grey[850] : const Color.fromARGB(255, 52, 21, 104),
-          ),
-        );
-
+        ThemeHelper.showMemuatSnackBar(context, themeName);
         // Actually load the content to ensure it's fetched
         final content = await model.getHadis40Content(postUrl!);
 
-        // Show completion notification after content is loaded
-        if (mounted) {
-          if (content != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Kandungan berjaya dimuatkan!'),
-                duration: Duration(seconds: 2),
-                backgroundColor: Colors.green,
-              ),
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Gagal memuatkan kandungan'),
-                duration: Duration(seconds: 2),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
+        if (mounted && content == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Gagal memuatkan kandungan'),
+              duration: Duration(seconds: 2),
+              backgroundColor: Colors.red,
+            ),
+          );
         }
       }
     } catch (e) {
@@ -99,17 +80,13 @@ class _BacaHadis40PageState extends State<BacaHadis40Page> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          postTitle ?? 'Hadis 40 Imam Nawawi',
-          style: const TextStyle(color: Colors.white),
-        ),
+        title: Text(postTitle ?? 'Hadis 40 Imam Nawawi'),
         centerTitle: true,
-        backgroundColor: const Color.fromARGB(255, 52, 21, 104),
         leading: IconButton(
           onPressed: () {
             Navigator.of(context).pop();
           },
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back),
         ),
         actions: [
           IconButton(
@@ -125,7 +102,6 @@ class _BacaHadis40PageState extends State<BacaHadis40Page> {
             },
             icon: const Icon(
               Icons.language,
-              color: Colors.white,
             ),
           ),
         ],
@@ -171,20 +147,63 @@ class _BacaHadis40PageState extends State<BacaHadis40Page> {
                           radius: const Radius.circular(4.0),
                           child: SingleChildScrollView(
                             controller: _scrollController,
-                            child: _buildHadis40BodyWithTheme(
-                              context,
-                              postTitle ?? 'Hadis 40 Imam Nawawi',
-                              postUrl != null
-                                  ? model.bodyContent(
-                                      postUrl!, isDark, textColor)
-                                  : Center(
-                                      child: Text(
-                                        'Tiada URL tersedia',
-                                        style: TextStyle(color: textColor),
-                                      ),
-                                    ),
-                              textColor,
-                              isDark,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                _buildHadis40BodyWithTheme(
+                                  context,
+                                  postTitle ?? 'Hadis 40 Imam Nawawi',
+                                  postUrl != null
+                                      ? model.bodyContent(
+                                          postUrl!, isDark, textColor)
+                                      : Center(
+                                          child: Text(
+                                            'Tiada URL tersedia',
+                                            style: TextStyle(color: textColor),
+                                          ),
+                                        ),
+                                  textColor,
+                                  isDark,
+                                ),
+                                if (_items != null && _items!.isNotEmpty)
+                                  ArticleReadBottomNav(
+                                    currentIndex: _currentIndex,
+                                    total: _total,
+                                    themeName: themeName,
+                                    textColor: textColor,
+                                    label: 'Artikel',
+                                    onPrevious: _currentIndex > 0
+                                        ? () {
+                                            final prev = _items![_currentIndex - 1];
+                                            Navigator.of(context).pushReplacementNamed(
+                                              '/baca-hadis-40',
+                                              arguments: {
+                                                'url': prev['url'],
+                                                'title': prev['title'],
+                                                'index': _currentIndex - 1,
+                                                'total': _total,
+                                                'items': _items,
+                                              },
+                                            );
+                                          }
+                                        : null,
+                                    onNext: _currentIndex < _total - 1
+                                        ? () {
+                                            final next = _items![_currentIndex + 1];
+                                            Navigator.of(context).pushReplacementNamed(
+                                              '/baca-hadis-40',
+                                              arguments: {
+                                                'url': next['url'],
+                                                'title': next['title'],
+                                                'index': _currentIndex + 1,
+                                                'total': _total,
+                                                'items': _items,
+                                              },
+                                            );
+                                          }
+                                        : null,
+                                  ),
+                              ],
                             ),
                           ),
                         ),

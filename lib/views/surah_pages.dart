@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/getlistsurah.dart' as getlist;
-import 'package:http/http.dart' as http;
+import '../utils/proxy_helper.dart';
 import '../utils/theme_helper.dart';
 
 class SurahPagesPage extends StatefulWidget {
@@ -37,26 +37,13 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
     }
   }
 
-  Future<bool> _checkInternetConnection() async {
-    try {
-      final response = await http.get(Uri.parse('https://celiktafsir.net')).timeout(
-        const Duration(seconds: 5),
-        onTimeout: () {
-          throw Exception('Connection timeout');
-        },
-      );
-      return response.statusCode == 200;
-    } catch (e) {
-      return false;
-    }
-  }
-
   void _loadPages() async {
-    // Check internet connection first
-    final hasInternet = await _checkInternetConnection();
-    
-    // Pass categoryUrl to getSurahByIndex so each variant uses its specific URL
+    final hasInternet = await hasInternetConnection();
+    if (!mounted) return;
+
     final surah = await getlist.GetListSurah.getSurahByIndex(surahIndex, categoryUrl: categoryUrl);
+    if (!mounted) return;
+
     if (surah != null) {
       final urls = List<String>.from(surah['urls'] as List);
       final titles = surah['titles'] as List<String>?;
@@ -64,10 +51,9 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
 
       for (int i = 0; i < urls.length; i++) {
         final url = urls[i];
-        // Use cached title if available, otherwise extract from URL
-        final title = (titles != null && i < titles.length) 
-            ? titles[i] 
-            : _extractTitleFromUrl(url);
+        final title = (titles != null && i < titles.length)
+            ? titles[i]
+            : extractTitleFromUrl(url, fallback: 'Halaman ${i + 1}');
         pageList.add({
           'index': i,
           'title': title,
@@ -78,11 +64,9 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
       setState(() {
         pages = pageList;
         isLoading = false;
-        // If no pages and no internet, show message
         hasNoInternet = (!hasInternet && urls.isEmpty);
       });
     } else {
-      // No surah data - check if it's because of no internet
       setState(() {
         pages = [];
         isLoading = false;
@@ -91,90 +75,24 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
     }
   }
 
-  String _extractTitleFromUrl(String url) {
-    try {
-      // Extract the last part of the URL (after the last /)
-      final parts = url.split('/');
-      // Filter out empty strings and get the last non-empty part
-      final nonEmptyParts = parts.where((p) => p.isNotEmpty).toList();
-      if (nonEmptyParts.isNotEmpty) {
-        String title = nonEmptyParts.last;
-        
-        // Split by hyphens
-        List<String> segments = title.split('-');
-        
-        // Process segments and join with spaces, but preserve hyphens between numbers
-        List<String> processedSegments = [];
-        for (int i = 0; i < segments.length; i++) {
-          String segment = segments[i].trim();
-          if (segment.isEmpty) continue;
-          
-          // Expand abbreviations
-          if (segment.toLowerCase() == 'bah') {
-            segment = 'bahagian';
-          }
-          
-          // Capitalize first letter, rest lowercase
-          if (segment.isNotEmpty) {
-            segment = segment[0].toUpperCase() + segment.substring(1).toLowerCase();
-          }
-          
-          processedSegments.add(segment);
-          
-          // If current and next segments are both numbers, add hyphen instead of space
-          if (i < segments.length - 1) {
-            String nextSegment = segments[i + 1].trim();
-            if (_isNumeric(segment) && _isNumeric(nextSegment)) {
-              processedSegments.add('-');
-            } else {
-              processedSegments.add(' ');
-            }
-          }
-        }
-        
-        title = processedSegments.join('');
-        
-        // Clean up multiple spaces
-        title = title.replaceAll(RegExp(r'\s+'), ' ');
-        
-        
-        return title.trim();
-      }
-    } catch (e) {
-      print('Error extracting title: $e');
-    }
-    
-    // Fallback: return page number
-    return 'Halaman ${pages.length + 1}';
-  }
-  
-  bool _isNumeric(String str) {
-    if (str.isEmpty) return false;
-    return RegExp(r'^\d+$').hasMatch(str);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          '${surahData['name']}',
-          style: TextStyle(color: Colors.white),
-        ),
+        title: Text('${surahData['name']}'),
         centerTitle: true,
-        backgroundColor: const Color.fromARGB(255, 52, 21, 104),
         leading: IconButton(
           onPressed: () {
             Navigator.of(context).pop();
           },
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back),
         ),
         actions: [
           IconButton(
             onPressed: () {
               Navigator.of(context).pushNamed('/info');
             },
-            icon: Icon(Icons.info_outline, color: Colors.white),
+            icon: Icon(Icons.info_outline),
           ),
         ],
       ),
@@ -245,7 +163,7 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
                           ? Center(
                               child: CircularProgressIndicator(
                                 valueColor: AlwaysStoppedAnimation<Color>(
-                                  Color.fromARGB(255, 52, 21, 104),
+                                  ThemeHelper.getLoadingIndicatorColor(themeName),
                                 ),
                               ),
                             )
@@ -307,11 +225,11 @@ class _SurahPagesPageState extends State<SurahPagesPage> {
                                       color: backgroundColor,
                                       child: ListTile(
                                         leading: CircleAvatar(
-                                          backgroundColor: Color.fromARGB(255, 52, 21, 104),
+                                          backgroundColor: ThemeHelper.getAppBarColor(themeName),
                                           child: Text(
                                             '${page['index'] + 1}',
                                             style: TextStyle(
-                                              color: Colors.white,
+                                              color: isDark ? Colors.white : Colors.black,
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),

@@ -93,21 +93,20 @@ class _TadabburPageState extends State<TadabburPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Pilihan Surah', style: TextStyle(color: Colors.white)),
+        title: Text('Pilihan Surah'),
         centerTitle: true,
-        backgroundColor: const Color.fromARGB(255, 52, 21, 104),
         leading: IconButton(
           onPressed: () {
             Navigator.of(context).pop();
           },
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back),
         ),
         actions: [
           IconButton(
             onPressed: () {
               Navigator.of(context).pushNamed('/info');
             },
-            icon: Icon(Icons.info_outline, color: Colors.white),
+            icon: Icon(Icons.info_outline),
           ),
         ],
       ),
@@ -136,16 +135,16 @@ class _TadabburPageState extends State<TadabburPage> {
                   child: isLoading
                       ? Center(
                           child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Color.fromARGB(255, 52, 21, 104),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                ThemeHelper.getLoadingIndicatorColor(themeName),
+                              ),
                             ),
-                          ),
                         )
                       : Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             // Search field with theme support
-                            _buildSearchFieldWithTheme(_filterSurahs, textColor, isDark),
+                            _buildSearchFieldWithTheme(context, _filterSurahs, textColor, isDark),
                             SizedBox(height: 20),
                             Center(
                               child: Image.asset(
@@ -202,7 +201,7 @@ class _TadabburPageState extends State<TadabburPage> {
   }
 
   // Theme-aware search field builder
-  Widget _buildSearchFieldWithTheme(Function(String) onSearch, Color textColor, bool isDark) {
+  Widget _buildSearchFieldWithTheme(BuildContext context, Function(String) onSearch, Color textColor, bool isDark) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: TextField(
@@ -223,7 +222,7 @@ class _TadabburPageState extends State<TadabburPage> {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(32.0),
-            borderSide: BorderSide(color: const Color.fromARGB(255, 52, 21, 104), width: 2),
+            borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
           ),
         ),
         onChanged: (value) {

@@ -1,106 +1,10 @@
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' as html_parser;
-import 'package:flutter/foundation.dart' show kIsWeb;
+import '../utils/proxy_helper.dart';
 
 class GetAsmaulHusna {
   static const String _baseUrl = 'https://celiktafsir.net';
   static const String _categoryUrl = 'https://celiktafsir.net/asmaul-husna/';
-
-  // CORS Proxy for Web - using custom proxy server
-  static const String _corsProxy =
-      'https://afwanhaziq.vps.webdock.cloud/proxy?url=';
-
-  /// Get the URL with CORS proxy if running on web
-  static String _getProxiedUrl(String url) {
-    if (kIsWeb) {
-      // For web, use custom CORS proxy
-      return '$_corsProxy$url';
-    }
-    // For mobile, use direct URL (no CORS restrictions)
-    return url;
-  }
-
-  /// Check internet connection
-  static Future<bool> _hasInternetConnection() async {
-    try {
-      final response = await http
-          .get(Uri.parse(_getProxiedUrl(_baseUrl)))
-          .timeout(
-            const Duration(seconds: 5),
-            onTimeout: () {
-              throw Exception('Connection timeout');
-            },
-          );
-      return response.statusCode == 200;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  /// Extract title from URL
-  static String _extractTitleFromUrl(String url) {
-    try {
-      // Extract the last part of the URL (after the last /)
-      final parts = url.split('/');
-      // Filter out empty strings and get the last non-empty part
-      final nonEmptyParts = parts.where((p) => p.isNotEmpty).toList();
-      if (nonEmptyParts.isNotEmpty) {
-        String title = nonEmptyParts.last;
-
-        // Split by hyphens
-        List<String> segments = title.split('-');
-
-        // Process segments and join with spaces, but preserve hyphens between numbers
-        List<String> processedSegments = [];
-        for (int i = 0; i < segments.length; i++) {
-          String segment = segments[i].trim();
-          if (segment.isEmpty) continue;
-
-          // Expand abbreviations
-          if (segment.toLowerCase() == 'bah') {
-            segment = 'bahagian';
-          }
-
-          // Capitalize first letter, rest lowercase
-          if (segment.isNotEmpty) {
-            segment =
-                segment[0].toUpperCase() + segment.substring(1).toLowerCase();
-          }
-
-          processedSegments.add(segment);
-
-          // If current and next segments are both numbers, add hyphen instead of space
-          if (i < segments.length - 1) {
-            String nextSegment = segments[i + 1].trim();
-            if (_isNumeric(segment) && _isNumeric(nextSegment)) {
-              processedSegments.add('-');
-            } else {
-              processedSegments.add(' ');
-            }
-          }
-        }
-
-        title = processedSegments.join('');
-
-        // Decode percent-encoded characters
-        title = Uri.decodeComponent(title);
-
-        // Clean up multiple spaces
-        title = title.replaceAll(RegExp(r'\s+'), ' ');
-
-        return title.trim();
-      }
-    } catch (e) {
-      print('Error extracting title: $e');
-    }
-
-    return 'Untitled';
-  }
-
-  static bool _isNumeric(String str) {
-    if (str.isEmpty) return false;
-    return RegExp(r'^\d+$').hasMatch(str);
-  }
 
   /// Scrape all post URLs and titles from the Asmaul Husna category page
   static Future<List<Map<String, String>>> scrapeAsmaulHusnaPosts() async {
@@ -112,7 +16,7 @@ class GetAsmaulHusna {
       try {
         // WordPress category pages typically use ?paged=X for pagination
         final url = page == 1 ? _categoryUrl : '$_categoryUrl?paged=$page';
-        final response = await http.get(Uri.parse(_getProxiedUrl(url)));
+        final response = await http.get(Uri.parse(getProxiedUrl(url)));
 
         if (response.statusCode != 200) {
           break;
@@ -150,7 +54,7 @@ class GetAsmaulHusna {
               final dateString = '$year$month$day';
 
               // Extract title from URL
-              final title = _extractTitleFromUrl(absoluteUrl);
+              final title = extractTitleFromUrl(absoluteUrl);
               urlTitles.add({
                 'url': absoluteUrl,
                 'title': title,
@@ -197,7 +101,7 @@ class GetAsmaulHusna {
   /// Get all Asmaul Husna posts (with internet check)
   static Future<List<Map<String, String>>> getAsmaulHusnaPosts() async {
     // Check if we have internet connection
-    final hasInternet = await _hasInternetConnection();
+    final hasInternet = await hasInternetConnection();
 
     if (hasInternet) {
       try {

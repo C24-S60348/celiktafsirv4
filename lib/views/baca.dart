@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/baca.dart' as model;
 import '../services/getlistsurah.dart' as getlist;
-import '../services/download_service.dart';
 import '../utils/theme_helper.dart';
+import '../widgets/article_read_bottom_nav.dart';
 
 class BacaPage extends StatefulWidget {
   const BacaPage({super.key});
@@ -17,13 +17,15 @@ class _BacaPageState extends State<BacaPage> {
   int totalPages = 0;
   // bool isLoading = true;
   int surahIndex = 0; // Add surah index
-  bool isBookmarked = false; // Add bookmark state
+  /// Use ValueNotifier so toggling bookmark only rebuilds the icon, not the whole page.
+  final ValueNotifier<bool> _isBookmarked = ValueNotifier<bool>(false);
   bool _isInitialized = false; // Add initialization flag
   final ScrollController _scrollController = ScrollController();
   List<String>? _cachedTitles; // Cache titles to avoid calling service on navigation
 
   @override
   void dispose() {
+    _isBookmarked.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -51,6 +53,7 @@ class _BacaPageState extends State<BacaPage> {
     print('Loading surah content for index: $surahIndex');
     // Pass categoryUrl to ensure we get the correct variant (e.g., Baqarah Juzuk 2)
     final surah = await getlist.GetListSurah.getSurahByIndex(surahIndex, categoryUrl: categoryUrl);
+    if (!mounted) return;
     print('Surah data: $surah');
     
     if (surah != null) {
@@ -61,23 +64,21 @@ class _BacaPageState extends State<BacaPage> {
       setState(() {
         totalPages = pages;
         _cachedTitles = titles; // Cache titles for navigation
-        // isLoading = false;
       });
-      
+
       print('Updated totalPages to: $totalPages');
-      
+
       // Update page title if not already set from navigation
       if (surahData['pageTitle'] == null && _cachedTitles != null && currentPage < _cachedTitles!.length) {
+        if (!mounted) return;
         setState(() {
           surahData['pageTitle'] = _cachedTitles![currentPage];
         });
       }
-      
-      // Save last read
-      _saveLastRead();
-      
-      // Start downloading this surah in background
-      _downloadSurahInBackground();
+
+      // Save last read (only if still mounted)
+      if (mounted) _saveLastRead();
+      if (mounted) _downloadSurahInBackground();
     } else {
       print('Surah data is null for index: $surahIndex');
     }
@@ -162,32 +163,27 @@ class _BacaPageState extends State<BacaPage> {
   }
 
   void _toggleBookmark() async {
-    if (isBookmarked) {
-      // Remove bookmark
+    if (_isBookmarked.value) {
       await model.removeBookmark(surahIndex, currentPage);
+      if (!mounted) return;
       _showBookmarkMessage('Bookmark removed');
     } else {
-      // Add bookmark with category URL and page title
       await model.addBookmark(
-        surahIndex, 
-        currentPage, 
+        surahIndex,
+        currentPage,
         categoryUrl: categoryUrl,
         pageTitle: surahData['pageTitle'] ?? surahData['name'],
       );
+      if (!mounted) return;
       _showBookmarkMessage('Bookmark added');
     }
-    
-    // Update UI state after bookmark operation
+    if (!mounted) return;
     _checkBookmark();
   }
 
   void _checkBookmark() async {
     final bookmarked = await model.isBookmarked(surahIndex, currentPage);
-    if (mounted) {
-      setState(() {
-        isBookmarked = bookmarked;
-      });
-    }
+    if (mounted) _isBookmarked.value = bookmarked;
   }
 
   void _saveLastRead() async {
@@ -206,11 +202,12 @@ class _BacaPageState extends State<BacaPage> {
   }
 
   void _showBookmarkMessage(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: Text(message, style: TextStyle(color: Colors.black)),
         duration: Duration(seconds: 2),
-        backgroundColor: const Color.fromARGB(255, 52, 21, 104),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor ?? Theme.of(context).colorScheme.primary,
       ),
     );
   }
@@ -218,51 +215,6 @@ class _BacaPageState extends State<BacaPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          surahData['pageTitle'] ?? surahData['name'] ?? '',
-          textAlign: TextAlign.left,
-          maxLines: 2,
-          style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: const Color.fromARGB(255, 52, 21, 104),
-        leading: Align(
-          alignment: Alignment.centerLeft,
-          child: IconButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            padding: EdgeInsets.only(left: 8),
-            icon: Icon(Icons.arrow_back, color: Colors.white),
-          ),
-        ),
-        actions: [
-          IconButton(
-            onPressed: _toggleBookmark,
-            onLongPress: () {
-              Navigator.of(context).pushNamed('/bookmarks');
-            },
-            icon: Icon(
-              isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-              color: Colors.white,
-            ),
-          ),
-          IconButton(
-            onPressed: () async {
-              final url = await getlist.GetListSurah.getSurahUrl(surahIndex, currentPage);
-              await Navigator.of(context).pushNamed('/websitepage', arguments: {
-                'url': url,
-              });
-              // Refresh bookmark status when returning from websitepage
-              _checkBookmark();
-            },
-            icon: Icon(
-              Icons.language,
-              color: Colors.white,
-            ),
-          ),
-        ],
-      ),
       body: FutureBuilder<String>(
         future: ThemeHelper.getThemeName(),
         builder: (context, snapshot) {
@@ -270,7 +222,9 @@ class _BacaPageState extends State<BacaPage> {
           final backgroundColor = ThemeHelper.getContentBackgroundColor(themeName);
           final textColor = ThemeHelper.getTextColor(themeName);
           final isDark = themeName == 'Gelap';
-          
+          // Reading container: white in light (no border), theme background in dark
+          final readingContainerColor = isDark ? backgroundColor : Colors.white;
+
           return Stack(
             children: [
               // Background image with dark overlay in dark mode
@@ -282,71 +236,76 @@ class _BacaPageState extends State<BacaPage> {
                 color: isDark ? Colors.black54 : null,
                 colorBlendMode: isDark ? BlendMode.darken : null,
               ),
-              Center(
-                child: Container(
-                  constraints: BoxConstraints(maxWidth: 800), // Max width for larger screens
-                  padding: EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      // Page indicator
-                      Container(
-                        padding: EdgeInsets.symmetric(vertical: 8.0),
-                        child: totalPages == 0 ? Text(
-                          'Halaman ${currentPage + 1}',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: textColor,
-                          ),
-                        ) : Text(
-                          'Halaman ${currentPage + 1} dari $totalPages',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: textColor,
-                          ),
-                        ),
-                      ),
-                      Divider(color: textColor.withOpacity(0.3)),
-                      
-                      // Content area
-                      Expanded(
-                        child: Container(
-                          padding: EdgeInsets.all(16.0),
-                          decoration: BoxDecoration(
-                            color: backgroundColor,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Scrollbar(
-                            controller: _scrollController,
-                            thumbVisibility: true,
-                            thickness: 2.0,
-                            radius: Radius.circular(4.0),
-                            child: SingleChildScrollView(
-                              controller: _scrollController,
-                              child: _buildSurahBodyWithTheme(
-                                context, 
-                                surahData, 
-                                model.bodyContent(surahIndex, currentPage, isDark, textColor, categoryUrl),
-                                textColor,
-                                isDark,
-                              ),
-                            ),
+              CustomScrollView(
+                controller: _scrollController,
+                slivers: [
+                  // Hideable app bar (hides when scrolling down, reappears when scrolling up)
+                  SliverAppBar(
+                    floating: true,
+                    snap: true,
+                    backgroundColor: ThemeHelper.getAppBarColor(themeName),
+                    foregroundColor: isDark ? Colors.white : Colors.black,
+                    title: Text(
+                      surahData['pageTitle'] ?? surahData['name'] ?? '',
+                      textAlign: TextAlign.left,
+                      maxLines: 2,
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                    ),
+                    leading: IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: Icon(Icons.arrow_back),
+                    ),
+                    actions: [
+                      ValueListenableBuilder<bool>(
+                        valueListenable: _isBookmarked,
+                        builder: (_, isBookmarked, __) => IconButton(
+                          onPressed: _toggleBookmark,
+                          onLongPress: () {
+                            Navigator.of(context).pushNamed('/bookmarks');
+                          },
+                          icon: Icon(
+                            isBookmarked ? Icons.bookmark : Icons.bookmark_border,
                           ),
                         ),
                       ),
-                      
-                      // Navigation buttons
-                      _buildPageIndicatorWithTheme(
-                        currentPage, 
-                        totalPages, 
-                        _previousPage, 
-                        _nextPage,
-                        isDark,
+                      IconButton(
+                        onPressed: () async {
+                          final url = await getlist.GetListSurah.getSurahUrl(surahIndex, currentPage);
+                          await Navigator.of(context).pushNamed('/websitepage', arguments: {'url': url});
+                          _checkBookmark();
+                        },
+                        icon: Icon(Icons.language),
                       ),
                     ],
                   ),
-                ),
+                  // Reading content: full width, no border, white (light) or theme (dark)
+                  SliverToBoxAdapter(
+                    child: Container(
+                      width: double.infinity,
+                      color: readingContainerColor,
+                      padding: EdgeInsets.all(16.0),
+                      child: _buildSurahBodyWithTheme(
+                        context,
+                        surahData,
+                        model.bodyContent(surahIndex, currentPage, isDark, textColor, categoryUrl),
+                        textColor,
+                        isDark,
+                      ),
+                    ),
+                  ),
+                  // Bottom row: Sebelum | Halaman X dari Y | Selepas (shared widget)
+                  SliverToBoxAdapter(
+                    child: ArticleReadBottomNav(
+                      currentIndex: currentPage,
+                      total: totalPages,
+                      themeName: themeName,
+                      textColor: textColor,
+                      label: 'Halaman',
+                      onPrevious: _previousPage,
+                      onNext: _nextPage,
+                    ),
+                  ),
+                ],
               ),
             ],
           );
@@ -365,8 +324,9 @@ class _BacaPageState extends State<BacaPage> {
   ) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Calculate bismillah width based on available space (respects max width constraint)
-        final bismillahWidth = constraints.maxWidth * 0.7;
+        // Same max width as Pilihan Surah (600) so bismillah doesn't grow too large on wide screens
+        const double maxBismillahWidth = 600;
+        final bismillahWidth = (constraints.maxWidth * 0.7).clamp(0.0, maxBismillahWidth);
         
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -405,39 +365,4 @@ class _BacaPageState extends State<BacaPage> {
     );
   }
 
-  // Theme-aware page indicator builder
-  Widget _buildPageIndicatorWithTheme(
-    int currentPage,
-    int totalPages,
-    Function() onPrevious,
-    Function() onNext,
-    bool isDark,
-  ) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          ElevatedButton.icon(
-            onPressed: currentPage > 0 ? onPrevious : null,
-            icon: Icon(Icons.arrow_back),
-            label: Text('Sebelum'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: isDark ? Colors.blue[700] : Colors.blue,
-              foregroundColor: Colors.white,
-            ),
-          ),
-          ElevatedButton.icon(
-            onPressed: currentPage < totalPages - 1 ? onNext : null,
-            icon: Icon(Icons.arrow_forward),
-            label: Text('Selepas'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: isDark ? Colors.blue[700] : Colors.blue,
-              foregroundColor: Colors.white,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

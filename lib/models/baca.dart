@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import '../services/getlistsurah.dart' as getlist;
 import '../services/baca.dart' as service;
 import '../services/download_service.dart';
+import '../widgets/image_zoom_overlay.dart';
 
 /// Remove numbering from unordered list items and clean up nested list structures
 String _removeNumbersFromUnorderedLists(String html) {
@@ -126,7 +127,7 @@ Widget Function(ExtensionContext) networkImageExtensionBuilderWithTheme(
           // Get the BuildContext from the extension context
           final buildContext = extensionContext.buildContext;
           if (buildContext != null) {
-            _showImageZoomDialog(buildContext, proxiedUrl, isDark);
+            showImageZoomOverlay(buildContext, proxiedUrl, isDark: isDark);
           }
         },
         child: Image.network(
@@ -175,122 +176,17 @@ Widget Function(ExtensionContext) networkImageExtensionBuilderWithTheme(
   };
 }
 
-/// Show image in a zoomable full-screen dialog
-void _showImageZoomDialog(BuildContext context, String imageUrl, bool isDark) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return Dialog(
-        backgroundColor: Colors.black,
-        insetPadding: EdgeInsets.all(0),
-        child: Stack(
-          children: [
-            // Zoomable image
-            InteractiveViewer(
-              minScale: 0.5,
-              maxScale: 4.0,
-              child: Center(
-                child: Container(
-                  color: Colors.white,
-                  child: Image.network(
-                    imageUrl,
-                    fit: BoxFit.contain,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Center(
-                        child: CircularProgressIndicator(
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
-                              : null,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Color.fromARGB(255, 52, 21, 104),
-                          ),
-                        ),
-                      );
-                    },
-                    errorBuilder: (context, error, stackTrace) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.broken_image,
-                              size: 64,
-                              color: Colors.grey[600],
-                            ),
-                            SizedBox(height: 16),
-                            Text(
-                              'Gagal memuatkan gambar',
-                              style: TextStyle(color: Colors.grey[800]),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ),
-            // Close button
-            Positioned(
-              top: 40,
-              right: 20,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  icon: Icon(Icons.close, color: Colors.white, size: 30),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    },
-  );
-}
+/// Cached so bookmark toggle (setState) does not make the outer FutureBuilder show loading again.
+Future<double>? _fontSizeFutureCache;
 
 Future<double> getFontSize() async {
-  final prefs = await SharedPreferences.getInstance();
-  return prefs.getDouble('font_size') ?? 16.0;
+  _fontSizeFutureCache ??= _getFontSizeImpl();
+  return _fontSizeFutureCache!;
 }
 
-Widget buildPageIndicator(
-  int currentPage,
-  int totalPages,
-  Function() onPrevious,
-  Function() onNext,
-) {
-  return Padding(
-    padding: EdgeInsets.symmetric(vertical: 16.0),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        ElevatedButton.icon(
-          onPressed: currentPage > 0 ? onPrevious : null,
-          icon: Icon(Icons.arrow_back),
-          label: Text('Sebelum'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue,
-            foregroundColor: Colors.white,
-          ),
-        ),
-        ElevatedButton.icon(
-          onPressed: currentPage < totalPages - 1 ? onNext : null,
-          icon: Icon(Icons.arrow_forward),
-          label: Text('Selepas'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue,
-            foregroundColor: Colors.white,
-          ),
-        ),
-      ],
-    ),
-  );
+Future<double> _getFontSizeImpl() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getDouble('font_size') ?? 16.0;
 }
 
 Widget buildSurahBody(
@@ -471,12 +367,31 @@ Widget bodyContent(
   );
 }
 
-/// Get content for a specific page (cached or fetch)
+/// In-memory cache for page content so bookmark toggle / setState does not refetch.
+/// We cache both the result and the completed Future so FutureBuilder gets the same
+/// Future on rebuild and sees hasData immediately (no loading flash, no scroll reset).
+final Map<String, String> _pageContentCache = {};
+final Map<String, Future<String?>> _pageContentFutureCache = {};
+const int _pageContentCacheMax = 30;
+final List<String> _pageContentCacheKeys = [];
+
 Future<String?> _getPageContent(int surahIndex, int pageIndex, {String? categoryUrl}) async {
-  // Cache disabled for now - always fetch from URL
-  // TODO: Re-enable cache after webapp is perfected
-  
-  // Fetch from URL
+  final key = '${surahIndex}_${pageIndex}_${categoryUrl ?? ""}';
+  final existingFuture = _pageContentFutureCache[key];
+  if (existingFuture != null) return existingFuture;
+
+  while (_pageContentFutureCache.length >= _pageContentCacheMax && _pageContentCacheKeys.isNotEmpty) {
+    final k = _pageContentCacheKeys.removeAt(0);
+    _pageContentCache.remove(k);
+    _pageContentFutureCache.remove(k);
+  }
+  final future = _getPageContentImpl(surahIndex, pageIndex, categoryUrl: categoryUrl);
+  _pageContentFutureCache[key] = future;
+  if (!_pageContentCacheKeys.contains(key)) _pageContentCacheKeys.add(key);
+  return future;
+}
+
+Future<String?> _getPageContentImpl(int surahIndex, int pageIndex, {String? categoryUrl}) async {
   final url = await getlist.GetListSurah.getSurahUrl(surahIndex, pageIndex, categoryUrl: categoryUrl);
   if (url != null) {
     final content = await service.BacaService.fetchContentFromUrl(
@@ -484,11 +399,12 @@ Future<String?> _getPageContent(int surahIndex, int pageIndex, {String? category
       'entry-content',
     );
     if (content != null) {
-      // Process HTML content to proxy images for web
-      return _processHtmlForWeb(content);
+      final processed = _processHtmlForWeb(content);
+      final key = '${surahIndex}_${pageIndex}_${categoryUrl ?? ""}';
+      _pageContentCache[key] = processed;
+      return processed;
     }
   }
-
   return null;
 }
 

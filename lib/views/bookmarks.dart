@@ -26,12 +26,14 @@ class _BookmarksPageState extends State<BookmarksPage> {
   void _loadBookmarks() async {
     try {
       final savedBookmarks = await model.getBookmarks();
+      if (!mounted) return;
       setState(() {
         bookmarks = savedBookmarks;
         isLoading = false;
       });
     } catch (e) {
       print('Error loading bookmarks: $e');
+      if (!mounted) return;
       setState(() {
         isLoading = false;
       });
@@ -42,17 +44,23 @@ class _BookmarksPageState extends State<BookmarksPage> {
     final bookmark = bookmarks[index];
     try {
       await model.removeBookmark(
-        bookmark['surahIndex'], 
-        bookmark['currentPage']
+        bookmark['surahIndex'],
+        bookmark['currentPage'],
       );
+      if (!mounted) return;
       setState(() {
         bookmarks.removeAt(index);
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Bookmark removed'),
+          content: Text(
+            'Bookmark removed',
+            style: TextStyle(
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
+            ),
+          ),
           duration: Duration(seconds: 2),
-          backgroundColor: const Color.fromARGB(255, 52, 21, 104),
+          backgroundColor: Theme.of(context).appBarTheme.backgroundColor ?? Theme.of(context).colorScheme.primary,
         ),
       );
     } catch (e) {
@@ -61,19 +69,16 @@ class _BookmarksPageState extends State<BookmarksPage> {
   }
 
   void _navigateToVerse(Map<String, dynamic> bookmark) async {
-    // Prevent multiple simultaneous navigations
     if (_isNavigating) return;
-    
+
     setState(() {
       _isNavigating = true;
     });
-    
+
     try {
-      // Get stored category URL from bookmark
       final categoryUrl = bookmark['categoryUrl'] as String?;
-      
-      // Get surah data from the service
       final surah = await getlist.GetListSurah.getSurahByIndex(bookmark['surahIndex'], categoryUrl: categoryUrl);
+      if (!mounted) return;
       if (surah != null) {
         await Navigator.of(context).pushNamed('/baca', arguments: {
           'number': surah['surahIndex'],
@@ -99,14 +104,13 @@ class _BookmarksPageState extends State<BookmarksPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Bookmarks', style: TextStyle(color: Colors.white)),
+        title: Text('Bookmarks'),
         centerTitle: true,
-        backgroundColor: const Color.fromARGB(255, 52, 21, 104),
         leading: IconButton(
           onPressed: () {
             Navigator.of(context).pop();
           },
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back),
         ),
       ),
       body: FutureBuilder<String>(
@@ -134,7 +138,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
                     ? Center(
                         child: CircularProgressIndicator(
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            const Color.fromARGB(255, 52, 21, 104),
+                            ThemeHelper.getLoadingIndicatorColor(themeName),
                           ),
                         ),
                       )
@@ -153,7 +157,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
                                   'Tiada bookmark',
                                   style: TextStyle(
                                     fontSize: 18,
-                                    color: isDark ? Colors.grey[300] : Colors.grey[600],
+                                    color: textColor,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -162,7 +166,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
                                   'Bookmark ayat semasa membaca untuk melihatnya di sini',
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: isDark ? Colors.grey[400] : Colors.grey[500],
+                                    color: isDark ? Colors.grey[400] : Colors.black87,
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
@@ -234,7 +238,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
                                                         style: TextStyle(
                                                           fontSize: 16,
                                                           fontWeight: FontWeight.bold,
-                                                          color: isDark ? Colors.white : const Color.fromARGB(255, 52, 21, 104),
+                                                          color: textColor,
                                                         ),
                                                       ),
                                                       SizedBox(height: 4),
@@ -244,7 +248,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
                                                           '${surahlist.surahList[surah['surahIndex']]['name']} (${surahlist.surahList[surah['surahIndex']]['name_arab']})',
                                                           style: TextStyle(
                                                             fontSize: 13,
-                                                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                                                            color: isDark ? Colors.grey[400] : Colors.black87,
                                                           ),
                                                         ),
                                                       if (bookmark['pageTitle'] != null)
@@ -253,7 +257,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
                                                         'Halaman ${bookmark['currentPage'] + 1}',
                                                         style: TextStyle(
                                                           fontSize: 14,
-                                                          color: isDark ? Colors.grey[300] : Colors.grey[600],
+                                                          color: isDark ? Colors.grey[300] : Colors.black87,
                                                         ),
                                                       ),
                                                     ],
@@ -273,7 +277,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
                                               'Ditambah ${_formatDate(DateTime.parse(bookmark['dateAdded']))}',
                                               style: TextStyle(
                                                 fontSize: 12,
-                                                color: isDark ? Colors.grey[400] : Colors.grey[500],
+                                                color: isDark ? Colors.grey[400] : Colors.black54,
                                               ),
                                             ),
                                           ],

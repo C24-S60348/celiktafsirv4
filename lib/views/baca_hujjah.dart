@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/hujjah.dart' as model;
 import '../utils/theme_helper.dart';
+import '../widgets/article_read_bottom_nav.dart';
 
 class BacaHujjahPage extends StatefulWidget {
   const BacaHujjahPage({super.key});
@@ -15,6 +16,9 @@ class _BacaHujjahPageState extends State<BacaHujjahPage> {
   final ScrollController _scrollController = ScrollController();
   String? postUrl;
   String? postTitle;
+  int _currentIndex = 0;
+  int _total = 0;
+  List<Map<String, dynamic>>? _items;
 
   @override
   void dispose() {
@@ -31,6 +35,9 @@ class _BacaHujjahPageState extends State<BacaHujjahPage> {
         postData = args.cast<String, String>();
         postUrl = args['url']?.toString();
         postTitle = args['title']?.toString() ?? 'Hujjah';
+        _currentIndex = args['index'] as int? ?? 0;
+        _total = args['total'] as int? ?? 0;
+        _items = args['items'] as List<Map<String, dynamic>>?;
         _isInitialized = true;
         _loadHujjahContent();
       }
@@ -39,45 +46,20 @@ class _BacaHujjahPageState extends State<BacaHujjahPage> {
 
   void _loadHujjahContent() async {
     try {
-      // Get theme to determine snackbar color
       final themeName = await ThemeHelper.getThemeName();
-      final isDark = themeName == 'Gelap';
-      
-      // Show a subtle notification that loading is starting
       if (mounted && postUrl != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Memuat kandungan...',
-              style: TextStyle(color: Colors.white),
-            ),
-            duration: Duration(seconds: 2),
-            backgroundColor: isDark ? Colors.grey[850] : Color.fromARGB(255, 52, 21, 104),
-          ),
-        );
-        
+        ThemeHelper.showMemuatSnackBar(context, themeName);
         // Actually load the content to ensure it's fetched
         final content = await model.getHujjahContent(postUrl!);
         
-        // Show completion notification after content is loaded
-        if (mounted) {
-          if (content != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Kandungan berjaya dimuatkan!'),
-                duration: Duration(seconds: 2),
-                backgroundColor: Colors.green,
-              ),
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Gagal memuatkan kandungan'),
-                duration: Duration(seconds: 2),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
+        if (mounted && content == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Gagal memuatkan kandungan'),
+              duration: Duration(seconds: 2),
+              backgroundColor: Colors.red,
+            ),
+          );
         }
       }
     } catch (e) {
@@ -98,17 +80,13 @@ class _BacaHujjahPageState extends State<BacaHujjahPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          postTitle ?? 'Hujjah',
-          style: TextStyle(color: Colors.white),
-        ),
+        title: Text(postTitle ?? 'Hujjah'),
         centerTitle: true,
-        backgroundColor: const Color.fromARGB(255, 52, 21, 104),
         leading: IconButton(
           onPressed: () {
             Navigator.of(context).pop();
           },
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back),
         ),
         actions: [
           IconButton(
@@ -121,7 +99,6 @@ class _BacaHujjahPageState extends State<BacaHujjahPage> {
             },
             icon: Icon(
               Icons.language,
-              color: Colors.white,
             ),
           ),
         ],
@@ -136,7 +113,6 @@ class _BacaHujjahPageState extends State<BacaHujjahPage> {
           
           return Stack(
             children: [
-              // Background image with dark overlay in dark mode
               Image.asset(
                 'assets/images/bg.jpg',
                 fit: BoxFit.cover,
@@ -145,12 +121,11 @@ class _BacaHujjahPageState extends State<BacaHujjahPage> {
                 color: isDark ? Colors.black54 : null,
                 colorBlendMode: isDark ? BlendMode.darken : null,
               ),
-              Container(
-                padding: EdgeInsets.all(16.0),
-                child: Column(
-                  children: [                    
-                    // Content area
-                    Expanded(
+              Column(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: EdgeInsets.all(16.0),
                       child: Container(
                         padding: EdgeInsets.all(16.0),
                         decoration: BoxDecoration(
@@ -164,26 +139,69 @@ class _BacaHujjahPageState extends State<BacaHujjahPage> {
                           radius: Radius.circular(4.0),
                           child: SingleChildScrollView(
                             controller: _scrollController,
-                            child: _buildHujjahBodyWithTheme(
-                              context, 
-                              postTitle ?? 'Hujjah',
-                              postUrl != null 
-                                ? model.bodyContent(postUrl!, isDark, textColor)
-                                : Center(
-                                    child: Text(
-                                      'Tiada URL tersedia',
-                                      style: TextStyle(color: textColor),
-                                    ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                _buildHujjahBodyWithTheme(
+                                  context,
+                                  postTitle ?? 'Hujjah',
+                                  postUrl != null
+                                      ? model.bodyContent(postUrl!, isDark, textColor)
+                                      : Center(
+                                          child: Text(
+                                            'Tiada URL tersedia',
+                                            style: TextStyle(color: textColor),
+                                          ),
+                                        ),
+                                  textColor,
+                                  isDark,
+                                ),
+                                if (_items != null && _items!.isNotEmpty)
+                                  ArticleReadBottomNav(
+                                    currentIndex: _currentIndex,
+                                    total: _total,
+                                    themeName: themeName,
+                                    textColor: textColor,
+                                    label: 'Artikel',
+                                    onPrevious: _currentIndex > 0
+                                        ? () {
+                                            final prev = _items![_currentIndex - 1];
+                                            Navigator.of(context).pushReplacementNamed(
+                                              '/baca-hujjah',
+                                              arguments: {
+                                                'url': prev['url'],
+                                                'title': prev['title'],
+                                                'index': _currentIndex - 1,
+                                                'total': _total,
+                                                'items': _items,
+                                              },
+                                            );
+                                          }
+                                        : null,
+                                    onNext: _currentIndex < _total - 1
+                                        ? () {
+                                            final next = _items![_currentIndex + 1];
+                                            Navigator.of(context).pushReplacementNamed(
+                                              '/baca-hujjah',
+                                              arguments: {
+                                                'url': next['url'],
+                                                'title': next['title'],
+                                                'index': _currentIndex + 1,
+                                                'total': _total,
+                                                'items': _items,
+                                              },
+                                            );
+                                          }
+                                        : null,
                                   ),
-                              textColor,
-                              isDark,
+                              ],
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ],
           );

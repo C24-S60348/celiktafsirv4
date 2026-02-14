@@ -322,7 +322,6 @@ class _SettingsPageState extends State<SettingsPage> {
       return Scaffold(
         appBar: AppBar(
           title: Text('Pengaturan'),
-          backgroundColor: const Color.fromARGB(255, 52, 21, 104),
         ),
         body: Center(child: CircularProgressIndicator()),
       );
@@ -330,15 +329,11 @@ class _SettingsPageState extends State<SettingsPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Pengaturan',
-          style: TextStyle(color: Colors.white),
-        ),
+        title: Text('Pengaturan'),
         centerTitle: true,
-        backgroundColor: const Color.fromARGB(255, 52, 21, 104),
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back),
         ),
       ),
       body: FutureBuilder<String>(

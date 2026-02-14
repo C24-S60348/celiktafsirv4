@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../services/baca.dart' as service;
+import '../widgets/image_zoom_overlay.dart';
 
 /// Remove numbering from unordered list items and clean up nested list structures
 String _removeNumbersFromUnorderedLists(String html) {
@@ -118,7 +119,7 @@ Widget Function(ExtensionContext) networkImageExtensionBuilderWithTheme(bool isD
           // Get the BuildContext from the extension context
           final buildContext = extensionContext.buildContext;
           if (buildContext != null) {
-            _showImageZoomDialog(buildContext, proxiedUrl, isDark);
+            showImageZoomOverlay(buildContext, proxiedUrl, isDark: isDark);
           }
         },
         child: Image.network(
@@ -162,86 +163,6 @@ Widget Function(ExtensionContext) networkImageExtensionBuilderWithTheme(bool isD
     }
     return SizedBox.shrink();
   };
-}
-
-/// Show image in a zoomable full-screen dialog
-void _showImageZoomDialog(BuildContext context, String imageUrl, bool isDark) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return Dialog(
-        backgroundColor: Colors.black,
-        insetPadding: EdgeInsets.all(0),
-        child: Stack(
-          children: [
-            // Zoomable image
-            InteractiveViewer(
-              minScale: 0.5,
-              maxScale: 4.0,
-              child: Center(
-                child: Image.network(
-                  imageUrl,
-                  fit: BoxFit.contain,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Center(
-                      child: CircularProgressIndicator(
-                        value: loadingProgress.expectedTotalBytes != null
-                            ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                            : null,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          isDark ? Colors.deepPurple[300]! : Colors.white,
-                        ),
-                      ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.broken_image, size: 64, color: Colors.white),
-                          SizedBox(height: 16),
-                          Text(
-                            'Gagal memuatkan gambar',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-            // Close button
-            Positioned(
-              top: 40,
-              right: 20,
-              child: IconButton(
-                icon: Icon(Icons.close, color: Colors.white, size: 30),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ),
-            // Zoom hint text
-            Positioned(
-              bottom: 40,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.black54,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    },
-  );
 }
 
 Future<double> getFontSize() async {
