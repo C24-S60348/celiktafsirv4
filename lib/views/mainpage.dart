@@ -446,19 +446,19 @@ class _MainPageState extends State<MainPage> {
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                           ),
-                                          SizedBox(height: renderedImageHeight * 0.003),
-                                          Text(
-                                            lastRead!['surahName'] as String? ?? '',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: nameFontSize,
-                                              fontWeight: FontWeight.bold,
-                                              letterSpacing: 0.3,
-                                              height: 1.2,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
+                                          // SizedBox(height: renderedImageHeight * 0.003),
+                                          // Text(
+                                          //   lastRead!['surahName'] as String? ?? '',
+                                          //   style: TextStyle(
+                                          //     color: Colors.white,
+                                          //     fontSize: nameFontSize,
+                                          //     fontWeight: FontWeight.bold,
+                                          //     letterSpacing: 0.3,
+                                          //     height: 1.2,
+                                          //   ),
+                                          //   maxLines: 1,
+                                          //   overflow: TextOverflow.ellipsis,
+                                          // ),
                                           SizedBox(height: renderedImageHeight * 0.003),
                                           Builder(
                                             builder: (context) {
