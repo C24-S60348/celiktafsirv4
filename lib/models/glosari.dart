@@ -4,6 +4,7 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../services/baca.dart' as service;
 import '../utils/theme_helper.dart';
+import '../utils/html_link_helper.dart';
 import '../widgets/image_zoom_overlay.dart';
 
 /// Remove numbering from unordered list items and clean up nested list structures
@@ -354,6 +355,7 @@ Widget bodyContent([bool isDark = false, Color? textColor]) {
                   tagsToExtend: {"img"},
                   builder: networkImageExtensionBuilderWithTheme(isDark),
                 ),
+                buildLinkTagExtension(isDark),
               ],
             );
           } else {

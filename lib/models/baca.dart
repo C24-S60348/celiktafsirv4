@@ -5,8 +5,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../services/getlistsurah.dart' as getlist;
 import '../services/baca.dart' as service;
-import '../services/download_service.dart';
 import '../widgets/image_zoom_overlay.dart';
+import '../utils/html_link_helper.dart';
 
 /// Remove numbering from unordered list items and clean up nested list structures
 String _removeNumbersFromUnorderedLists(String html) {
@@ -347,6 +347,7 @@ Widget bodyContent(
                   tagsToExtend: {"img"},
                   builder: networkImageExtensionBuilderWithTheme(isDark),
                 ),
+                buildLinkTagExtension(isDark),
               ],
             );
           } else {
