@@ -79,33 +79,6 @@ class _BacaHadis40PageState extends State<BacaHadis40Page> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(postTitle ?? 'Hadis 40 Imam Nawawi'),
-        centerTitle: true,
-        leading: IconButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          icon: const Icon(Icons.arrow_back),
-        ),
-        actions: [
-          IconButton(
-            onPressed: () async {
-              if (postUrl != null) {
-                await Navigator.of(context).pushNamed(
-                  '/websitepage',
-                  arguments: {
-                    'url': postUrl,
-                  },
-                );
-              }
-            },
-            icon: const Icon(
-              Icons.language,
-            ),
-          ),
-        ],
-      ),
       body: FutureBuilder<String>(
         future: ThemeHelper.getThemeName(),
         builder: (context, snapshot) {
@@ -116,6 +89,8 @@ class _BacaHadis40PageState extends State<BacaHadis40Page> {
           final baseTextColor = ThemeHelper.getTextColor(themeName);
           // Ensure all text is pure white in dark mode (to match BacaPage behaviour)
           final textColor = isDark ? Colors.white : baseTextColor;
+          // Reading container: white in light (no border), theme background in dark
+          final readingContainerColor = isDark ? backgroundColor : Colors.white;
 
           return Stack(
             children: [
@@ -128,89 +103,102 @@ class _BacaHadis40PageState extends State<BacaHadis40Page> {
                 color: isDark ? Colors.black54 : null,
                 colorBlendMode: isDark ? BlendMode.darken : null,
               ),
-              Container(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    // Content area
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(16.0),
-                        decoration: BoxDecoration(
-                          color: backgroundColor,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Scrollbar(
-                          controller: _scrollController,
-                          thumbVisibility: true,
-                          thickness: 2.0,
-                          radius: const Radius.circular(4.0),
-                          child: SingleChildScrollView(
-                            controller: _scrollController,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                _buildHadis40BodyWithTheme(
-                                  context,
-                                  postTitle ?? 'Hadis 40 Imam Nawawi',
-                                  postUrl != null
-                                      ? model.bodyContent(
-                                          postUrl!, isDark, textColor)
-                                      : Center(
-                                          child: Text(
-                                            'Tiada URL tersedia',
-                                            style: TextStyle(color: textColor),
-                                          ),
-                                        ),
-                                  textColor,
-                                  isDark,
+              CustomScrollView(
+                controller: _scrollController,
+                slivers: [
+                  SliverAppBar(
+                    floating: true,
+                    snap: true,
+                    backgroundColor: ThemeHelper.getAppBarColor(themeName),
+                    foregroundColor: isDark ? Colors.white : Colors.black,
+                    title: Text(
+                      postTitle ?? 'Hadis 40 Imam Nawawi',
+                      textAlign: TextAlign.left,
+                      maxLines: 2,
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                    ),
+                    leading: IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: Icon(Icons.arrow_back),
+                    ),
+                    actions: [
+                      IconButton(
+                        onPressed: () async {
+                          if (postUrl != null) {
+                            await Navigator.of(context).pushNamed(
+                              '/websitepage',
+                              arguments: {'url': postUrl},
+                            );
+                          }
+                        },
+                        icon: Icon(Icons.language),
+                      ),
+                    ],
+                  ),
+                  // Reading content: full width, no border, white (light) or theme (dark)
+                  SliverToBoxAdapter(
+                    child: Container(
+                      width: double.infinity,
+                      color: readingContainerColor,
+                      padding: EdgeInsets.all(16.0),
+                      child: _buildHadis40BodyWithTheme(
+                        context,
+                        postTitle ?? 'Hadis 40 Imam Nawawi',
+                        postUrl != null
+                            ? model.bodyContent(postUrl!, isDark, textColor)
+                            : Center(
+                                child: Text(
+                                  'Tiada URL tersedia',
+                                  style: TextStyle(color: textColor),
                                 ),
-                                if (_items != null && _items!.isNotEmpty)
-                                  ArticleReadBottomNav(
-                                    currentIndex: _currentIndex,
-                                    total: _total,
-                                    themeName: themeName,
-                                    textColor: textColor,
-                                    label: 'Artikel',
-                                    onPrevious: _currentIndex > 0
-                                        ? () {
-                                            final prev = _items![_currentIndex - 1];
-                                            Navigator.of(context).pushReplacementNamed(
-                                              '/baca-hadis-40',
-                                              arguments: {
-                                                'url': prev['url'],
-                                                'title': prev['title'],
-                                                'index': _currentIndex - 1,
-                                                'total': _total,
-                                                'items': _items,
-                                              },
-                                            );
-                                          }
-                                        : null,
-                                    onNext: _currentIndex < _total - 1
-                                        ? () {
-                                            final next = _items![_currentIndex + 1];
-                                            Navigator.of(context).pushReplacementNamed(
-                                              '/baca-hadis-40',
-                                              arguments: {
-                                                'url': next['url'],
-                                                'title': next['title'],
-                                                'index': _currentIndex + 1,
-                                                'total': _total,
-                                                'items': _items,
-                                              },
-                                            );
-                                          }
-                                        : null,
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
+                              ),
+                        textColor,
+                        isDark,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  // Bottom row: Sebelum | Artikel X dari Y | Selepas
+                  if (_items != null && _items!.isNotEmpty)
+                    SliverToBoxAdapter(
+                      child: ArticleReadBottomNav(
+                        currentIndex: _currentIndex,
+                        total: _total,
+                        themeName: themeName,
+                        textColor: textColor,
+                        label: 'Artikel',
+                        onPrevious: _currentIndex > 0
+                            ? () {
+                                final prev = _items![_currentIndex - 1];
+                                Navigator.of(context).pushReplacementNamed(
+                                  '/baca-hadis-40',
+                                  arguments: {
+                                    'url': prev['url'],
+                                    'title': prev['title'],
+                                    'index': _currentIndex - 1,
+                                    'total': _total,
+                                    'items': _items,
+                                  },
+                                );
+                              }
+                            : null,
+                        onNext: _currentIndex < _total - 1
+                            ? () {
+                                final next = _items![_currentIndex + 1];
+                                Navigator.of(context).pushReplacementNamed(
+                                  '/baca-hadis-40',
+                                  arguments: {
+                                    'url': next['url'],
+                                    'title': next['title'],
+                                    'index': _currentIndex + 1,
+                                    'total': _total,
+                                    'items': _items,
+                                  },
+                                );
+                              }
+                            : null,
+                      ),
+                    ),
+                ],
               ),
             ],
           );

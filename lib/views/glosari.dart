@@ -78,29 +78,6 @@ class _GlosariPageState extends State<GlosariPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Glosari'),
-        centerTitle: true,
-        leading: IconButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          icon: Icon(Icons.arrow_back),
-        ),
-        actions: [
-          IconButton(
-            onPressed: () async {
-              const url = 'https://celiktafsir.net/glosari-blog/';
-              await Navigator.of(context).pushNamed('/websitepage', arguments: {
-                'url': url,
-              });
-            },
-            icon: Icon(
-              Icons.language,
-            ),
-          ),
-        ],
-      ),
       body: FutureBuilder<String>(
         future: ThemeHelper.getThemeName(),
         builder: (context, snapshot) {
@@ -108,7 +85,9 @@ class _GlosariPageState extends State<GlosariPage> {
           final backgroundColor = ThemeHelper.getContentBackgroundColor(themeName);
           final textColor = ThemeHelper.getTextColor(themeName);
           final isDark = themeName == 'Gelap';
-          
+          // Reading container: white in light (no border), theme background in dark
+          final readingContainerColor = isDark ? backgroundColor : Colors.white;
+
           return Stack(
             children: [
               // Background image with dark overlay in dark mode
@@ -120,37 +99,49 @@ class _GlosariPageState extends State<GlosariPage> {
                 color: isDark ? Colors.black54 : null,
                 colorBlendMode: isDark ? BlendMode.darken : null,
               ),
-              Container(
-                padding: EdgeInsets.all(16.0),
-                child: Column(
-                  children: [                    
-                    // Content area
-                    Expanded(
-                      child: Container(
-                        padding: EdgeInsets.all(16.0),
-                        decoration: BoxDecoration(
-                          color: backgroundColor,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Scrollbar(
-                          controller: _scrollController,
-                          thumbVisibility: true,
-                          thickness: 2.0,
-                          radius: Radius.circular(4.0),
-                          child: SingleChildScrollView(
-                            controller: _scrollController,
-                            child: _buildGlosariBodyWithTheme(
-                              context, 
-                              model.bodyContent(isDark, textColor),
-                              textColor,
-                              isDark,
-                            ),
-                          ),
-                        ),
+              CustomScrollView(
+                controller: _scrollController,
+                slivers: [
+                  SliverAppBar(
+                    floating: true,
+                    snap: true,
+                    backgroundColor: ThemeHelper.getAppBarColor(themeName),
+                    foregroundColor: isDark ? Colors.white : Colors.black,
+                    title: Text(
+                      'Glosari',
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                    ),
+                    leading: IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: Icon(Icons.arrow_back),
+                    ),
+                    actions: [
+                      IconButton(
+                        onPressed: () async {
+                          const url = 'https://celiktafsir.net/glosari-blog/';
+                          await Navigator.of(context).pushNamed('/websitepage', arguments: {
+                            'url': url,
+                          });
+                        },
+                        icon: Icon(Icons.language),
+                      ),
+                    ],
+                  ),
+                  // Reading content: full width, no border, white (light) or theme (dark)
+                  SliverToBoxAdapter(
+                    child: Container(
+                      width: double.infinity,
+                      color: readingContainerColor,
+                      padding: EdgeInsets.all(16.0),
+                      child: _buildGlosariBodyWithTheme(
+                        context,
+                        model.bodyContent(isDark, textColor),
+                        textColor,
+                        isDark,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ],
           );

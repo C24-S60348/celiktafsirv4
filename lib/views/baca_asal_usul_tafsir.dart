@@ -79,30 +79,6 @@ class _BacaAsalUsulTafsirPageState extends State<BacaAsalUsulTafsirPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(postTitle ?? 'Ilmu Usul Tafsir'),
-        centerTitle: true,
-        leading: IconButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          icon: Icon(Icons.arrow_back),
-        ),
-        actions: [
-          IconButton(
-            onPressed: () async {
-              if (postUrl != null) {
-                await Navigator.of(context).pushNamed('/websitepage', arguments: {
-                  'url': postUrl,
-                });
-              }
-            },
-            icon: Icon(
-              Icons.language,
-            ),
-          ),
-        ],
-      ),
       body: FutureBuilder<String>(
         future: ThemeHelper.getThemeName(),
         builder: (context, snapshot) {
@@ -110,7 +86,9 @@ class _BacaAsalUsulTafsirPageState extends State<BacaAsalUsulTafsirPage> {
           final backgroundColor = ThemeHelper.getContentBackgroundColor(themeName);
           final textColor = ThemeHelper.getTextColor(themeName);
           final isDark = themeName == 'Gelap';
-          
+          // Reading container: white in light (no border), theme background in dark
+          final readingContainerColor = isDark ? backgroundColor : Colors.white;
+
           return Stack(
             children: [
               // Background image with dark overlay in dark mode
@@ -122,88 +100,101 @@ class _BacaAsalUsulTafsirPageState extends State<BacaAsalUsulTafsirPage> {
                 color: isDark ? Colors.black54 : null,
                 colorBlendMode: isDark ? BlendMode.darken : null,
               ),
-              Container(
-                padding: EdgeInsets.all(16.0),
-                child: Column(
-                  children: [                    
-                    // Content area
-                    Expanded(
-                      child: Container(
-                        padding: EdgeInsets.all(16.0),
-                        decoration: BoxDecoration(
-                          color: backgroundColor,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Scrollbar(
-                          controller: _scrollController,
-                          thumbVisibility: true,
-                          thickness: 2.0,
-                          radius: Radius.circular(4.0),
-                          child: SingleChildScrollView(
-                            controller: _scrollController,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                _buildAsalUsulTafsirBodyWithTheme(
-                                  context,
-                                  postTitle ?? 'Ilmu Usul Tafsir',
-                                  postUrl != null
-                                      ? model.bodyContent(postUrl!, isDark, textColor)
-                                      : Center(
-                                          child: Text(
-                                            'Tiada URL tersedia',
-                                            style: TextStyle(color: textColor),
-                                          ),
-                                        ),
-                                  textColor,
-                                  isDark,
+              CustomScrollView(
+                controller: _scrollController,
+                slivers: [
+                  SliverAppBar(
+                    floating: true,
+                    snap: true,
+                    backgroundColor: ThemeHelper.getAppBarColor(themeName),
+                    foregroundColor: isDark ? Colors.white : Colors.black,
+                    title: Text(
+                      postTitle ?? 'Ilmu Usul Tafsir',
+                      textAlign: TextAlign.left,
+                      maxLines: 2,
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                    ),
+                    leading: IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: Icon(Icons.arrow_back),
+                    ),
+                    actions: [
+                      IconButton(
+                        onPressed: () async {
+                          if (postUrl != null) {
+                            await Navigator.of(context).pushNamed('/websitepage', arguments: {
+                              'url': postUrl,
+                            });
+                          }
+                        },
+                        icon: Icon(Icons.language),
+                      ),
+                    ],
+                  ),
+                  // Reading content: full width, no border, white (light) or theme (dark)
+                  SliverToBoxAdapter(
+                    child: Container(
+                      width: double.infinity,
+                      color: readingContainerColor,
+                      padding: EdgeInsets.all(16.0),
+                      child: _buildAsalUsulTafsirBodyWithTheme(
+                        context,
+                        postTitle ?? 'Ilmu Usul Tafsir',
+                        postUrl != null
+                            ? model.bodyContent(postUrl!, isDark, textColor)
+                            : Center(
+                                child: Text(
+                                  'Tiada URL tersedia',
+                                  style: TextStyle(color: textColor),
                                 ),
-                                if (_items != null && _items!.isNotEmpty)
-                                  ArticleReadBottomNav(
-                                    currentIndex: _currentIndex,
-                                    total: _total,
-                                    themeName: themeName,
-                                    textColor: textColor,
-                                    label: 'Artikel',
-                                    onPrevious: _currentIndex > 0
-                                        ? () {
-                                            final prev = _items![_currentIndex - 1];
-                                            Navigator.of(context).pushReplacementNamed(
-                                              '/baca-asal-usul-tafsir',
-                                              arguments: {
-                                                'url': prev['url'],
-                                                'title': prev['title'],
-                                                'index': _currentIndex - 1,
-                                                'total': _total,
-                                                'items': _items,
-                                              },
-                                            );
-                                          }
-                                        : null,
-                                    onNext: _currentIndex < _total - 1
-                                        ? () {
-                                            final next = _items![_currentIndex + 1];
-                                            Navigator.of(context).pushReplacementNamed(
-                                              '/baca-asal-usul-tafsir',
-                                              arguments: {
-                                                'url': next['url'],
-                                                'title': next['title'],
-                                                'index': _currentIndex + 1,
-                                                'total': _total,
-                                                'items': _items,
-                                              },
-                                            );
-                                          }
-                                        : null,
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
+                              ),
+                        textColor,
+                        isDark,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  // Bottom row: Sebelum | Artikel X dari Y | Selepas
+                  if (_items != null && _items!.isNotEmpty)
+                    SliverToBoxAdapter(
+                      child: ArticleReadBottomNav(
+                        currentIndex: _currentIndex,
+                        total: _total,
+                        themeName: themeName,
+                        textColor: textColor,
+                        label: 'Artikel',
+                        onPrevious: _currentIndex > 0
+                            ? () {
+                                final prev = _items![_currentIndex - 1];
+                                Navigator.of(context).pushReplacementNamed(
+                                  '/baca-asal-usul-tafsir',
+                                  arguments: {
+                                    'url': prev['url'],
+                                    'title': prev['title'],
+                                    'index': _currentIndex - 1,
+                                    'total': _total,
+                                    'items': _items,
+                                  },
+                                );
+                              }
+                            : null,
+                        onNext: _currentIndex < _total - 1
+                            ? () {
+                                final next = _items![_currentIndex + 1];
+                                Navigator.of(context).pushReplacementNamed(
+                                  '/baca-asal-usul-tafsir',
+                                  arguments: {
+                                    'url': next['url'],
+                                    'title': next['title'],
+                                    'index': _currentIndex + 1,
+                                    'total': _total,
+                                    'items': _items,
+                                  },
+                                );
+                              }
+                            : null,
+                      ),
+                    ),
+                ],
               ),
             ],
           );
