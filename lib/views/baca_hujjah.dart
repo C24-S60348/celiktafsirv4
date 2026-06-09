@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/hujjah.dart' as model;
 import '../utils/theme_helper.dart';
 import '../widgets/article_read_bottom_nav.dart';
@@ -19,6 +20,7 @@ class _BacaHujjahPageState extends State<BacaHujjahPage> {
   int _currentIndex = 0;
   int _total = 0;
   List<Map<String, dynamic>>? _items;
+  String? _hujjahContent;
 
   @override
   void dispose() {
@@ -52,7 +54,11 @@ class _BacaHujjahPageState extends State<BacaHujjahPage> {
         // Actually load the content to ensure it's fetched
         final content = await model.getHujjahContent(postUrl!);
         
-        if (mounted && content == null) {
+        if (mounted && content != null) {
+          setState(() {
+            _hujjahContent = content;
+          });
+        } else if (mounted && content == null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Gagal memuatkan kandungan'),
@@ -74,6 +80,64 @@ class _BacaHujjahPageState extends State<BacaHujjahPage> {
         );
       }
     }
+  }
+
+  void _copyTextToClipboard(String text, {String type = 'Teks'}) {
+    Clipboard.setData(ClipboardData(text: text)).then((_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$type telah disalin ke klipbod'),
+          duration: Duration(seconds: 1),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }).catchError((e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal menyalin $type'),
+          duration: Duration(seconds: 1),
+          backgroundColor: Colors.red,
+        ),
+      );
+    });
+  }
+
+  String _stripHtmlTags(String htmlContent) {
+    String plainText = htmlContent;
+    
+    // Replace block elements with double newlines to preserve paragraph structure
+    plainText = plainText.replaceAll(RegExp(r'</p>\s*<p>', caseSensitive: false), '\n\n');
+    plainText = plainText.replaceAll(RegExp(r'<p[^>]*>', caseSensitive: false), '');
+    plainText = plainText.replaceAll(RegExp(r'</p>', caseSensitive: false), '');
+    plainText = plainText.replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n');
+    plainText = plainText.replaceAll(RegExp(r'<div[^>]*>', caseSensitive: false), '');
+    plainText = plainText.replaceAll(RegExp(r'</div>', caseSensitive: false), '\n');
+    plainText = plainText.replaceAll(RegExp(r'<blockquote[^>]*>', caseSensitive: false), '');
+    plainText = plainText.replaceAll(RegExp(r'</blockquote>', caseSensitive: false), '');
+    
+    // Remove remaining HTML tags
+    final RegExp htmlRegex = RegExp(r'<[^>]*>');
+    plainText = plainText.replaceAll(htmlRegex, '');
+    
+    // Decode HTML entities
+    plainText = plainText
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>')
+        .replaceAll('&quot;', '"')
+        .replaceAll('&#39;', "'")
+        .replaceAll('&amp;', '&');
+    
+    // Clean up excessive whitespace while preserving paragraph breaks
+    // Replace multiple spaces with single space
+    plainText = plainText.replaceAll(RegExp(r' +'), ' ');
+    // Replace multiple newlines with double newlines (paragraph breaks)
+    plainText = plainText.replaceAll(RegExp(r'\n\n+'), '\n\n');
+    // Trim each line
+    final lines = plainText.split('\n');
+    plainText = lines.map((line) => line.trim()).join('\n');
+    
+    return plainText.trim();
   }
 
   @override
@@ -119,6 +183,37 @@ class _BacaHujjahPageState extends State<BacaHujjahPage> {
                       icon: Icon(Icons.arrow_back),
                     ),
                     actions: [
+                      PopupMenuButton<String>(
+                        onSelected: (value) {
+                          if (value == 'content') {
+                            if (_hujjahContent != null && _hujjahContent!.isNotEmpty) {
+                              final plainText = _stripHtmlTags(_hujjahContent!);
+                              _copyTextToClipboard(plainText, type: 'Kandungan');
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Kandungan belum dimuatkan'),
+                                  duration: Duration(seconds: 1),
+                                  backgroundColor: Colors.orange,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                          PopupMenuItem<String>(
+                            value: 'content',
+                            child: Row(
+                              children: [
+                                Icon(Icons.article, size: 20),
+                                SizedBox(width: 8),
+                                Text('Salin Kandungan'),
+                              ],
+                            ),
+                          ),
+                        ],
+                        icon: Icon(Icons.copy),
+                      ),
                       IconButton(
                         onPressed: () async {
                           if (postUrl != null) {

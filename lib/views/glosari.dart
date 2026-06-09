@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/glosari.dart' as model;
 import '../utils/theme_helper.dart';
 
@@ -12,6 +13,7 @@ class GlosariPage extends StatefulWidget {
 class _GlosariPageState extends State<GlosariPage> {
   final ScrollController _scrollController = ScrollController();
   bool _isInitialized = false;
+  String? _glosariContent;
 
   @override
   void dispose() {
@@ -52,7 +54,11 @@ class _GlosariPageState extends State<GlosariPage> {
       // Actually load the content to ensure it's fetched
       final content = await model.getGlosariContent();
       
-      if (mounted && content == null) {
+      if (mounted && content != null) {
+        setState(() {
+          _glosariContent = content;
+        });
+      } else if (mounted && content == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Gagal memuatkan kandungan'),
@@ -73,6 +79,64 @@ class _GlosariPageState extends State<GlosariPage> {
         );
       }
     }
+  }
+
+  void _copyTextToClipboard(String text, {String type = 'Teks'}) {
+    Clipboard.setData(ClipboardData(text: text)).then((_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$type telah disalin ke klipbod'),
+          duration: Duration(seconds: 1),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }).catchError((e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal menyalin $type'),
+          duration: Duration(seconds: 1),
+          backgroundColor: Colors.red,
+        ),
+      );
+    });
+  }
+
+  String _stripHtmlTags(String htmlContent) {
+    String plainText = htmlContent;
+    
+    // Replace block elements with double newlines to preserve paragraph structure
+    plainText = plainText.replaceAll(RegExp(r'</p>\s*<p>', caseSensitive: false), '\n\n');
+    plainText = plainText.replaceAll(RegExp(r'<p[^>]*>', caseSensitive: false), '');
+    plainText = plainText.replaceAll(RegExp(r'</p>', caseSensitive: false), '');
+    plainText = plainText.replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n');
+    plainText = plainText.replaceAll(RegExp(r'<div[^>]*>', caseSensitive: false), '');
+    plainText = plainText.replaceAll(RegExp(r'</div>', caseSensitive: false), '\n');
+    plainText = plainText.replaceAll(RegExp(r'<blockquote[^>]*>', caseSensitive: false), '');
+    plainText = plainText.replaceAll(RegExp(r'</blockquote>', caseSensitive: false), '');
+    
+    // Remove remaining HTML tags
+    final RegExp htmlRegex = RegExp(r'<[^>]*>');
+    plainText = plainText.replaceAll(htmlRegex, '');
+    
+    // Decode HTML entities
+    plainText = plainText
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>')
+        .replaceAll('&quot;', '"')
+        .replaceAll('&#39;', "'")
+        .replaceAll('&amp;', '&');
+    
+    // Clean up excessive whitespace while preserving paragraph breaks
+    // Replace multiple spaces with single space
+    plainText = plainText.replaceAll(RegExp(r' +'), ' ');
+    // Replace multiple newlines with double newlines (paragraph breaks)
+    plainText = plainText.replaceAll(RegExp(r'\n\n+'), '\n\n');
+    // Trim each line
+    final lines = plainText.split('\n');
+    plainText = lines.map((line) => line.trim()).join('\n');
+    
+    return plainText.trim();
   }
 
   @override
@@ -116,14 +180,50 @@ class _GlosariPageState extends State<GlosariPage> {
                       icon: Icon(Icons.arrow_back),
                     ),
                     actions: [
-                      IconButton(
-                        onPressed: () async {
-                          const url = 'https://celiktafsir.net/glosari-blog/';
-                          await Navigator.of(context).pushNamed('/websitepage', arguments: {
-                            'url': url,
-                          });
+                      PopupMenuButton<String>(
+                        onSelected: (value) {
+                          if (value == 'content') {
+                            if (_glosariContent != null && _glosariContent!.isNotEmpty) {
+                              final plainText = _stripHtmlTags(_glosariContent!);
+                              _copyTextToClipboard(plainText, type: 'Kandungan');
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Kandungan belum dimuatkan'),
+                                  duration: Duration(seconds: 1),
+                                  backgroundColor: Colors.orange,
+                                ),
+                              );
+                            }
+                          } else if (value == 'website') {
+                            Navigator.of(context).pushNamed('/websitepage', arguments: {
+                              'url': 'https://celiktafsir.net/glosari-blog/',
+                            });
+                          }
                         },
-                        icon: Icon(Icons.language),
+                        itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                          PopupMenuItem<String>(
+                            value: 'content',
+                            child: Row(
+                              children: [
+                                Icon(Icons.article, size: 20),
+                                SizedBox(width: 8),
+                                Text('Salin Kandungan'),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem<String>(
+                            value: 'website',
+                            child: Row(
+                              children: [
+                                Icon(Icons.language, size: 20),
+                                SizedBox(width: 8),
+                                Text('Buka Laman Web'),
+                              ],
+                            ),
+                          ),
+                        ],
+                        icon: Icon(Icons.settings),
                       ),
                     ],
                   ),
