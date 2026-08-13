@@ -1,3 +1,4 @@
+import 'package:html/dom.dart' as dom;
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' as html_parser;
 import '../utils/proxy_helper.dart';
@@ -5,14 +6,15 @@ import '../utils/proxy_helper.dart';
 class GetHadis40 {
   static const String _baseUrl = 'https://celiktafsir.net';
 
-  /// Category page listing every Syarah Hadis 40 post.
+  /// Page listing every Syarah Hadis 40 post. Confirmed against the live site
+  /// on 2026-08-13: the old guess (/hadis-40/) only 301-redirects here.
   ///
-  /// TODO(owner): confirm this is the real listing URL. It is a best guess
-  /// modelled on the other sections (/asmaul-husna/, /ilmu-usul-tafsir/).
-  /// If it is wrong the scrape simply finds nothing and we fall back to
-  /// [_knownPosts], i.e. the previous hardcoded behaviour -- so a bad guess
-  /// costs a wasted request, never wrong articles.
-  static const String _categoryUrl = 'https://celiktafsir.net/hadis-40/';
+  /// It is a hand-maintained WordPress *page*, not a category archive, so it
+  /// carries no pagination markup -- every post sits on this one page and the
+  /// loop below stops after the first request. The paging code is kept because
+  /// it costs nothing and would keep working if this ever became an archive.
+  static const String _categoryUrl =
+      'https://celiktafsir.net/hadis-40-imam-nawawi/';
 
   /// The three articles this service used to return unconditionally.
   /// Kept only as a fallback for when the category cannot be scraped.
@@ -34,6 +36,42 @@ class GetHadis40 {
       'date': '20260202',
     },
   ];
+
+  /// "HADIS #25" as the listing writes it, wherever it sits in the markup.
+  static final RegExp _hadisNumberPattern = RegExp(
+    r'HADIS\s*#\s*(\d+)',
+    caseSensitive: false,
+  );
+
+  /// The listing keeps the hadis number *outside* the link:
+  ///
+  ///   <p><strong><span>HADIS #25</span><br></strong>
+  ///      <a href="...">Sedekah dari Orang Miskin</a></p>
+  ///
+  /// so the anchor text alone loses it. Recover the number from the enclosing
+  /// element, giving back the "HADIS #25 Sedekah dari Orang Miskin" titles the
+  /// section showed while they were hardcoded.
+  static String _titleForLink(dom.Element link, String absoluteUrl) {
+    final linkText = link.text.trim().replaceAll(RegExp(r'\s+'), ' ');
+    if (linkText.length <= 3) {
+      return extractTitleFromUrl(absoluteUrl);
+    }
+
+    // Already numbered (a plainer listing, or our own test fixtures).
+    if (_hadisNumberPattern.hasMatch(linkText)) return linkText;
+
+    // Walk up while the ancestor still describes this one post; the moment it
+    // holds several links its text belongs to no single article.
+    dom.Element? ancestor = link.parent;
+    for (var depth = 0; depth < 2 && ancestor != null; depth++) {
+      if (ancestor.querySelectorAll('a').length != 1) break;
+      final match = _hadisNumberPattern.firstMatch(ancestor.text);
+      if (match != null) return 'HADIS #${match.group(1)} $linkText';
+      ancestor = ancestor.parent;
+    }
+
+    return linkText;
+  }
 
   /// Scrape every Hadis 40 post URL and title from the category page.
   static Future<List<Map<String, String>>> scrapeHadis40Posts() async {
@@ -80,16 +118,9 @@ class GetHadis40 {
             final dateString =
                 '${dateMatch.group(1)}${dateMatch.group(2)}${dateMatch.group(3)}';
 
-            // Prefer the anchor's own text (the real post title, e.g.
-            // "HADIS #25 Sedekah dari Orang Miskin"); fall back to the slug.
-            final linkText = link.text.trim();
-            final title = linkText.isNotEmpty && linkText.length > 3
-                ? linkText
-                : extractTitleFromUrl(absoluteUrl);
-
             urlTitles.add({
               'url': absoluteUrl,
-              'title': title,
+              'title': _titleForLink(link, absoluteUrl),
               'date': dateString,
             });
             foundNewLinks = true;

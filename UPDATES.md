@@ -1,6 +1,6 @@
 # Celik Tafsir — Updates & Todo
 
-Versi semasa: **1.0.26+26** · Web: https://celiktafsir.web.app
+Versi semasa: **1.0.28+28** · Web: https://celiktafsir.web.app
 
 Senarai ini disemak terus dengan kod, bukan dari ingatan.
 
@@ -31,6 +31,12 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
 9. **Zoom gambar** — tekan gambar dalam artikel untuk besarkan.
 10. **Salin kandungan** ke clipboard dari page bacaan.
 11. **Bacaan terakhir + bookmark** disimpan.
+12. **Hadis 40 tak lagi tersekat pada 3 artikel.** URL senarai sebenar sudah
+    disahkan terus dari laman web: `celiktafsir.net/hadis-40-imam-nawawi/`
+    (teka lama `/hadis-40/` cuma redirect ke situ). Sekarang **12 artikel**
+    keluar, HADIS #25 sampai #36. Nombor hadis diambil balik dari `<span>`
+    di sebelah link, jadi tajuk kekal "HADIS #25 Sedekah dari Orang Miskin".
+    (`lib/services/gethadis_40.dart`)
 
 ---
 
@@ -45,10 +51,17 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
    `charset` dalam header, package `http` akan baca sebagai latin-1, jadi
    UTF-8 (tanda petik melengkung, dash panjang, huruf Arab) jadi
    `â€œ` / `Ã—`. Cadangan fix: guna `utf8.decode(response.bodyBytes)`.
-   **Belum disahkan** — sandbox sekat `celiktafsir.net` dan juga proxy
-   `afwanhaziq.vps.webdock.cloud` (403 dari gateway, bukan dari server
-   owner). Owner boleh benarkan domain proxy itu dalam network policy
-   environment, barulah boleh test terus dari sini.
+
+   **Kemas kini 2026-08-13 — suspek ini nampaknya SALAH.** Sandbox kali ini
+   boleh capai kedua-dua domain, jadi header sudah disemak terus:
+   - `celiktafsir.net` hantar `content-type: text/html; charset=UTF-8`
+   - proxy `afwanhaziq.vps.webdock.cloud` hantar `charset=utf-8` juga
+     (status 200, tidak lagi 403)
+
+   Sebab charset memang ada, package `http` sudah pun baca sebagai UTF-8;
+   `response.body` bukan puncanya. Perlu cari puncanya di tempat lain
+   (kemungkinan font tidak menyokong glyph Arab, atau `Html` widget) —
+   dan perlu contoh skrin yang rosak dari owner untuk mengesahkan.
 4. **Revise warna appbar (coklat) supaya padan dengan background (hijau).**
    Warna sebenar, diambil terus dari fail:
    - Background `assets/images/bg.jpg` — hijau pucat sejuk:

@@ -34,8 +34,9 @@ Notes for Claude Code sessions working on Celik Tafsir (Flutter app).
 
 - **celiktafsir.web.app** — the Flutter app (what we deploy).
 - **celiktafsir.net** — the WordPress site the app *scrapes content from*.
-  We never deploy to it. It is also blocked by the sandbox egress proxy, so a
-  session cannot fetch article or category URLs directly; ask the owner.
+  We never deploy to it. Some sandboxes block it at the egress proxy; others
+  reach it fine. Try `curl -sSL https://celiktafsir.net/` before assuming you
+  have to ask the owner for page contents.
 
 ## Architecture
 
@@ -109,12 +110,26 @@ before assuming.
 - `android/app/build.gradle.kts` hardcodes a release keystore path on the
   owner's Mac, with the passwords in plaintext — so CI builds a **debug** APK.
   The repo is public; the key should be rotated and moved to a secret.
-- `services/gethadis_40.dart` now scrapes its category, but `_categoryUrl`
-  is still an **unconfirmed guess** (`celiktafsir.net/hadis-40/`). If it is
-  wrong the scrape finds nothing and falls back to the 3 previously
-  hardcoded articles, so the section never regresses -- but it also never
-  grows. Confirm the real listing URL with the owner.
-- `services/gethujjah.dart` points at `celiktafsir.net/category-example/`,
-  which looks like a placeholder.
 - `views/websitepage.dart` is no longer navigated to, but is still routed
   from `main.dart`.
+
+## Listing pages are hand-written WordPress pages, not category archives
+
+Confirmed against the live site 2026-08-13. `/hadis-40-imam-nawawi/` and
+`/category-example/` are both `type-page` posts whose `.entry-content` is a
+hand-maintained list of links. Consequences:
+
+- **There is no pagination markup**, so none of the four selectors the
+  scrapers look for (`a.next.page-numbers`, `.nav-next a`, `.pagination .next
+  a`, `.pagination-next a`) ever match. Every post is on page 1 and the loop
+  correctly stops after one request. `/page/2/` serves the same page again;
+  duplicate URLs make `foundNewLinks` false, so that is harmless too.
+- **The link text is not the whole title.** Hadis 40 keeps the number in a
+  sibling `<span>`: `<p><strong>HADIS #25</strong><br><a>Sedekah dari Orang
+  Miskin</a></p>`. `GetHadis40._titleForLink` walks up to recover it. Check
+  the surrounding markup before trusting anchor text in a new scraper.
+- `celiktafsir.net/category-example/` **is not a placeholder** despite the
+  name -- it is the real Hujjah listing, titled "Hujjah", 18 posts. Leave it
+  alone.
+- `celiktafsir.net/hadis-40/` 301-redirects to `/hadis-40-imam-nawawi/`, so
+  the old guess worked by accident. Use the canonical URL.
