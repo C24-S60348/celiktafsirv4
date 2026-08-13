@@ -11,6 +11,9 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
 1. **Navigasi kiri-kanan (butang)** — butang `<` `>` di bawah tajuk setiap
    halaman bacaan, supaya pembaca nampak ada page sebelum/selepas.
    (`lib/widgets/article_read_top_nav.dart`)
+   **Swipe kiri-kanan di Halaman Utama pun dah jalan** — `PageView`
+   3 muka surat grid 2x2, boleh swipe atau tekan anak panah.
+   (`lib/views/mainpage.dart`)
 2. **Tema tukar ke warna Celik Tafsir** — coklat terang / tan.
    (`lib/utils/theme_helper.dart`)
 3. **Ruang bacaan lebih luas** — kandungan penuh lebar skrin.
@@ -34,19 +37,26 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
 ## Todo (Belum siap)
 
 1. **Soalan quiz** — belum ada langsung dalam app.
-2. **Swipe kiri-kanan** untuk tukar page — sekarang butang je yang jalan,
-   swipe tak ada. Perlu tambah gesture (atau `PageView`) dalam 6 page bacaan.
+2. **Swipe kiri-kanan dalam page bacaan** — Halaman Utama dah boleh swipe,
+   tapi page bacaan (`baca_*.dart`) masih butang sahaja, tiada gesture.
+   Perlu tambah `onHorizontalDragEnd` untuk tukar page/artikel.
 3. **Fix character rosak dalam app** (website OK, app je rosak).
    Suspek utama: semua service guna `response.body`. Kalau server tak hantar
    `charset` dalam header, package `http` akan baca sebagai latin-1, jadi
    UTF-8 (tanda petik melengkung, dash panjang, huruf Arab) jadi
    `â€œ` / `Ã—`. Cadangan fix: guna `utf8.decode(response.bodyBytes)`.
    Kena sahkan dulu dengan satu artikel yang memang rosak.
-4. **Revise warna tema** — coklat sekarang tak cukup padan dengan hijau
-   Celik Tafsir. Sekarang app **tiada hijau langsung**, coklat/tan sahaja:
-   - appbar terang `#E6D7C4`, appbar gelap `#5C4033`, aksen `#8B7355`
-   - background `#F5F0E6`
-   Perlu owner bagi kod warna hijau pekat + coklat terang yang betul.
+4. **Revise warna tema** — coklat tak cukup padan dengan hijau.
+   Punca: **hijau datang dari gambar PNG, coklat datang dari kod.** Dua-dua
+   tak pernah diselaraskan, sebab itu nampak tak sepadan.
+   - Hijau: dalam fail gambar — `assets/images/buttonTadabbur.png`,
+     `bg.jpg`, dan butang-butang lain. Tak boleh tukar dari kod.
+   - Coklat/tan: dalam `lib/utils/theme_helper.dart` — appbar terang
+     `#E6D7C4`, appbar gelap `#5C4033`, aksen `#8B7355`, background
+     `#F5F0E6`.
+   Cara fix: ambil kod warna hijau terus dari PNG tersebut, kemudian
+   pilih coklat yang padan dengan hijau itu dan tukar dalam
+   `theme_helper.dart`. Perlu owner sahkan warna akhir.
 5. **Pilihan jenis tulisan (font) dalam Settings tak berfungsi.**
    Amiri / Scheherazade / Lateef / Noto Sans Arabic — pilihan disimpan
    (`selected_font`) tapi **tak pernah dibaca** di mana-mana, dan tiada
