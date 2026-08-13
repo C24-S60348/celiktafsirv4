@@ -4,6 +4,7 @@ import '../services/getlistsurah.dart' as getlist;
 import '../utils/theme_helper.dart';
 import '../utils/html_link_helper.dart';
 import '../widgets/article_read_bottom_nav.dart';
+import '../widgets/article_read_top_nav.dart';
 
 class BacaPage extends StatefulWidget {
   const BacaPage({super.key});
@@ -255,6 +256,20 @@ class _BacaPageState extends State<BacaPage> {
                     leading: IconButton(
                       onPressed: () => Navigator.of(context).pop(),
                       icon: Icon(Icons.arrow_back),
+                    ),
+                    bottom: PreferredSize(
+                      preferredSize: const Size.fromHeight(44),
+                      child: Container(
+                        color: articleReadTopNavColor(themeName),
+                        child: ArticleReadTopNav(
+                          currentIndex: currentPage,
+                          total: totalPages,
+                          themeName: themeName,
+                          label: 'Halaman',
+                          onPrevious: currentPage > 0 ? _previousPage : null,
+                          onNext: currentPage < totalPages - 1 ? _nextPage : null,
+                        ),
+                      ),
                     ),
                     actions: [
                       ValueListenableBuilder<bool>(

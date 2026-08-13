@@ -4,6 +4,7 @@ import '../models/hujjah.dart' as model;
 import '../utils/theme_helper.dart';
 import '../utils/html_link_helper.dart';
 import '../widgets/article_read_bottom_nav.dart';
+import '../widgets/article_read_top_nav.dart';
 
 class BacaAsmaulHusnaPage extends StatefulWidget {
   const BacaAsmaulHusnaPage({super.key});
@@ -81,6 +82,22 @@ class _BacaAsmaulHusnaPageState extends State<BacaAsmaulHusnaPage> {
         );
       }
     }
+  }
+
+  /// Shared by the top and bottom nav rows.
+  void _goToArticle(int newIndex) {
+    final item = _items![newIndex];
+    Navigator.of(context).pushReplacementNamed(
+      '/baca-asmaul-husna',
+      arguments: {
+        'url': item['url'],
+        'title': item['title'],
+            'pageIndex': item['index'] ?? newIndex,
+        'index': newIndex,
+        'total': _total,
+        'items': _items,
+      },
+    );
   }
 
   void _copyTextToClipboard(String text, {String type = 'Teks'}) {
@@ -185,6 +202,27 @@ class _BacaAsmaulHusnaPageState extends State<BacaAsmaulHusnaPage> {
                       onPressed: () => Navigator.of(context).pop(),
                       icon: Icon(Icons.arrow_back),
                     ),
+                    bottom: (_items != null && _items!.isNotEmpty)
+                        ? PreferredSize(
+                            preferredSize:
+                                const Size.fromHeight(44),
+                            child: Container(
+                              color: articleReadTopNavColor(themeName),
+                              child: ArticleReadTopNav(
+                                currentIndex: _currentIndex,
+                                total: _total,
+                                themeName: themeName,
+                                label: 'Halaman',
+                                onPrevious: _currentIndex > 0
+                                    ? () => _goToArticle(_currentIndex - 1)
+                                    : null,
+                                onNext: _currentIndex < _total - 1
+                                    ? () => _goToArticle(_currentIndex + 1)
+                                    : null,
+                              ),
+                            ),
+                          )
+                        : null,
                     actions: [
                       PopupMenuButton<String>(
                         onSelected: (value) {
@@ -259,36 +297,10 @@ class _BacaAsmaulHusnaPageState extends State<BacaAsmaulHusnaPage> {
                         textColor: textColor,
                         label: 'Halaman',
                         onPrevious: _currentIndex > 0
-                            ? () {
-                                final prev = _items![_currentIndex - 1];
-                                Navigator.of(context).pushReplacementNamed(
-                                  '/baca-asmaul-husna',
-                                  arguments: {
-                                    'url': prev['url'],
-                                    'title': prev['title'],
-                                    'pageIndex': prev['index'] ?? _currentIndex - 1,
-                                    'index': _currentIndex - 1,
-                                    'total': _total,
-                                    'items': _items,
-                                  },
-                                );
-                              }
+                            ? () => _goToArticle(_currentIndex - 1)
                             : null,
                         onNext: _currentIndex < _total - 1
-                            ? () {
-                                final next = _items![_currentIndex + 1];
-                                Navigator.of(context).pushReplacementNamed(
-                                  '/baca-asmaul-husna',
-                                  arguments: {
-                                    'url': next['url'],
-                                    'title': next['title'],
-                                    'pageIndex': next['index'] ?? _currentIndex + 1,
-                                    'index': _currentIndex + 1,
-                                    'total': _total,
-                                    'items': _items,
-                                  },
-                                );
-                              }
+                            ? () => _goToArticle(_currentIndex + 1)
                             : null,
                       ),
                     ),
