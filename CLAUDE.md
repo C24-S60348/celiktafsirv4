@@ -95,7 +95,7 @@ before assuming.
 ## Testing
 
 - `flutter test` — widget tests live in `test/`.
-- `flutter analyze` — there is a **pre-existing backlog of ~193 issues**
+- `flutter analyze` — there is a **pre-existing backlog of ~196 issues**
   (mostly `avoid_print`, `withOpacity`, deprecated `Radio` args) inherited
   from before. Do not treat a non-zero count as failure: compare against the
   baseline and make sure your change adds nothing new. Errors must stay at 0.
@@ -109,9 +109,11 @@ before assuming.
 - `android/app/build.gradle.kts` hardcodes a release keystore path on the
   owner's Mac, with the passwords in plaintext — so CI builds a **debug** APK.
   The repo is public; the key should be rotated and moved to a secret.
-- `services/gethadis_40.dart` returns **3 hardcoded articles** instead of
-  scraping its category, so Hadis 40 can never show more. Needs the real
-  category URL from the owner to fix properly.
+- `services/gethadis_40.dart` now scrapes its category, but `_categoryUrl`
+  is still an **unconfirmed guess** (`celiktafsir.net/hadis-40/`). If it is
+  wrong the scrape finds nothing and falls back to the 3 previously
+  hardcoded articles, so the section never regresses -- but it also never
+  grows. Confirm the real listing URL with the owner.
 - `services/gethujjah.dart` points at `celiktafsir.net/category-example/`,
   which looks like a placeholder.
 - `views/websitepage.dart` is no longer navigated to, but is still routed
