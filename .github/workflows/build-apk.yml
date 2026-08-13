@@ -1,0 +1,53 @@
+name: Build Android APK
+
+# Build-only workflow: produces a downloadable APK for testing.
+# It never deploys anywhere. The Firebase website deploy stays on its own
+# workflow, which only runs on the build-web branch.
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.2' # keep in step with deploy-firebase.yml
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Run Tests
+        run: flutter test
+
+      # Debug, not release: the release signingConfig in
+      # android/app/build.gradle.kts points at a keystore on a local Mac
+      # (/Users/afwanhaziq/documents/keystore.jks), which does not exist on a
+      # CI runner. A debug APK is signed with the standard debug key and
+      # installs fine for testing. To produce a release build here instead,
+      # commit the keystore as a base64 secret and decode it in a step above.
+      - name: Build Debug APK
+        run: flutter build apk --debug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: celik-tafsir-debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error
+          retention-days: 30
