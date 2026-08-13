@@ -45,18 +45,29 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
    `charset` dalam header, package `http` akan baca sebagai latin-1, jadi
    UTF-8 (tanda petik melengkung, dash panjang, huruf Arab) jadi
    `â€œ` / `Ã—`. Cadangan fix: guna `utf8.decode(response.bodyBytes)`.
-   Kena sahkan dulu dengan satu artikel yang memang rosak.
-4. **Revise warna tema** — coklat tak cukup padan dengan hijau.
-   Punca: **hijau datang dari gambar PNG, coklat datang dari kod.** Dua-dua
-   tak pernah diselaraskan, sebab itu nampak tak sepadan.
-   - Hijau: dalam fail gambar — `assets/images/buttonTadabbur.png`,
-     `bg.jpg`, dan butang-butang lain. Tak boleh tukar dari kod.
-   - Coklat/tan: dalam `lib/utils/theme_helper.dart` — appbar terang
-     `#E6D7C4`, appbar gelap `#5C4033`, aksen `#8B7355`, background
-     `#F5F0E6`.
-   Cara fix: ambil kod warna hijau terus dari PNG tersebut, kemudian
-   pilih coklat yang padan dengan hijau itu dan tukar dalam
-   `theme_helper.dart`. Perlu owner sahkan warna akhir.
+   **Belum disahkan** — sandbox sekat `celiktafsir.net` dan juga proxy
+   `afwanhaziq.vps.webdock.cloud` (403 dari gateway, bukan dari server
+   owner). Owner boleh benarkan domain proxy itu dalam network policy
+   environment, barulah boleh test terus dari sini.
+4. **Revise warna appbar (coklat) supaya padan dengan background (hijau).**
+   Warna sebenar, diambil terus dari fail:
+   - Background `assets/images/bg.jpg` — hijau pucat sejuk:
+     medan `#F0F6F2`, corak/border `#D1E3D1`–`#E4F0E6`.
+   - Hijau pekat Celik Tafsir (butang Tadabbur & band tajuk): `#537459`.
+   - Appbar sekarang (`lib/utils/theme_helper.dart`): terang `#E6D7C4`
+     (tan panas), gelap `#5C4033`, aksen `#8B7355`.
+
+   Masalahnya tan `#E6D7C4` itu **warna panas** duduk atas hijau
+   **sejuk** `#F0F6F2` — sebab itu nampak tak sekena, bukan sebab
+   gelap/terang.
+
+   Dua pilihan:
+   - **(a)** Tukar appbar terus ke hijau pekat `#537459` + teks putih.
+     Terus padan dengan butang Tadabbur dan band "Fahami Al-Quran".
+   - **(b)** Kekal coklat tapi tarik ke arah sejuk/lembut supaya tak
+     bergaduh dengan hijau.
+
+   Perlu owner pilih (a) atau (b) sebelum tukar.
 5. **Pilihan jenis tulisan (font) dalam Settings tak berfungsi.**
    Amiri / Scheherazade / Lateef / Noto Sans Arabic — pilihan disimpan
    (`selected_font`) tapi **tak pernah dibaca** di mana-mana, dan tiada
