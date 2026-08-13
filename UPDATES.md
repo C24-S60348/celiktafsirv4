@@ -1,6 +1,6 @@
 # Celik Tafsir — Updates & Todo
 
-Versi semasa: **1.0.26+26** · Web: https://celiktafsir.web.app
+Versi semasa: **1.0.27+27** · Web: https://celiktafsir.web.app
 
 Senarai ini disemak terus dengan kod, bukan dari ingatan.
 
@@ -31,51 +31,88 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
 9. **Zoom gambar** — tekan gambar dalam artikel untuk besarkan.
 10. **Salin kandungan** ke clipboard dari page bacaan.
 11. **Bacaan terakhir + bookmark** disimpan.
+12. **Swipe kiri-kanan dalam page bacaan** — enam-enam page `baca_*.dart`
+    sekarang boleh ditukar dengan swipe, bukan butang sahaja.
+    Swipe kanan-ke-kiri = artikel/halaman seterusnya, kiri-ke-kanan = sebelum.
+    Kalau tiada page di arah itu, swipe diabaikan (sama macam butang chevron
+    yang jadi kelabu). Gesture diletak dalam satu widget kongsi
+    (`lib/widgets/article_swipe_navigator.dart`), bukan disalin enam kali.
+    Scroll menegak tak terjejas — hanya drag melintang yang diambil, dan
+    drag perlahan tidak dikira supaya bacaan tak tertukar tanpa sengaja.
+13. **Warna appbar — owner putuskan kekal seperti asal.** Tan `#E6D7C4`
+    (terang) / `#5C4033` (gelap) ialah warna app Celik Tafsir yang asal,
+    jadi tiada perubahan dibuat. Nota warna disimpan di bawah untuk rujukan.
 
 ---
 
 ## Todo (Belum siap)
 
 1. **Soalan quiz** — belum ada langsung dalam app.
-2. **Swipe kiri-kanan dalam page bacaan** — Halaman Utama dah boleh swipe,
-   tapi page bacaan (`baca_*.dart`) masih butang sahaja, tiada gesture.
-   Perlu tambah `onHorizontalDragEnd` untuk tukar page/artikel.
-3. **Fix character rosak dalam app** (website OK, app je rosak).
-   Suspek utama: semua service guna `response.body`. Kalau server tak hantar
-   `charset` dalam header, package `http` akan baca sebagai latin-1, jadi
-   UTF-8 (tanda petik melengkung, dash panjang, huruf Arab) jadi
-   `â€œ` / `Ã—`. Cadangan fix: guna `utf8.decode(response.bodyBytes)`.
-   **Belum disahkan** — sandbox sekat `celiktafsir.net` dan juga proxy
-   `afwanhaziq.vps.webdock.cloud` (403 dari gateway, bukan dari server
-   owner). Owner boleh benarkan domain proxy itu dalam network policy
-   environment, barulah boleh test terus dari sini.
-4. **Revise warna appbar (coklat) supaya padan dengan background (hijau).**
-   Warna sebenar, diambil terus dari fail:
-   - Background `assets/images/bg.jpg` — hijau pucat sejuk:
-     medan `#F0F6F2`, corak/border `#D1E3D1`–`#E4F0E6`.
-   - Hijau pekat Celik Tafsir (butang Tadabbur & band tajuk): `#537459`.
-   - Appbar sekarang (`lib/utils/theme_helper.dart`): terang `#E6D7C4`
-     (tan panas), gelap `#5C4033`, aksen `#8B7355`.
-
-   Masalahnya tan `#E6D7C4` itu **warna panas** duduk atas hijau
-   **sejuk** `#F0F6F2` — sebab itu nampak tak sekena, bukan sebab
-   gelap/terang.
-
-   Dua pilihan:
-   - **(a)** Tukar appbar terus ke hijau pekat `#537459` + teks putih.
-     Terus padan dengan butang Tadabbur dan band "Fahami Al-Quran".
-   - **(b)** Kekal coklat tapi tarik ke arah sejuk/lembut supaya tak
-     bergaduh dengan hijau.
-
-   Perlu owner pilih (a) atau (b) sebelum tukar.
-5. **Pilihan jenis tulisan (font) dalam Settings tak berfungsi.**
+2. **Fix character rosak dalam app** — *kod sudah dibetulkan, tunggu owner
+   sahkan atas telefon.*
+   Puncanya memang `response.body`. Kalau server tak hantar `charset` dalam
+   header, package `http` baca bait sebagai latin-1, jadi setiap aksara
+   UTF-8 (tanda petik melengkung, dash panjang, huruf Arab) pecah — huruf
+   Arab keluar sebagai `Ø¨ÙØ³ÙÙÙ`, tanda petik jadi `â`.
+   Semua 8 service dalam `lib/services/` sekarang guna
+   `decodeUtf8Body(response)` (`lib/utils/http_decode.dart`), iaitu
+   `utf8.decode(response.bodyBytes, allowMalformed: true)`.
+   Ada ujian `test/utf8_response_test.dart` yang gagal atas kod lama dan
+   lulus atas kod baru, termasuk satu ujian yang menghalang service baru
+   guna `response.body` lagi.
+   **Masih perlu disahkan atas peranti sebenar** — sandbox sekat
+   `celiktafsir.net` dan proxy `afwanhaziq.vps.webdock.cloud`, jadi ujian
+   guna fixture UTF-8, bukan laman sebenar.
+3. **Pilihan jenis tulisan (font) dalam Settings tak berfungsi.**
    Amiri / Scheherazade / Lateef / Noto Sans Arabic — pilihan disimpan
    (`selected_font`) tapi **tak pernah dibaca** di mana-mana, dan tiada
-   font Arab di-bundle dalam `pubspec.yaml`. Jadi pilih pun tak ada kesan.
-6. **Adjust saiz font Arab & terjemahan berasingan** (idea masabih.org) —
+   font Arab di-bundle dalam `pubspec.yaml`. Baris "Tulisan" dalam Settings
+   pun sudah `isEnabled: false`, jadi memang tak boleh ditekan.
+   Perlu owner pilih: **bundle font** atau **buang picker**.
+   (Cadangan: buang picker — lihat nota di bawah.)
+4. **Adjust saiz font Arab & terjemahan berasingan** (idea masabih.org) —
    lihat nota di bawah.
-7. **Tarik/geser untuk adjust font** (bukan masuk Settings) — macam
+5. **Tarik/geser untuk adjust font** (bukan masuk Settings) — macam
    masabih.org. Belum ada.
+
+---
+
+## Nota warna (rujukan sahaja — appbar kekal seperti asal)
+
+Warna sebenar, diambil terus dari fail:
+
+- Background `assets/images/bg.jpg` — hijau pucat sejuk:
+  medan `#F0F6F2`, corak/border `#D1E3D1`–`#E4F0E6`.
+- Hijau pekat Celik Tafsir (butang Tadabbur & band tajuk): `#537459`.
+- Appbar (`lib/utils/theme_helper.dart`): terang `#E6D7C4`,
+  gelap `#5C4033`, aksen `#8B7355`.
+
+`appBarColorLight` bukan untuk appbar sahaja — jalur navigasi atas
+(`ArticleReadTopNav`) dan snackbar "Memuat kandungan..." pun ikut warna
+yang sama. Jadi kalau satu hari nak tukar, tukar di `getAppBarColor` dan
+semak tiga tempat itu sekali.
+
+---
+
+## Nota: bundle font Arab atau buang picker?
+
+**Cadangan: buang picker.** Sebabnya:
+
+1. Empat fail `.ttf` Arab (Amiri, Scheherazade, Lateef, Noto Sans Arabic)
+   besar — setiap satu boleh cecah 300KB–1MB. Semua sekali naikkan saiz
+   APK dan, lebih teruk, saiz muat turun web.
+2. Kandungan dari celiktafsir.net campur Arab dan Melayu dalam perenggan
+   yang sama, tiada tag berasingan. Kalau font Arab dipakai untuk seluruh
+   `Html` widget, teks Melayu pun ikut tukar dan jadi pelik.
+   Untuk pakai font Arab pada bahagian Arab sahaja, kena buat pembalut
+   `<span class="arab">` dahulu — kerja yang sama dengan item "asingkan
+   saiz font Arab & terjemahan" di bawah.
+3. Baris itu sudah dimatikan (`isEnabled: false`), jadi buang picker tidak
+   mengubah apa-apa yang pengguna boleh buat hari ini.
+
+Jadi lebih baik buang picker sekarang, dan bila kerja "asingkan Arab vs
+terjemahan" dibuat nanti, masuk semula pilihan font **bersama** pembalut
+`.arab` — sekali kerja, bukan dua.
 
 ---
 

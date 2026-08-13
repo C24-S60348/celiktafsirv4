@@ -5,6 +5,7 @@ import '../utils/theme_helper.dart';
 import '../utils/html_link_helper.dart';
 import '../widgets/article_read_bottom_nav.dart';
 import '../widgets/article_read_top_nav.dart';
+import '../widgets/article_swipe_navigator.dart';
 
 class BacaPage extends StatefulWidget {
   const BacaPage({super.key});
@@ -238,101 +239,105 @@ class _BacaPageState extends State<BacaPage> {
                 color: isDark ? Colors.black54 : null,
                 colorBlendMode: isDark ? BlendMode.darken : null,
               ),
-              CustomScrollView(
-                controller: _scrollController,
-                slivers: [
-                  // Hideable app bar (hides when scrolling down, reappears when scrolling up)
-                  SliverAppBar(
-                    floating: true,
-                    snap: true,
-                    backgroundColor: ThemeHelper.getAppBarColor(themeName),
-                    foregroundColor: isDark ? Colors.white : Colors.black,
-                    title: Text(
-                      surahData['pageTitle'] ?? surahData['name'] ?? '',
-                      textAlign: TextAlign.left,
-                      maxLines: 2,
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                    ),
-                    leading: IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: Icon(Icons.arrow_back),
-                    ),
-                    bottom: PreferredSize(
-                      preferredSize: const Size.fromHeight(44),
-                      child: Container(
-                        color: articleReadTopNavColor(themeName),
-                        child: ArticleReadTopNav(
-                          currentIndex: currentPage,
-                          total: totalPages,
-                          themeName: themeName,
-                          label: 'Halaman',
-                          onPrevious: currentPage > 0 ? _previousPage : null,
-                          onNext: currentPage < totalPages - 1 ? _nextPage : null,
-                        ),
+              ArticleSwipeNavigator(
+                onPrevious: currentPage > 0 ? _previousPage : null,
+                onNext: currentPage < totalPages - 1 ? _nextPage : null,
+                child: CustomScrollView(
+                  controller: _scrollController,
+                  slivers: [
+                    // Hideable app bar (hides when scrolling down, reappears when scrolling up)
+                    SliverAppBar(
+                      floating: true,
+                      snap: true,
+                      backgroundColor: ThemeHelper.getAppBarColor(themeName),
+                      foregroundColor: isDark ? Colors.white : Colors.black,
+                      title: Text(
+                        surahData['pageTitle'] ?? surahData['name'] ?? '',
+                        textAlign: TextAlign.left,
+                        maxLines: 2,
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                       ),
-                    ),
-                    actions: [
-                      ValueListenableBuilder<bool>(
-                        valueListenable: _isBookmarked,
-                        builder: (_, isBookmarked, __) => IconButton(
-                          onPressed: _toggleBookmark,
-                          onLongPress: () {
-                            Navigator.of(context).pushNamed('/bookmarks');
-                          },
-                          icon: Icon(
-                            isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                      leading: IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: Icon(Icons.arrow_back),
+                      ),
+                      bottom: PreferredSize(
+                        preferredSize: const Size.fromHeight(44),
+                        child: Container(
+                          color: articleReadTopNavColor(themeName),
+                          child: ArticleReadTopNav(
+                            currentIndex: currentPage,
+                            total: totalPages,
+                            themeName: themeName,
+                            label: 'Halaman',
+                            onPrevious: currentPage > 0 ? _previousPage : null,
+                            onNext: currentPage < totalPages - 1 ? _nextPage : null,
                           ),
                         ),
                       ),
-                      IconButton(
-                        onPressed: () async {
-                          // Must pass categoryUrl, or this resolves against the
-                          // default category and returns another juzuk's article.
-                          final url = await getlist.GetListSurah.getSurahUrl(
-                            surahIndex,
-                            currentPage,
-                            categoryUrl: categoryUrl,
-                          );
-                          if (!context.mounted) return;
-                          // WebsitePage used to fall back to the site root when
-                          // the surah URL was unavailable; keep that behaviour.
-                          showOpenWebsiteOverlay(
-                            context,
-                            url ?? 'https://celiktafsir.net',
-                          );
-                        },
-                        icon: Icon(Icons.language),
-                      ),
-                    ],
-                  ),
-                  // Reading content: full width, no border, white (light) or theme (dark)
-                  SliverToBoxAdapter(
-                    child: Container(
-                      width: double.infinity,
-                      color: readingContainerColor,
-                      padding: EdgeInsets.all(16.0),
-                      child: _buildSurahBodyWithTheme(
-                        context,
-                        surahData,
-                        model.bodyContent(surahIndex, currentPage, isDark, textColor, categoryUrl),
-                        textColor,
-                        isDark,
+                      actions: [
+                        ValueListenableBuilder<bool>(
+                          valueListenable: _isBookmarked,
+                          builder: (_, isBookmarked, __) => IconButton(
+                            onPressed: _toggleBookmark,
+                            onLongPress: () {
+                              Navigator.of(context).pushNamed('/bookmarks');
+                            },
+                            icon: Icon(
+                              isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () async {
+                            // Must pass categoryUrl, or this resolves against the
+                            // default category and returns another juzuk's article.
+                            final url = await getlist.GetListSurah.getSurahUrl(
+                              surahIndex,
+                              currentPage,
+                              categoryUrl: categoryUrl,
+                            );
+                            if (!context.mounted) return;
+                            // WebsitePage used to fall back to the site root when
+                            // the surah URL was unavailable; keep that behaviour.
+                            showOpenWebsiteOverlay(
+                              context,
+                              url ?? 'https://celiktafsir.net',
+                            );
+                          },
+                          icon: Icon(Icons.language),
+                        ),
+                      ],
+                    ),
+                    // Reading content: full width, no border, white (light) or theme (dark)
+                    SliverToBoxAdapter(
+                      child: Container(
+                        width: double.infinity,
+                        color: readingContainerColor,
+                        padding: EdgeInsets.all(16.0),
+                        child: _buildSurahBodyWithTheme(
+                          context,
+                          surahData,
+                          model.bodyContent(surahIndex, currentPage, isDark, textColor, categoryUrl),
+                          textColor,
+                          isDark,
+                        ),
                       ),
                     ),
-                  ),
-                  // Bottom row: Sebelum | Halaman X dari Y | Selepas (shared widget)
-                  SliverToBoxAdapter(
-                    child: ArticleReadBottomNav(
-                      currentIndex: currentPage,
-                      total: totalPages,
-                      themeName: themeName,
-                      textColor: textColor,
-                      label: 'Halaman',
-                      onPrevious: _previousPage,
-                      onNext: _nextPage,
+                    // Bottom row: Sebelum | Halaman X dari Y | Selepas (shared widget)
+                    SliverToBoxAdapter(
+                      child: ArticleReadBottomNav(
+                        currentIndex: currentPage,
+                        total: totalPages,
+                        themeName: themeName,
+                        textColor: textColor,
+                        label: 'Halaman',
+                        onPrevious: _previousPage,
+                        onNext: _nextPage,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           );

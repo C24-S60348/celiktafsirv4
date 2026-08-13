@@ -1,6 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' as html_parser;
 import '../utils/proxy_helper.dart';
+import '../utils/http_decode.dart';
 
 class GetLaaTahzan {
   static const String _baseUrl = 'https://celiktafsir.net';
@@ -14,7 +15,7 @@ class GetLaaTahzan {
       final response = await http.get(Uri.parse(getProxiedUrl(_listUrl)));
       if (response.statusCode != 200) return [];
 
-      final document = html_parser.parse(response.body);
+      final document = html_parser.parse(decodeUtf8Body(response));
 
       // Restrict extraction to the content area to avoid menu/sidebar links.
       final content = document.querySelector('.entry-content');

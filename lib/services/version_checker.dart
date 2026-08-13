@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import '../utils/http_decode.dart';
 import 'dart:io' show Platform;
 
 class VersionChecker {
@@ -61,7 +62,7 @@ class VersionChecker {
       );
       
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+        final data = json.decode(decodeUtf8Body(response));
         final List<dynamic> platforms = data['data'] ?? [];
         
         // Determine current platform

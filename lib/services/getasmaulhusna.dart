@@ -1,6 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' as html_parser;
 import '../utils/proxy_helper.dart';
+import '../utils/http_decode.dart';
 
 class GetAsmaulHusna {
   static const String _baseUrl = 'https://celiktafsir.net';
@@ -22,7 +23,7 @@ class GetAsmaulHusna {
           break;
         }
 
-        final document = html_parser.parse(response.body);
+        final document = html_parser.parse(decodeUtf8Body(response));
 
         // Find all post links - look for links that match post URL pattern
         // Post URLs typically match pattern: /YYYY/MM/DD/post-slug/

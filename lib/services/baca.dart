@@ -1,6 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' as html_parser;
 import '../utils/proxy_helper.dart';
+import '../utils/http_decode.dart';
 
 class BacaService {
   static const String baseUrl = 'https://celiktafsir.net';
@@ -14,7 +15,7 @@ class BacaService {
       final response = await http.get(Uri.parse(getProxiedUrl(url)));
 
       if (response.statusCode == 200) {
-        final document = html_parser.parse(response.body);
+        final document = html_parser.parse(decodeUtf8Body(response));
         final element = document.querySelector('.$className');
 
         if (element != null) {

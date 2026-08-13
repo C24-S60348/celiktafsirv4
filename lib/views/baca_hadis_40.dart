@@ -5,6 +5,7 @@ import '../utils/theme_helper.dart';
 import '../utils/html_link_helper.dart';
 import '../widgets/article_read_bottom_nav.dart';
 import '../widgets/article_read_top_nav.dart';
+import '../widgets/article_swipe_navigator.dart';
 
 class BacaHadis40Page extends StatefulWidget {
   const BacaHadis40Page({super.key});
@@ -186,127 +187,135 @@ class _BacaHadis40PageState extends State<BacaHadis40Page> {
                 color: isDark ? Colors.black54 : null,
                 colorBlendMode: isDark ? BlendMode.darken : null,
               ),
-              CustomScrollView(
-                controller: _scrollController,
-                slivers: [
-                  SliverAppBar(
-                    floating: true,
-                    snap: true,
-                    backgroundColor: ThemeHelper.getAppBarColor(themeName),
-                    foregroundColor: isDark ? Colors.white : Colors.black,
-                    title: Text(
-                      postTitle ?? 'Hadis 40 Imam Nawawi',
-                      textAlign: TextAlign.left,
-                      maxLines: 2,
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                    ),
-                    leading: IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: Icon(Icons.arrow_back),
-                    ),
-                    bottom: (_items != null && _items!.isNotEmpty)
-                        ? PreferredSize(
-                            preferredSize:
-                                const Size.fromHeight(44),
-                            child: Container(
-                              color: articleReadTopNavColor(themeName),
-                              child: ArticleReadTopNav(
-                                currentIndex: _currentIndex,
-                                total: _total,
-                                themeName: themeName,
-                                label: 'Artikel',
-                                onPrevious: _currentIndex > 0
-                                    ? () => _goToArticle(_currentIndex - 1)
-                                    : null,
-                                onNext: _currentIndex < _total - 1
-                                    ? () => _goToArticle(_currentIndex + 1)
-                                    : null,
-                              ),
-                            ),
-                          )
-                        : null,
-                    actions: [
-                      PopupMenuButton<String>(
-                        onSelected: (value) {
-                          if (value == 'content') {
-                            if (_hadis40Content != null && _hadis40Content!.isNotEmpty) {
-                              final plainText = _stripHtmlTags(_hadis40Content!);
-                              _copyTextToClipboard(plainText, type: 'Kandungan');
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Kandungan belum dimuatkan'),
-                                  duration: Duration(seconds: 1),
-                                  backgroundColor: Colors.orange,
-                                ),
-                              );
-                            }
-                          }
-                        },
-                        itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                          PopupMenuItem<String>(
-                            value: 'content',
-                            child: Row(
-                              children: [
-                                Icon(Icons.article, size: 20),
-                                SizedBox(width: 8),
-                                Text('Salin Kandungan'),
-                              ],
-                            ),
-                          ),
-                        ],
-                        icon: Icon(Icons.copy),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          if (postUrl != null) {
-                            showOpenWebsiteOverlay(context, postUrl!);
-                          }
-                        },
-                        icon: Icon(Icons.language),
-                      ),
-                    ],
-                  ),
-                  // Reading content: full width, no border, white (light) or theme (dark)
-                  SliverToBoxAdapter(
-                    child: Container(
-                      width: double.infinity,
-                      color: readingContainerColor,
-                      padding: EdgeInsets.all(16.0),
-                      child: _buildHadis40BodyWithTheme(
-                        context,
+              ArticleSwipeNavigator(
+                onPrevious: (_items != null && _currentIndex > 0)
+                    ? () => _goToArticle(_currentIndex - 1)
+                    : null,
+                onNext: (_items != null && _currentIndex < _total - 1)
+                    ? () => _goToArticle(_currentIndex + 1)
+                    : null,
+                child: CustomScrollView(
+                  controller: _scrollController,
+                  slivers: [
+                    SliverAppBar(
+                      floating: true,
+                      snap: true,
+                      backgroundColor: ThemeHelper.getAppBarColor(themeName),
+                      foregroundColor: isDark ? Colors.white : Colors.black,
+                      title: Text(
                         postTitle ?? 'Hadis 40 Imam Nawawi',
-                        postUrl != null
-                            ? model.bodyContent(postUrl!, isDark, textColor)
-                            : Center(
-                                child: Text(
-                                  'Tiada URL tersedia',
-                                  style: TextStyle(color: textColor),
+                        textAlign: TextAlign.left,
+                        maxLines: 2,
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                      ),
+                      leading: IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: Icon(Icons.arrow_back),
+                      ),
+                      bottom: (_items != null && _items!.isNotEmpty)
+                          ? PreferredSize(
+                              preferredSize:
+                                  const Size.fromHeight(44),
+                              child: Container(
+                                color: articleReadTopNavColor(themeName),
+                                child: ArticleReadTopNav(
+                                  currentIndex: _currentIndex,
+                                  total: _total,
+                                  themeName: themeName,
+                                  label: 'Artikel',
+                                  onPrevious: _currentIndex > 0
+                                      ? () => _goToArticle(_currentIndex - 1)
+                                      : null,
+                                  onNext: _currentIndex < _total - 1
+                                      ? () => _goToArticle(_currentIndex + 1)
+                                      : null,
                                 ),
                               ),
-                        textColor,
-                        isDark,
-                      ),
+                            )
+                          : null,
+                      actions: [
+                        PopupMenuButton<String>(
+                          onSelected: (value) {
+                            if (value == 'content') {
+                              if (_hadis40Content != null && _hadis40Content!.isNotEmpty) {
+                                final plainText = _stripHtmlTags(_hadis40Content!);
+                                _copyTextToClipboard(plainText, type: 'Kandungan');
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Kandungan belum dimuatkan'),
+                                    duration: Duration(seconds: 1),
+                                    backgroundColor: Colors.orange,
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                            PopupMenuItem<String>(
+                              value: 'content',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.article, size: 20),
+                                  SizedBox(width: 8),
+                                  Text('Salin Kandungan'),
+                                ],
+                              ),
+                            ),
+                          ],
+                          icon: Icon(Icons.copy),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            if (postUrl != null) {
+                              showOpenWebsiteOverlay(context, postUrl!);
+                            }
+                          },
+                          icon: Icon(Icons.language),
+                        ),
+                      ],
                     ),
-                  ),
-                  // Bottom row: Sebelum | Artikel X dari Y | Selepas
-                  if (_items != null && _items!.isNotEmpty)
+                    // Reading content: full width, no border, white (light) or theme (dark)
                     SliverToBoxAdapter(
-                      child: ArticleReadBottomNav(
-                        currentIndex: _currentIndex,
-                        total: _total,
-                        themeName: themeName,
-                        textColor: textColor,
-                        label: 'Artikel',
-                        onPrevious: _currentIndex > 0
-                            ? () => _goToArticle(_currentIndex - 1)
-                            : null,
-                        onNext: _currentIndex < _total - 1
-                            ? () => _goToArticle(_currentIndex + 1)
-                            : null,
+                      child: Container(
+                        width: double.infinity,
+                        color: readingContainerColor,
+                        padding: EdgeInsets.all(16.0),
+                        child: _buildHadis40BodyWithTheme(
+                          context,
+                          postTitle ?? 'Hadis 40 Imam Nawawi',
+                          postUrl != null
+                              ? model.bodyContent(postUrl!, isDark, textColor)
+                              : Center(
+                                  child: Text(
+                                    'Tiada URL tersedia',
+                                    style: TextStyle(color: textColor),
+                                  ),
+                                ),
+                          textColor,
+                          isDark,
+                        ),
                       ),
                     ),
-                ],
+                    // Bottom row: Sebelum | Artikel X dari Y | Selepas
+                    if (_items != null && _items!.isNotEmpty)
+                      SliverToBoxAdapter(
+                        child: ArticleReadBottomNav(
+                          currentIndex: _currentIndex,
+                          total: _total,
+                          themeName: themeName,
+                          textColor: textColor,
+                          label: 'Artikel',
+                          onPrevious: _currentIndex > 0
+                              ? () => _goToArticle(_currentIndex - 1)
+                              : null,
+                          onNext: _currentIndex < _total - 1
+                              ? () => _goToArticle(_currentIndex + 1)
+                              : null,
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ],
           );

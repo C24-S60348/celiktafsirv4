@@ -1,5 +1,3 @@
-import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -8,6 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:celik_tafsir/views/baca_hujjah.dart';
+
+import 'support/fake_http.dart';
 
 /// Tests for the "Salin Kandungan" copy action and the website button on
 /// the reading page.
@@ -36,7 +36,7 @@ void main() {
     clipboardCalls = <MethodCall>[];
     clipboardDelay = Duration.zero;
     SharedPreferences.setMockInitialValues(<String, Object>{});
-    HttpOverrides.global = _FakeHttpOverrides(articleHtml);
+    HttpOverrides.global = FakeHttpOverrides(articleHtml);
 
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(SystemChannels.platform, (call) async {
@@ -174,130 +174,4 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text('buka'), findsOneWidget);
   });
-}
-
-/// Serves a canned article body for every request so the page can load
-/// content without touching the network.
-class _FakeHttpOverrides extends HttpOverrides {
-  _FakeHttpOverrides(this.body);
-
-  final String body;
-
-  @override
-  HttpClient createHttpClient(SecurityContext? context) =>
-      _FakeHttpClient(body);
-}
-
-class _FakeHttpClient implements HttpClient {
-  _FakeHttpClient(this.body);
-
-  final String body;
-
-  @override
-  Future<HttpClientRequest> getUrl(Uri url) async => _FakeHttpClientRequest(body);
-
-  @override
-  Future<HttpClientRequest> openUrl(String method, Uri url) async =>
-      _FakeHttpClientRequest(body);
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => null;
-}
-
-class _FakeHttpClientRequest implements HttpClientRequest {
-  _FakeHttpClientRequest(this.body);
-
-  final String body;
-
-  @override
-  final HttpHeaders headers = _FakeHttpHeaders();
-
-  // IOClient pipes the (empty) request body into the request, which calls
-  // addStream then close. Both must hand back real futures.
-  @override
-  Future<void> addStream(Stream<List<int>> stream) => stream.drain<void>();
-
-  @override
-  Future<HttpClientResponse> get done async => _FakeHttpClientResponse(body);
-
-  @override
-  Future<HttpClientResponse> close() async => _FakeHttpClientResponse(body);
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => null;
-}
-
-class _FakeHttpClientResponse implements HttpClientResponse {
-  _FakeHttpClientResponse(this.body);
-
-  final String body;
-
-  @override
-  int get statusCode => 200;
-
-  @override
-  int get contentLength => utf8.encode(body).length;
-
-  @override
-  HttpClientResponseCompressionState get compressionState =>
-      HttpClientResponseCompressionState.notCompressed;
-
-  @override
-  final HttpHeaders headers = _FakeHttpHeaders();
-
-  @override
-  bool get isRedirect => false;
-
-  @override
-  bool get persistentConnection => false;
-
-  @override
-  String get reasonPhrase => 'OK';
-
-  @override
-  List<RedirectInfo> get redirects => const <RedirectInfo>[];
-
-  @override
-  List<Cookie> get cookies => const <Cookie>[];
-
-  @override
-  StreamSubscription<List<int>> listen(
-    void Function(List<int> event)? onData, {
-    Function? onError,
-    void Function()? onDone,
-    bool? cancelOnError,
-  }) {
-    return Stream<List<int>>.fromIterable([utf8.encode(body)]).listen(
-      onData,
-      onError: onError,
-      onDone: onDone,
-      cancelOnError: cancelOnError,
-    );
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => null;
-}
-
-class _FakeHttpHeaders implements HttpHeaders {
-  final Map<String, List<String>> _headers = <String, List<String>>{};
-
-  @override
-  List<String>? operator [](String name) => _headers[name.toLowerCase()];
-
-  @override
-  String? value(String name) => _headers[name.toLowerCase()]?.first;
-
-  @override
-  void forEach(void Function(String name, List<String> values) action) =>
-      _headers.forEach(action);
-
-  @override
-  ContentType? get contentType => ContentType.html;
-
-  @override
-  int get contentLength => -1;
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => null;
 }

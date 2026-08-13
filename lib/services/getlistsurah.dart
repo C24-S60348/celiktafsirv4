@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:html/parser.dart' as html_parser;
 import '../utils/proxy_helper.dart';
+import '../utils/http_decode.dart';
 
 class GetListSurah {
   static const String _cacheKey = 'cached_surah_names';
@@ -116,7 +117,7 @@ class GetListSurah {
         throw Exception('Failed to fetch main page: ${response.statusCode}');
       }
       
-      final document = html_parser.parse(response.body);
+      final document = html_parser.parse(decodeUtf8Body(response));
       
       // Find all elements with class="entry-content"
       final entryContents = document.querySelectorAll('.entry-content');
@@ -273,7 +274,7 @@ class GetListSurah {
           break;
         }
         
-        final document = html_parser.parse(response.body);
+        final document = html_parser.parse(decodeUtf8Body(response));
         
         // Find all post links - look for links that match post URL pattern
         // Post URLs typically match pattern: /YYYY/MM/DD/post-slug/
@@ -432,7 +433,7 @@ class GetListSurah {
     try {
       final response = await http.get(Uri.parse(getProxiedUrl(_baseUrl)));
       if (response.statusCode == 200) {
-        final document = html_parser.parse(response.body);
+        final document = html_parser.parse(decodeUtf8Body(response));
         final surahLinks = document.querySelectorAll('a');
         final Map<int, String> categoryUrls = {};
         

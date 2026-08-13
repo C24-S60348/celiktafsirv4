@@ -1,6 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' as html_parser;
 import '../utils/proxy_helper.dart';
+import '../utils/http_decode.dart';
 
 class GetHadis40 {
   static const String _baseUrl = 'https://celiktafsir.net';
@@ -51,7 +52,7 @@ class GetHadis40 {
           break;
         }
 
-        final document = html_parser.parse(response.body);
+        final document = html_parser.parse(decodeUtf8Body(response));
 
         // Post URLs match /YYYY/MM/DD/post-slug/
         final postUrlPattern = RegExp(r'/(\d{4})/(\d{2})/(\d{2})/([^/]+)/$');
