@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/asalusultafsir.dart' as model;
 import '../utils/theme_helper.dart';
+import '../utils/html_link_helper.dart';
 import '../widgets/article_read_bottom_nav.dart';
 
 class BacaAsalUsulTafsirPage extends StatefulWidget {
@@ -217,11 +218,9 @@ class _BacaAsalUsulTafsirPageState extends State<BacaAsalUsulTafsirPage> {
                         icon: Icon(Icons.copy),
                       ),
                       IconButton(
-                        onPressed: () async {
+                        onPressed: () {
                           if (postUrl != null) {
-                            await Navigator.of(context).pushNamed('/websitepage', arguments: {
-                              'url': postUrl,
-                            });
+                            showOpenWebsiteOverlay(context, postUrl!);
                           }
                         },
                         icon: Icon(Icons.language),

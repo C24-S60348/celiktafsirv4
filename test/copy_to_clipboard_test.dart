@@ -9,7 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:celik_tafsir/views/baca_hujjah.dart';
 
-/// Tests for the "Salin Kandungan" copy action added on azim-branch.
+/// Tests for the "Salin Kandungan" copy action and the website button on
+/// the reading page.
 ///
 /// The snackbars are shown from the .then()/.catchError() callbacks of
 /// Clipboard.setData, i.e. after an async gap. Without a mounted guard,
@@ -122,6 +123,27 @@ void main() {
     expect(copied, isNot(contains('<p>')));
 
     expect(find.text('Kandungan telah disalin ke klipbod'), findsOneWidget);
+  });
+
+  testWidgets('the website button overlays the article instead of leaving it', (
+    tester,
+  ) async {
+    // The globe action used to push a full WebsitePage route, which navigated
+    // away from the article. It now shows the same overlay inline links use.
+    await pumpPage(tester);
+
+    await tester.tap(find.byIcon(Icons.language));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Open Website'), findsOneWidget);
+    // The article is still mounted underneath, not replaced by a new route.
+    expect(find.byType(BacaHujjahPage), findsOneWidget);
+
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Open Website'), findsNothing);
+    expect(find.byType(BacaHujjahPage), findsOneWidget);
   });
 
   testWidgets('leaving the page mid-copy does not throw', (tester) async {

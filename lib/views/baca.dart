@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/baca.dart' as model;
 import '../services/getlistsurah.dart' as getlist;
 import '../utils/theme_helper.dart';
+import '../utils/html_link_helper.dart';
 import '../widgets/article_read_bottom_nav.dart';
 
 class BacaPage extends StatefulWidget {
@@ -271,8 +272,13 @@ class _BacaPageState extends State<BacaPage> {
                       IconButton(
                         onPressed: () async {
                           final url = await getlist.GetListSurah.getSurahUrl(surahIndex, currentPage);
-                          await Navigator.of(context).pushNamed('/websitepage', arguments: {'url': url});
-                          _checkBookmark();
+                          if (!context.mounted) return;
+                          // WebsitePage used to fall back to the site root when
+                          // the surah URL was unavailable; keep that behaviour.
+                          showOpenWebsiteOverlay(
+                            context,
+                            url ?? 'https://celiktafsir.net',
+                          );
                         },
                         icon: Icon(Icons.language),
                       ),
