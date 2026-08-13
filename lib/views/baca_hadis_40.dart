@@ -84,6 +84,7 @@ class _BacaHadis40PageState extends State<BacaHadis40Page> {
 
   void _copyTextToClipboard(String text, {String type = 'Teks'}) {
     Clipboard.setData(ClipboardData(text: text)).then((_) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('$type telah disalin ke klipbod'),
@@ -92,6 +93,7 @@ class _BacaHadis40PageState extends State<BacaHadis40Page> {
         ),
       );
     }).catchError((e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Gagal menyalin $type'),

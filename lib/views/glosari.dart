@@ -83,6 +83,7 @@ class _GlosariPageState extends State<GlosariPage> {
 
   void _copyTextToClipboard(String text, {String type = 'Teks'}) {
     Clipboard.setData(ClipboardData(text: text)).then((_) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('$type telah disalin ke klipbod'),
@@ -91,6 +92,7 @@ class _GlosariPageState extends State<GlosariPage> {
         ),
       );
     }).catchError((e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Gagal menyalin $type'),
