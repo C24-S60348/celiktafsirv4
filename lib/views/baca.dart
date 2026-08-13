@@ -271,7 +271,13 @@ class _BacaPageState extends State<BacaPage> {
                       ),
                       IconButton(
                         onPressed: () async {
-                          final url = await getlist.GetListSurah.getSurahUrl(surahIndex, currentPage);
+                          // Must pass categoryUrl, or this resolves against the
+                          // default category and returns another juzuk's article.
+                          final url = await getlist.GetListSurah.getSurahUrl(
+                            surahIndex,
+                            currentPage,
+                            categoryUrl: categoryUrl,
+                          );
                           if (!context.mounted) return;
                           // WebsitePage used to fall back to the site root when
                           // the surah URL was unavailable; keep that behaviour.
