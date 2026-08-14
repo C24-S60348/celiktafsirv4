@@ -280,12 +280,10 @@ Widget bodyContent(
               style: {
                 "body": Style(
                   fontSize: FontSize(fontSize),
-                  textAlign: TextAlign.justify,
                   color: isDark ? Colors.white : null,
                 ),
                 "p": Style(
                   fontSize: FontSize(fontSize),
-                  textAlign: TextAlign.justify,
                   color: isDark ? Colors.white : null,
                   // margin: Margins.only(top: 4, bottom: 4), // Reduce top and bottom spacing
                   // padding: HtmlPaddings.zero, // Remove padding
@@ -312,14 +310,12 @@ Widget bodyContent(
                 ),
                 "ul": Style(
                   fontSize: FontSize(fontSize),
-                  textAlign: TextAlign.justify,
                   listStyleType: ListStyleType.disc,
                   padding: HtmlPaddings.only(left: 20),
                   color: isDark ? Colors.white : null,
                 ),
                 "ol": Style(
                   fontSize: FontSize(fontSize),
-                  textAlign: TextAlign.justify,
                   listStyleType: ListStyleType.none,
                   padding: HtmlPaddings.only(left: 20),
                   margin: Margins.zero,
@@ -328,7 +324,6 @@ Widget bodyContent(
                 ),
                 "li": Style(
                   fontSize: FontSize(fontSize),
-                  textAlign: TextAlign.justify,
                   padding: HtmlPaddings.only(bottom: 8),
                   color: isDark ? Colors.white : null,
                 ),

@@ -1,6 +1,6 @@
 # Celik Tafsir — Updates & Todo
 
-Versi semasa: **1.0.29+29** · Web: https://celiktafsir.web.app
+Versi semasa: **1.0.30+30** · Web: https://celiktafsir.web.app
 
 Senarai ini disemak terus dengan kod, bukan dari ingatan.
 
@@ -61,6 +61,16 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
     dan dipakai melalui `ThemeData.fontFamily` + `articleHeadingStyles()`.
     Sudah disemak atas build web sebenar: teks artikel keluar Arimo, tajuk
     app bar keluar Alegreya.
+16. **Penjajaran teks sekarang ikut laman web.** Dulu semua page bacaan
+    memaksa `TextAlign.justify` pada `body/p/ul/ol/li`. Dalam
+    `flutter_html`, style yang kita hantar dipakai **selepas** style inline
+    dokumen, jadi paksaan itu menewaskan penjajaran asal artikel.
+    Laman web tetapkan penjajaran ikut perenggan — artikel Fatihah sahaja
+    ada 58 `justify`, 4 `right` (teks Arab) dan 1 `center`. Sebab itu teks
+    Arab dalam app terbentang penuh selebar skrin, sedangkan di laman web
+    ia rata kanan.
+    Paksaan itu dibuang, jadi app ikut apa yang artikel tetapkan.
+    Ujian: `test/article_alignment_test.dart` (gagal atas kod lama).
 
 ---
 

@@ -78,6 +78,15 @@ before assuming.
   "Memuat kandungan..." snackbar on load — pump past it.
 - Popping a reading page refetches its article, so **prefer overlays to
   pushed routes** for transient prompts. See `showOpenWebsiteOverlay`.
+- **The `style:` map you pass to `Html` beats the article's own inline CSS.**
+  `flutter_html` merges in this order (`_styleTreeRecursive`): external CSS,
+  then the document's `style="..."` attributes, then *your* map last. So a
+  `Style(textAlign: ...)` on `"p"` silently overrides every per-paragraph
+  alignment the article carries. celiktafsir.net sets alignment per
+  paragraph -- the Fatihah article alone has 58 `justify`, 4 `right` (the
+  Arabic) and 1 `center` -- so the pages used to stretch Arabic across the
+  full width instead of right-aligning it. Only style what the article does
+  not style itself. `test/article_alignment_test.dart` pins this.
 
 ## Conventions
 

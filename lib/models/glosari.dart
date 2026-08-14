@@ -262,12 +262,10 @@ Widget bodyContent([bool isDark = false, Color? textColor]) {
               style: {
                 "body": createStyle(
                   fontSize: FontSize(fontSize),
-                  textAlign: TextAlign.justify,
                   color: htmlTextColor,
                 ),
                 "p": createStyle(
                   fontSize: FontSize(fontSize),
-                  textAlign: TextAlign.justify,
                   color: htmlTextColor,
                 ),
                 "div": createStyle(
@@ -302,14 +300,12 @@ Widget bodyContent([bool isDark = false, Color? textColor]) {
                 ),
                 "ul": createStyle(
                   fontSize: FontSize(fontSize),
-                  textAlign: TextAlign.justify,
                   listStyleType: ListStyleType.disc,
                   padding: HtmlPaddings.only(left: 20),
                   color: htmlTextColor,
                 ),
                 "ol": createStyle(
                   fontSize: FontSize(fontSize),
-                  textAlign: TextAlign.justify,
                   listStyleType: ListStyleType.none,
                   padding: HtmlPaddings.only(left: 20),
                   margin: Margins.zero,
@@ -318,7 +314,6 @@ Widget bodyContent([bool isDark = false, Color? textColor]) {
                 ),
                 "li": createStyle(
                   fontSize: FontSize(fontSize),
-                  textAlign: TextAlign.justify,
                   padding: HtmlPaddings.only(bottom: 8),
                   color: htmlTextColor,
                 ),
