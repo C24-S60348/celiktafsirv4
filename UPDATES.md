@@ -1,6 +1,6 @@
 # Celik Tafsir — Updates & Todo
 
-Versi semasa: **1.0.30+30** · Web: https://celiktafsir.web.app
+Versi semasa: **1.0.31+31** · Web: https://celiktafsir.web.app
 
 Senarai ini disemak terus dengan kod, bukan dari ingatan.
 
@@ -57,10 +57,16 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
     - badan teks: **Arimo** (`.wf-active body{font-family:"Arimo"}`)
     - tajuk: **Alegreya** (`.wf-active h1..h6{font-family:"Alegreya"}`)
 
-    Dua-dua sekarang di-bundle dalam `assets/fonts/` (lesen OFL disertakan)
-    dan dipakai melalui `ThemeData.fontFamily` + `articleHeadingStyles()`.
-    Sudah disemak atas build web sebenar: teks artikel keluar Arimo, tajuk
-    app bar keluar Alegreya.
+    **Owner minta satu font sahaja**, jadi Alegreya dibuang dan
+    **Arimo dipakai untuk semua** — badan teks, tajuk artikel dan tajuk app
+    bar. Arimo di-bundle dalam `assets/fonts/` (lesen OFL disertakan) dan
+    dipakai melalui `ThemeData.fontFamily` + `articleHeadingStyles()`.
+    Sudah disemak atas build web sebenar.
+
+    *Perangkap:* `ThemeData.fontFamily` **tidak** sampai ke
+    `AppBarTheme.titleTextStyle` (ia bukan sebahagian `textTheme`). Kalau
+    dibiar kosong, tajuk app bar jatuh balik ke font lalai platform. Jadi
+    nama font ditulis terus dalam `titleTextStyle`.
 16. **Penjajaran teks sekarang ikut laman web.** Dulu semua page bacaan
     memaksa `TextAlign.justify` pada `body/p/ul/ol/li`. Dalam
     `flutter_html`, style yang kita hantar dipakai **selepas** style inline

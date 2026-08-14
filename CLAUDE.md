@@ -98,14 +98,20 @@ before assuming.
   are about to paste the same block into all six, extract it first.
 - User-facing strings are **Malay** ("Sebelum", "Selepas", "Salin
   Kandungan", "Memuat kandungan..."). Keep new strings in Malay.
-- **Fonts must match celiktafsir.net**: body **Arimo**, headings
-  **Alegreya**, both bundled in `assets/fonts/` and wired through
-  `ThemeHelper.bodyFontFamily` / `headingFontFamily`. They are read from the
-  site's own `jetpack-custom-fonts-css` block, not chosen by us -- a reader
-  complained the app was harder to read than the website. Do not swap them
-  for a "nicer" font. Article headings come from
+- **One font, and it is celiktafsir.net's**: **Arimo**, bundled in
+  `assets/fonts/` and named by `ThemeHelper.bodyFontFamily`. It is read from
+  the site's own `jetpack-custom-fonts-css` block, not chosen by us -- a
+  reader complained the app was harder to read than the website. The site
+  also uses Alegreya for headings, but the owner asked for a single font, so
+  headings use Arimo too. Do not swap it for a "nicer" font, and do not
+  reintroduce a second family without asking. Article headings come from
   `utils/article_heading_styles.dart`; the six reading models spread it in
   rather than each declaring h1-h6.
+- **`ThemeData.fontFamily` does not reach `AppBarTheme.titleTextStyle`** --
+  that style is not part of `textTheme`. Left without a `fontFamily` it
+  silently falls back to the platform default, which on web means Flutter
+  fetching Roboto from `fonts.gstatic.com`. Name the family explicitly in
+  any `TextStyle` you write outside `textTheme`.
 - Neither font covers **Arabic**. That matches the website. Arabic falls back
   to the platform font on mobile, and on web Flutter fetches Noto from
   `fonts.gstatic.com` at runtime -- so Arabic shows as tofu boxes in any

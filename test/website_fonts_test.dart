@@ -8,10 +8,10 @@ import 'package:celik_tafsir/utils/theme_helper.dart';
 
 /// A reader reported the app's text looked different from celiktafsir.net and
 /// was harder to read. The app bundled no font at all, so it fell back to the
-/// platform default. These tests pin the app to the website's own two faces:
-/// Arimo for body text, Alegreya for headings.
+/// platform default. These tests pin the app to the website's body face,
+/// Arimo, used throughout -- the owner asked for a single font.
 void main() {
-  test('both themes use the website body font', () {
+  test('both themes use the website font everywhere', () {
     for (final theme in ['Terang', 'Gelap']) {
       final data = ThemeHelper.getThemeData(theme);
       expect(
@@ -19,7 +19,14 @@ void main() {
         'Arimo',
         reason: '$theme theme lost the body font',
       );
-      expect(data.appBarTheme.titleTextStyle?.fontFamily, 'Alegreya');
+      // AppBarTheme.titleTextStyle is not part of textTheme, so
+      // ThemeData.fontFamily does NOT reach it. Leaving it unset silently
+      // drops app bar titles back onto the platform default font.
+      expect(
+        data.appBarTheme.titleTextStyle?.fontFamily,
+        'Arimo',
+        reason: '$theme theme app bar titles fell off the app font',
+      );
     }
   });
 
@@ -48,15 +55,15 @@ void main() {
     expect(inherited.fontFamily, 'Arimo');
   });
 
-  test('article headings use the website heading font', () {
+  test('article headings use the same single font', () {
     final styles = articleHeadingStyles(null);
 
     expect(styles.keys, containsAll(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']));
     for (final entry in styles.entries) {
       expect(
         entry.value.fontFamily,
-        'Alegreya',
-        reason: '${entry.key} lost the heading font',
+        'Arimo',
+        reason: '${entry.key} drifted off the single app font',
       );
       expect(entry.value.fontWeight, FontWeight.bold);
     }

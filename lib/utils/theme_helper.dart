@@ -32,19 +32,21 @@ class ThemeHelper {
     return themeName == 'Gelap' ? Colors.white : loadingIndicatorDarkBrown;
   }
 
-  /// The two fonts celiktafsir.net itself uses, so the app reads like the
-  /// website. Taken from the site's own stylesheet, not guessed:
+  /// The single font the whole app uses. It is celiktafsir.net's body face,
+  /// read from the site's own stylesheet rather than guessed:
   ///
   ///   .wf-active body { font-family: "Arimo", sans-serif }
-  ///   .wf-active h1..h6 { font-family: "Alegreya", serif }
   ///
   /// A reader reported the app's font was harder to read than the website's;
   /// the app had no font bundled at all and fell back to the platform default.
   ///
-  /// Neither family covers Arabic. That is deliberate and matches the site --
-  /// the engine falls back to the platform's Arabic font for those runs.
+  /// The site pairs this with Alegreya on its headings, but the owner asked
+  /// for one font, so headings use this face too. Body text is nearly all of
+  /// what a reader sees, and it is the half the complaint was about.
+  ///
+  /// Arimo does not cover Arabic. That matches the site -- the engine falls
+  /// back to the platform's Arabic font for those runs.
   static const String bodyFontFamily = 'Arimo';
-  static const String headingFontFamily = 'Alegreya';
 
   /// App bar background color for all screens. Use this when overriding AppBar.backgroundColor.
   static Color getAppBarColor(String themeName) {
@@ -77,7 +79,10 @@ class ThemeHelper {
         iconTheme: IconThemeData(color: Colors.black),
         titleTextStyle: TextStyle(
           color: Colors.black,
-          fontFamily: headingFontFamily,
+          // AppBarTheme.titleTextStyle is not part of textTheme, so
+          // ThemeData.fontFamily does not reach it. Left unset it falls back
+          // to the platform default -- the very font this app replaced.
+          fontFamily: bodyFontFamily,
           fontWeight: FontWeight.bold,
           fontSize: 20,
         ),
@@ -117,7 +122,10 @@ class ThemeHelper {
         iconTheme: IconThemeData(color: Colors.white),
         titleTextStyle: TextStyle(
           color: Colors.white,
-          fontFamily: headingFontFamily,
+          // AppBarTheme.titleTextStyle is not part of textTheme, so
+          // ThemeData.fontFamily does not reach it. Left unset it falls back
+          // to the platform default -- the very font this app replaced.
+          fontFamily: bodyFontFamily,
           fontWeight: FontWeight.bold,
           fontSize: 20,
         ),
