@@ -1,6 +1,6 @@
 # Celik Tafsir — Updates & Todo
 
-Versi semasa: **1.0.28+28** · Web: https://celiktafsir.web.app
+Versi semasa: **1.0.29+29** · Web: https://celiktafsir.web.app
 
 Senarai ini disemak terus dengan kod, bukan dari ingatan.
 
@@ -48,6 +48,19 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
     keluar, HADIS #25 sampai #36. Nombor hadis diambil balik dari `<span>`
     di sebelah link, jadi tajuk kekal "HADIS #25 Sedekah dari Orang Miskin".
     (`lib/services/gethadis_40.dart`)
+15. **Font app sekarang sama dengan celiktafsir.net.** Ada pembaca beri
+    review 4 bintang: *"font dalam aplikasi berbeza berbanding di dalam
+    celik tafsir.net... kurang menarik dan agak susah untuk dibaca"*.
+    Puncanya app **tiada font langsung** di-bundle, jadi ia guna font lalai
+    peranti (Roboto di Android). Font sebenar laman web diambil terus dari
+    stylesheet laman itu:
+    - badan teks: **Arimo** (`.wf-active body{font-family:"Arimo"}`)
+    - tajuk: **Alegreya** (`.wf-active h1..h6{font-family:"Alegreya"}`)
+
+    Dua-dua sekarang di-bundle dalam `assets/fonts/` (lesen OFL disertakan)
+    dan dipakai melalui `ThemeData.fontFamily` + `articleHeadingStyles()`.
+    Sudah disemak atas build web sebenar: teks artikel keluar Arimo, tajuk
+    app bar keluar Alegreya.
 
 ---
 
@@ -84,10 +97,15 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
    di-bundle, lihat item font di bawah). Perlu screenshot dari owner.
 3. **Pilihan jenis tulisan (font) dalam Settings tak berfungsi.**
    Amiri / Scheherazade / Lateef / Noto Sans Arabic — pilihan disimpan
-   (`selected_font`) tapi **tak pernah dibaca** di mana-mana, dan tiada
-   font Arab di-bundle dalam `pubspec.yaml`. Baris "Tulisan" dalam Settings
-   pun sudah `isEnabled: false`, jadi memang tak boleh ditekan.
-   Perlu owner pilih: **bundle font** atau **buang picker**.
+   (`selected_font`) tapi **tak pernah dibaca** di mana-mana. Baris
+   "Tulisan" dalam Settings pun sudah `isEnabled: false`, jadi memang tak
+   boleh ditekan.
+   *Nota:* font badan teks sudah pun betul sekarang (Arimo/Alegreya, ikut
+   laman web — lihat item 15 di atas), jadi picker ini tinggal untuk font
+   **Arab** sahaja. Tiada font Arab di-bundle: teks Arab bergantung pada
+   font sistem peranti (Android/iOS ada), manakala web muat turun Noto
+   dari `fonts.gstatic.com` secara automatik.
+   Perlu owner pilih: **bundle font Arab** atau **buang picker**.
    (Cadangan: buang picker — lihat nota di bawah.)
 4. **Adjust saiz font Arab & terjemahan berasingan** (idea masabih.org) —
    lihat nota di bawah.

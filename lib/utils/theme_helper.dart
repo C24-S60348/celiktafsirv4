@@ -32,6 +32,20 @@ class ThemeHelper {
     return themeName == 'Gelap' ? Colors.white : loadingIndicatorDarkBrown;
   }
 
+  /// The two fonts celiktafsir.net itself uses, so the app reads like the
+  /// website. Taken from the site's own stylesheet, not guessed:
+  ///
+  ///   .wf-active body { font-family: "Arimo", sans-serif }
+  ///   .wf-active h1..h6 { font-family: "Alegreya", serif }
+  ///
+  /// A reader reported the app's font was harder to read than the website's;
+  /// the app had no font bundled at all and fell back to the platform default.
+  ///
+  /// Neither family covers Arabic. That is deliberate and matches the site --
+  /// the engine falls back to the platform's Arabic font for those runs.
+  static const String bodyFontFamily = 'Arimo';
+  static const String headingFontFamily = 'Alegreya';
+
   /// App bar background color for all screens. Use this when overriding AppBar.backgroundColor.
   static Color getAppBarColor(String themeName) {
     switch (themeName) {
@@ -47,6 +61,7 @@ class ThemeHelper {
   static ThemeData _lightTheme() {
     return ThemeData(
       brightness: Brightness.light,
+      fontFamily: bodyFontFamily,
       colorScheme: ColorScheme.fromSeed(
         seedColor: _brown,
         brightness: Brightness.light,
@@ -62,6 +77,7 @@ class ThemeHelper {
         iconTheme: IconThemeData(color: Colors.black),
         titleTextStyle: TextStyle(
           color: Colors.black,
+          fontFamily: headingFontFamily,
           fontWeight: FontWeight.bold,
           fontSize: 20,
         ),
@@ -87,6 +103,7 @@ class ThemeHelper {
   static ThemeData _darkTheme() {
     return ThemeData(
       brightness: Brightness.dark,
+      fontFamily: bodyFontFamily,
       colorScheme: ColorScheme.fromSeed(
         seedColor: _brown,
         brightness: Brightness.dark,
@@ -100,6 +117,7 @@ class ThemeHelper {
         iconTheme: IconThemeData(color: Colors.white),
         titleTextStyle: TextStyle(
           color: Colors.white,
+          fontFamily: headingFontFamily,
           fontWeight: FontWeight.bold,
           fontSize: 20,
         ),

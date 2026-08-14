@@ -7,6 +7,7 @@ import '../services/getlistsurah.dart' as getlist;
 import '../services/baca.dart' as service;
 import '../widgets/image_zoom_overlay.dart';
 import '../utils/html_link_helper.dart';
+import '../utils/article_heading_styles.dart';
 
 /// Remove numbering from unordered list items and clean up nested list structures
 String _removeNumbersFromUnorderedLists(String html) {
@@ -331,12 +332,7 @@ Widget bodyContent(
                   padding: HtmlPaddings.only(bottom: 8),
                   color: isDark ? Colors.white : null,
                 ),
-                "h1": Style(color: isDark ? Colors.white : null, fontWeight: FontWeight.bold),
-                "h2": Style(color: isDark ? Colors.white : null, fontWeight: FontWeight.bold),
-                "h3": Style(color: isDark ? Colors.white : null, fontWeight: FontWeight.bold),
-                "h4": Style(color: isDark ? Colors.white : null, fontWeight: FontWeight.bold),
-                "h5": Style(color: isDark ? Colors.white : null, fontWeight: FontWeight.bold),
-                "h6": Style(color: isDark ? Colors.white : null, fontWeight: FontWeight.bold),
+                ...articleHeadingStyles(isDark ? Colors.white : null),
                 "img": Style(
                   width: Width(double.infinity),
                   height: Height(200),

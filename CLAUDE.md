@@ -89,6 +89,18 @@ before assuming.
   are about to paste the same block into all six, extract it first.
 - User-facing strings are **Malay** ("Sebelum", "Selepas", "Salin
   Kandungan", "Memuat kandungan..."). Keep new strings in Malay.
+- **Fonts must match celiktafsir.net**: body **Arimo**, headings
+  **Alegreya**, both bundled in `assets/fonts/` and wired through
+  `ThemeHelper.bodyFontFamily` / `headingFontFamily`. They are read from the
+  site's own `jetpack-custom-fonts-css` block, not chosen by us -- a reader
+  complained the app was harder to read than the website. Do not swap them
+  for a "nicer" font. Article headings come from
+  `utils/article_heading_styles.dart`; the six reading models spread it in
+  rather than each declaring h1-h6.
+- Neither font covers **Arabic**. That matches the website. Arabic falls back
+  to the platform font on mobile, and on web Flutter fetches Noto from
+  `fonts.gstatic.com` at runtime -- so Arabic shows as tofu boxes in any
+  sandbox that blocks gstatic. That is the harness, not a bug.
 - Reading pages use `CustomScrollView` + `SliverAppBar(floating: true,
   snap: true)`. Anything that should hide on scroll and come back belongs in
   the app bar's `bottom` — that is how `ArticleReadTopNav` works.

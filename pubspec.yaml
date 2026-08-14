@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.28+28
+version: 1.0.29+29
 
 environment:
   sdk: ^3.8.1
@@ -91,6 +91,23 @@ flutter:
     - assets/images/bismillah.png
     - assets/images/Tetapan_baru.png
   #   - images/a_dot_ham.jpeg
+
+  # The same two fonts celiktafsir.net uses, so the app reads like the
+  # website: Arimo for body text, Alegreya for headings. Both are OFL.
+  # Licences live beside the files in assets/fonts/.
+  fonts:
+    - family: Arimo
+      fonts:
+        - asset: assets/fonts/Arimo-Regular.ttf
+        - asset: assets/fonts/Arimo-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Arimo-Italic.ttf
+          style: italic
+    - family: Alegreya
+      fonts:
+        - asset: assets/fonts/Alegreya-Regular.ttf
+        - asset: assets/fonts/Alegreya-Bold.ttf
+          weight: 700
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
