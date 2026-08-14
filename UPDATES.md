@@ -91,6 +91,7 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
     Android, iOS dan web. Simbol ﷻ dan ﷺ pun keluar betul (dulu jadi kotak
     kosong di web sebab Flutter kena muat turun Noto dari
     `fonts.gstatic.com` masa itu juga).
+
 ---
 
 ## Todo (Belum siap)
@@ -133,9 +134,21 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
    dan Noto Naskh Arabic untuk Arab (item 18), dua-dua di-bundle. Jadi
    picker ini tiada guna lagi.
    **Cadangan: buang picker terus** (baris itu pun sudah tak boleh ditekan).
-4. **Adjust saiz font Arab & terjemahan berasingan** (idea masabih.org) —
+4. **"Bacaan Terakhir" pernah buka page 1 (14 Ogos) — tak dapat diulang.**
+   Owner lapor tekan Bacaan Terakhir buka Halaman 1 sedangkan simpanannya
+   Halaman 35/140. Diperiksa: semua tempat yang `pushNamed('/baca')`
+   (kad Bacaan Terakhir, bookmark, senarai halaman) hantar `pageIndex`
+   dengan betul, dan `BacaPage` memang guna nilai itu —
+   `test/last_read_test.dart` membuktikannya (lulus).
+   Selepas deploy 1.0.32 owner kata ia sudah elok semula, tanpa sebarang
+   pembetulan dibuat untuk isu ini. **Puncanya masih tidak diketahui.**
+   Kalau berulang, benda pertama yang perlu dilihat: kad "Bacaan Terakhir"
+   di Halaman Utama tulis "Halaman 35" atau "Halaman 1"? Itu menentukan
+   sama ada masalah masa *simpan* atau masa *buka*.
+
+5. **Adjust saiz font Arab & terjemahan berasingan** (idea masabih.org) —
    lihat nota di bawah.
-5. **Tarik/geser untuk adjust font** (bukan masuk Settings) — macam
+6. **Tarik/geser untuk adjust font** (bukan masuk Settings) — macam
    masabih.org. Belum ada.
 
 ---
