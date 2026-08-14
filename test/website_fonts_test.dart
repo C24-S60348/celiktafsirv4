@@ -69,6 +69,27 @@ void main() {
     }
   });
 
+  test('Arabic has a bundled fallback everywhere it can appear', () {
+    // Arimo has no Arabic glyphs. Without a bundled fallback the platform
+    // decides, which differs per device and, on web, meant fetching Noto from
+    // fonts.gstatic.com -- Arabic and the honorifics rendered as empty boxes
+    // wherever that host is unreachable.
+    for (final theme in ['Terang', 'Gelap']) {
+      final data = ThemeHelper.getThemeData(theme);
+      expect(data.textTheme.bodyMedium?.fontFamilyFallback, contains('Noto Naskh Arabic'));
+      expect(
+        data.appBarTheme.titleTextStyle?.fontFamilyFallback,
+        contains('Noto Naskh Arabic'),
+      );
+    }
+
+    expect(
+      articleHeadingStyles(null)['h1']?.fontFamilyFallback,
+      contains('Noto Naskh Arabic'),
+      reason: 'article headings are often the Arabic verse itself',
+    );
+  });
+
   test('headings keep the colour the calling page asked for', () {
     expect(articleHeadingStyles(Colors.white)['h2']?.color, Colors.white);
     expect(articleHeadingStyles(null)['h2']?.color, isNull);
@@ -91,6 +112,11 @@ void main() {
       assets.where((a) => a.contains('Arimo')).length,
       3,
       reason: 'expected Arimo regular, bold and italic',
+    );
+    expect(
+      assets.where((a) => a.contains('NotoNaskhArabic')).length,
+      2,
+      reason: 'expected the Arabic fallback regular and bold',
     );
 
     for (final asset in assets) {

@@ -1,6 +1,6 @@
 # Celik Tafsir — Updates & Todo
 
-Versi semasa: **1.0.31+31** · Web: https://celiktafsir.web.app
+Versi semasa: **1.0.32+32** · Web: https://celiktafsir.web.app
 
 Senarai ini disemak terus dengan kod, bukan dari ingatan.
 
@@ -77,7 +77,20 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
     ia rata kanan.
     Paksaan itu dibuang, jadi app ikut apa yang artikel tetapkan.
     Ujian: `test/article_alignment_test.dart` (gagal atas kod lama).
-
+17. **Gambar dalam artikel keluar semula.** Laman web bungkus setiap gambar
+    dengan link ke fail penuh: `<p><a href="...jpg"><img ...></a></p>`.
+    Extension `<a>` kita render setiap link sebagai `Text(teks link)` — link
+    yang membalut gambar tiada teks, jadi ia jadi kosong dan `<img>` di
+    dalamnya tak pernah dibina. Itu sebabnya app tunjuk ruang kosong di
+    tempat gambar. Sekarang kalau link tiada teks, kandungannya (termasuk
+    gambar, dan tekan untuk zoom) yang dirender.
+    Ujian: `test/article_image_test.dart` (gagal atas kod lama).
+18. **Font Arab di-bundle.** Arimo tiada huruf Arab langsung. Sekarang
+    **Noto Naskh Arabic** di-bundle sebagai fallback — font yang memang
+    dipakai Android, jadi sama macam laman web, dan Arab kekal sama di
+    Android, iOS dan web. Simbol ﷻ dan ﷺ pun keluar betul (dulu jadi kotak
+    kosong di web sebab Flutter kena muat turun Noto dari
+    `fonts.gstatic.com` masa itu juga).
 ---
 
 ## Todo (Belum siap)
@@ -116,13 +129,10 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
    (`selected_font`) tapi **tak pernah dibaca** di mana-mana. Baris
    "Tulisan" dalam Settings pun sudah `isEnabled: false`, jadi memang tak
    boleh ditekan.
-   *Nota:* font badan teks sudah pun betul sekarang (Arimo/Alegreya, ikut
-   laman web — lihat item 15 di atas), jadi picker ini tinggal untuk font
-   **Arab** sahaja. Tiada font Arab di-bundle: teks Arab bergantung pada
-   font sistem peranti (Android/iOS ada), manakala web muat turun Noto
-   dari `fonts.gstatic.com` secara automatik.
-   Perlu owner pilih: **bundle font Arab** atau **buang picker**.
-   (Cadangan: buang picker — lihat nota di bawah.)
+   *Nota:* font sudah pun betul sekarang — Arimo untuk semua teks (item 15)
+   dan Noto Naskh Arabic untuk Arab (item 18), dua-dua di-bundle. Jadi
+   picker ini tiada guna lagi.
+   **Cadangan: buang picker terus** (baris itu pun sudah tak boleh ditekan).
 4. **Adjust saiz font Arab & terjemahan berasingan** (idea masabih.org) —
    lihat nota di bawah.
 5. **Tarik/geser untuk adjust font** (bukan masuk Settings) — macam

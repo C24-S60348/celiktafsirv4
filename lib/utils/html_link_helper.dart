@@ -84,6 +84,19 @@ TagExtension buildLinkTagExtension(bool isDark) {
       final href = extensionContext.attributes['href'];
       final text = extensionContext.element?.text ?? href ?? '';
 
+      // celiktafsir.net wraps every article image in a link to the full-size
+      // file: <p><a href="...makkahpusatbumi.jpg"><img ...></a></p>. Such an
+      // anchor has no text of its own, so rendering it as Text('') dropped
+      // the image and left a blank gap where the picture should be.
+      // Render the built children instead, which includes the <img> widget
+      // (with its own tap-to-zoom) produced by the image extension.
+      if (text.trim().isEmpty) {
+        final children = extensionContext.inlineSpanChildren;
+        if (children != null && children.isNotEmpty) {
+          return Text.rich(TextSpan(children: children));
+        }
+      }
+
       return GestureDetector(
         onTap: () {
           if (href == null || href.isEmpty) return;

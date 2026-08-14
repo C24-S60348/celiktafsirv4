@@ -112,10 +112,20 @@ before assuming.
   silently falls back to the platform default, which on web means Flutter
   fetching Roboto from `fonts.gstatic.com`. Name the family explicitly in
   any `TextStyle` you write outside `textTheme`.
-- Neither font covers **Arabic**. That matches the website. Arabic falls back
-  to the platform font on mobile, and on web Flutter fetches Noto from
-  `fonts.gstatic.com` at runtime -- so Arabic shows as tofu boxes in any
-  sandbox that blocks gstatic. That is the harness, not a bug.
+- Arimo covers no **Arabic**, so `ThemeHelper.fontFamilyFallback` adds
+  bundled **Noto Naskh Arabic** — the face Android already fell back to, so
+  the app matches the website while rendering Arabic identically on Android,
+  iOS and web. Put that fallback on any `TextStyle`/`Style` that can hold
+  Arabic; article headings are often the verse itself. Without it, web
+  fetches Noto from `fonts.gstatic.com` at runtime and Arabic plus the ﷻ / ﷺ
+  honorifics render as empty boxes wherever gstatic is blocked.
+- **An `<a>` around an `<img>` is how the site embeds every picture.**
+  `buildLinkTagExtension` renders anchors as `Text(element.text)`, which is
+  empty for an image-only anchor and dropped the picture entirely. It now
+  falls through to `inlineSpanChildren` when the anchor has no text.
+  `test/article_image_test.dart` pins it — and note `find.byType(Image)`
+  alone is not enough, since reading pages draw `assets/images/bg.jpg`
+  behind the article.
 - Reading pages use `CustomScrollView` + `SliverAppBar(floating: true,
   snap: true)`. Anything that should hide on scroll and come back belongs in
   the app bar's `bottom` — that is how `ArticleReadTopNav` works.

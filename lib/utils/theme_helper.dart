@@ -44,9 +44,21 @@ class ThemeHelper {
   /// for one font, so headings use this face too. Body text is nearly all of
   /// what a reader sees, and it is the half the complaint was about.
   ///
-  /// Arimo does not cover Arabic. That matches the site -- the engine falls
-  /// back to the platform's Arabic font for those runs.
+  /// Arimo carries no Arabic, so Arabic runs fall through to
+  /// [arabicFontFamily].
   static const String bodyFontFamily = 'Arimo';
+
+  /// Fallback for Arabic, which [bodyFontFamily] does not cover.
+  ///
+  /// This is the face Android already falls back to, so the website and the
+  /// app render Arabic the same way -- and bundling it stops Arabic drifting
+  /// between Android, iOS and web. On web it also removes the runtime fetch of
+  /// Noto from `fonts.gstatic.com`, which was showing Arabic and the ﷻ / ﷺ
+  /// honorifics as empty boxes wherever gstatic is unreachable.
+  static const String arabicFontFamily = 'Noto Naskh Arabic';
+
+  /// Pass to any `TextStyle`/`Style` that can contain Arabic.
+  static const List<String> fontFamilyFallback = <String>[arabicFontFamily];
 
   /// App bar background color for all screens. Use this when overriding AppBar.backgroundColor.
   static Color getAppBarColor(String themeName) {
@@ -64,6 +76,7 @@ class ThemeHelper {
     return ThemeData(
       brightness: Brightness.light,
       fontFamily: bodyFontFamily,
+      fontFamilyFallback: fontFamilyFallback,
       colorScheme: ColorScheme.fromSeed(
         seedColor: _brown,
         brightness: Brightness.light,
@@ -83,6 +96,7 @@ class ThemeHelper {
           // ThemeData.fontFamily does not reach it. Left unset it falls back
           // to the platform default -- the very font this app replaced.
           fontFamily: bodyFontFamily,
+          fontFamilyFallback: fontFamilyFallback,
           fontWeight: FontWeight.bold,
           fontSize: 20,
         ),
@@ -109,6 +123,7 @@ class ThemeHelper {
     return ThemeData(
       brightness: Brightness.dark,
       fontFamily: bodyFontFamily,
+      fontFamilyFallback: fontFamilyFallback,
       colorScheme: ColorScheme.fromSeed(
         seedColor: _brown,
         brightness: Brightness.dark,
@@ -126,6 +141,7 @@ class ThemeHelper {
           // ThemeData.fontFamily does not reach it. Left unset it falls back
           // to the platform default -- the very font this app replaced.
           fontFamily: bodyFontFamily,
+          fontFamilyFallback: fontFamilyFallback,
           fontWeight: FontWeight.bold,
           fontSize: 20,
         ),

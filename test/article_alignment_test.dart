@@ -27,6 +27,7 @@ void main() {
         <p style="text-align: right">ARABICLINE</p>
         <p style="text-align: center">Perenggan di tengah.</p>
         <p>Perenggan tanpa penjajaran.</p>
+        <p><a href="https://celiktafsir.net/wp-content/uploads/2013/03/gambar.jpg"><img src="https://celiktafsir.net/wp-content/uploads/2013/03/gambar.jpg?w=660" /></a></p>
         Share this
       </div>
     </body></html>

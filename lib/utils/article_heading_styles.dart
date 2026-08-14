@@ -18,6 +18,8 @@ Map<String, Style> articleHeadingStyles(Color? textColor) {
       tag: Style(
         color: textColor,
         fontFamily: ThemeHelper.bodyFontFamily,
+        // Article headings are frequently the Arabic verse itself.
+        fontFamilyFallback: ThemeHelper.fontFamilyFallback,
         fontWeight: FontWeight.bold,
       ),
   };
