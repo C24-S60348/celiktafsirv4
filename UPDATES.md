@@ -1,6 +1,6 @@
 # Celik Tafsir — Updates & Todo
 
-Versi semasa: **1.0.27+27** · Web: https://celiktafsir.web.app
+Versi semasa: **1.0.28+28** · Web: https://celiktafsir.web.app
 
 Senarai ini disemak terus dengan kod, bukan dari ingatan.
 
@@ -42,6 +42,12 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
 13. **Warna appbar — owner putuskan kekal seperti asal.** Tan `#E6D7C4`
     (terang) / `#5C4033` (gelap) ialah warna app Celik Tafsir yang asal,
     jadi tiada perubahan dibuat. Nota warna disimpan di bawah untuk rujukan.
+14. **Hadis 40 tak lagi tersekat pada 3 artikel.** URL senarai sebenar sudah
+    disahkan terus dari laman web: `celiktafsir.net/hadis-40-imam-nawawi/`
+    (teka lama `/hadis-40/` cuma redirect ke situ). Sekarang **12 artikel**
+    keluar, HADIS #25 sampai #36. Nombor hadis diambil balik dari `<span>`
+    di sebelah link, jadi tajuk kekal "HADIS #25 Sedekah dari Orang Miskin".
+    (`lib/services/gethadis_40.dart`)
 
 ---
 
@@ -50,7 +56,7 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
 1. **Soalan quiz** — belum ada langsung dalam app.
 2. **Fix character rosak dalam app** — *kod sudah dibetulkan, tunggu owner
    sahkan atas telefon.*
-   Puncanya memang `response.body`. Kalau server tak hantar `charset` dalam
+   Suspek utama ialah `response.body`. Kalau server tak hantar `charset` dalam
    header, package `http` baca bait sebagai latin-1, jadi setiap aksara
    UTF-8 (tanda petik melengkung, dash panjang, huruf Arab) pecah — huruf
    Arab keluar sebagai `Ø¨ÙØ³ÙÙÙ`, tanda petik jadi `â`.
@@ -60,9 +66,22 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
    Ada ujian `test/utf8_response_test.dart` yang gagal atas kod lama dan
    lulus atas kod baru, termasuk satu ujian yang menghalang service baru
    guna `response.body` lagi.
-   **Masih perlu disahkan atas peranti sebenar** — sandbox sekat
-   `celiktafsir.net` dan proxy `afwanhaziq.vps.webdock.cloud`, jadi ujian
-   guna fixture UTF-8, bukan laman sebenar.
+   **Masih perlu disahkan atas peranti sebenar** — ujian guna fixture
+   UTF-8 yang dibuat sendiri, bukan respons laman sebenar.
+
+   **Disemak terus dari laman web (2026-08-13).** Sandbox kali ini boleh
+   capai kedua-dua domain, jadi header sudah dibaca sendiri:
+   - `celiktafsir.net` hantar `content-type: text/html; charset=UTF-8`
+     pada semua URL yang dicuba (artikel, senarai, `/asmaul-husna/`)
+   - proxy `afwanhaziq.vps.webdock.cloud` hantar `charset=utf-8` juga,
+     status 200 (tidak lagi 403)
+
+   Maknanya pada hari ini `response.body` **sudah pun** dibaca sebagai
+   UTF-8, jadi latin-1 itu mungkin bukan punca sebenar aksara rosak yang
+   owner nampak. Fix `decodeUtf8Body` tetap elok dikekalkan — dia betul
+   walau header hilang satu hari nanti — tetapi kalau aksara masih rosak
+   atas telefon, puncanya di tempat lain (suspek: tiada font Arab
+   di-bundle, lihat item font di bawah). Perlu screenshot dari owner.
 3. **Pilihan jenis tulisan (font) dalam Settings tak berfungsi.**
    Amiri / Scheherazade / Lateef / Noto Sans Arabic — pilihan disimpan
    (`selected_font`) tapi **tak pernah dibaca** di mana-mana, dan tiada

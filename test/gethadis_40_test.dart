@@ -74,6 +74,47 @@ void main() {
     expect(posts.single['title'], 'HADIS #26');
   });
 
+  testWidgets('recovers the hadis number kept outside the link', (
+    tester,
+  ) async {
+    // Shape of the real listing page: the number lives in a sibling <span>,
+    // so the anchor text on its own would drop it.
+    HttpOverrides.global = FakeHttpOverrides(
+      categoryPage('''
+        <p><span style="color: #ff0000"><strong>HADIS #25<br /></strong></span><a href="https://celiktafsir.net/2025/12/31/syarah-hadis-25-hadis-40-imam-nawawi/">Sedekah dari Orang Miskin</a></p>
+        <p><strong><span style="color: #ff0000">HADIS #29</span><br /></strong><a href="https://celiktafsir.net/2026/03/03/syarah-hadis-29-hadis-40-imam-nawawi/">Pintu-pintu Kebaikan</a></p>
+      '''),
+    );
+
+    final posts = await GetHadis40.getHadis40Posts();
+
+    expect(
+      posts.map((p) => p['title']).toList(),
+      ['HADIS #25 Sedekah dari Orang Miskin', 'HADIS #29 Pintu-pintu Kebaikan'],
+    );
+  });
+
+  testWidgets('does not borrow a number from a shared container', (
+    tester,
+  ) async {
+    // Several links under one heading: the number describes none of them.
+    HttpOverrides.global = FakeHttpOverrides(
+      categoryPage('''
+        <p><strong>HADIS #25</strong>
+          <a href="https://celiktafsir.net/2026/01/07/syarah-hadis-26-hadis-40/">Setiap Sendi Mesti Bersedekah</a>
+          <a href="https://celiktafsir.net/2026/02/02/syarah-hadis-27-hadis-40/">Mintalah Fatwa kepada Hatimu</a>
+        </p>
+      '''),
+    );
+
+    final posts = await GetHadis40.getHadis40Posts();
+
+    expect(
+      posts.map((p) => p['title']).toList(),
+      ['Setiap Sendi Mesti Bersedekah', 'Mintalah Fatwa kepada Hatimu'],
+    );
+  });
+
   testWidgets('falls back to the known articles when the category is empty', (
     tester,
   ) async {
