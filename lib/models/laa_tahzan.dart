@@ -6,6 +6,7 @@ import '../services/baca.dart' as service;
 import '../widgets/image_zoom_overlay.dart';
 import '../utils/html_link_helper.dart';
 import '../utils/article_heading_styles.dart';
+import '../utils/image_proxy.dart';
 
 /// Remove numbering from unordered list items and clean up nested list structures
 String _removeNumbersFromUnorderedLists(String html) {
@@ -62,29 +63,6 @@ String _removeNumbersFromUnorderedLists(String html) {
   return result;
 }
 
-/// Get proxied image URL for web to bypass CORS
-String _getProxiedImageUrl(String imageUrl) {
-  // Handle relative URLs by converting to absolute URLs
-  String absoluteUrl = imageUrl;
-  if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
-    // If it's a relative URL, prepend the base URL
-    const baseUrl = 'https://celiktafsir.net';
-    if (imageUrl.startsWith('/')) {
-      absoluteUrl = '$baseUrl$imageUrl';
-    } else {
-      absoluteUrl = '$baseUrl/$imageUrl';
-    }
-  }
-
-  if (kIsWeb) {
-    // For web, use CORS proxy for images
-    const corsProxy = 'https://afwanhaziq.vps.webdock.cloud/proxy?url=';
-    return '$corsProxy$absoluteUrl';
-  }
-  // For mobile, use direct URL
-  return absoluteUrl;
-}
-
 /// Process HTML content to proxy all image URLs for web
 String _processHtmlForWeb(String htmlContent) {
   if (!kIsWeb) {
@@ -103,7 +81,7 @@ String _processHtmlForWeb(String htmlContent) {
     final afterSrc = match.group(3) ?? '';
 
     // Get proxied URL
-    final proxiedSrc = _getProxiedImageUrl(originalSrc);
+    final proxiedSrc = proxiedImageUrl(originalSrc);
 
     return '<img$beforeSrc src="$proxiedSrc"$afterSrc>';
   });
@@ -117,7 +95,7 @@ Widget Function(ExtensionContext) networkImageExtensionBuilderWithTheme(
     final src = extensionContext.attributes['src'];
     if (src != null && src.isNotEmpty) {
       // Proxy the image URL for web to bypass CORS
-      final proxiedUrl = _getProxiedImageUrl(src);
+      final proxiedUrl = proxiedImageUrl(src);
 
       return GestureDetector(
         onTap: () {
