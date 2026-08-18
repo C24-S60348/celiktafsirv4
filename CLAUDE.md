@@ -161,6 +161,12 @@ hand-maintained list of links. Consequences:
   a`, `.pagination-next a`) ever match. Every post is on page 1 and the loop
   correctly stops after one request. `/page/2/` serves the same page again;
   duplicate URLs make `foundNewLinks` false, so that is harmless too.
+- **Slug spelling is not consistent.** Hadis #25-#36 are
+  `syarah-hadis-NN-...`, but #37 is `hadits-arbain-37` -- *hadits*, with a
+  't'. The scraper's safety-net filter used `contains('hadis')` and silently
+  dropped it, so the section sat at 12 articles while the page showed 13.
+  `GetHadis40._hadisSlugPattern` now accepts hadis/hadits/hadith/arbain.
+  If a newly published hadis does not appear, check its slug spelling first.
 - **The link text is not the whole title.** Hadis 40 keeps the number in a
   sibling `<span>`: `<p><strong>HADIS #25</strong><br><a>Sedekah dari Orang
   Miskin</a></p>`. `GetHadis40._titleForLink` walks up to recover it. Check

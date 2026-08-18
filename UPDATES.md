@@ -1,6 +1,6 @@
 # Celik Tafsir — Updates & Todo
 
-Versi semasa: **1.0.32+32** · Web: https://celiktafsir.web.app
+Versi semasa: **1.0.33+33** · Web: https://celiktafsir.web.app
 
 Senarai ini disemak terus dengan kod, bukan dari ingatan.
 
@@ -44,10 +44,19 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
     jadi tiada perubahan dibuat. Nota warna disimpan di bawah untuk rujukan.
 14. **Hadis 40 tak lagi tersekat pada 3 artikel.** URL senarai sebenar sudah
     disahkan terus dari laman web: `celiktafsir.net/hadis-40-imam-nawawi/`
-    (teka lama `/hadis-40/` cuma redirect ke situ). Sekarang **12 artikel**
-    keluar, HADIS #25 sampai #36. Nombor hadis diambil balik dari `<span>`
+    (teka lama `/hadis-40/` cuma redirect ke situ). Sekarang **13 artikel**
+    keluar, HADIS #25 sampai #37. Nombor hadis diambil balik dari `<span>`
     di sebelah link, jadi tajuk kekal "HADIS #25 Sedekah dari Orang Miskin".
     (`lib/services/gethadis_40.dart`)
+
+    **HADIS #37 sempat tercicir.** Penapis slug dulu hanya terima slug yang
+    mengandungi `hadis`, tetapi #37 diterbitkan sebagai
+    `/2026/08/16/hadits-arbain-37/` — eja **hadits** (ada 't'), jadi ia
+    tidak lulus penapis dan senarai berhenti di #36. Penapis sekarang
+    terima `hadis`, `hadits`, `hadith` dan `arbain`.
+    Ujian: ujian slug dalam `test/gethadis_40_test.dart` (gagal atas kod
+    lama). Kalau satu hari nanti ada hadis baru tak keluar lagi, benda
+    pertama yang perlu disemak ialah ejaan slug artikel itu.
 15. **Font app sekarang sama dengan celiktafsir.net.** Ada pembaca beri
     review 4 bintang: *"font dalam aplikasi berbeza berbanding di dalam
     celik tafsir.net... kurang menarik dan agak susah untuk dibaca"*.

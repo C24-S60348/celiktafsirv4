@@ -115,6 +115,29 @@ void main() {
     );
   });
 
+  testWidgets('accepts the alternate hadits/arbain slug spelling', (
+    tester,
+  ) async {
+    // The owner does not spell the slugs consistently: #25-#36 are
+    // "syarah-hadis-NN-...", but #37 was published as "hadits-arbain-37".
+    // A contains('hadis') check dropped it and the section stopped at #36.
+    HttpOverrides.global = FakeHttpOverrides(
+      categoryPage('''
+        <p><strong>HADIS #36</strong><br /><a href="https://celiktafsir.net/2026/07/01/syarah-hadis-36-hadis-40/">Rajin Menolong</a></p>
+        <p><strong>HADIS #37</strong><br /><a href="https://celiktafsir.net/2026/08/16/hadits-arbain-37/">Berniat Baik dan Buruk</a></p>
+      '''),
+    );
+
+    final posts = await GetHadis40.getHadis40Posts();
+
+    expect(posts, hasLength(2));
+    expect(posts.last['title'], 'HADIS #37 Berniat Baik dan Buruk');
+    expect(
+      posts.last['url'],
+      'https://celiktafsir.net/2026/08/16/hadits-arbain-37/',
+    );
+  });
+
   testWidgets('falls back to the known articles when the category is empty', (
     tester,
   ) async {
