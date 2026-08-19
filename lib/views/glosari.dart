@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/glosari.dart' as model;
 import '../utils/theme_helper.dart';
+import '../utils/html_link_helper.dart';
 
 class GlosariPage extends StatefulWidget {
   const GlosariPage({super.key});
@@ -83,6 +84,7 @@ class _GlosariPageState extends State<GlosariPage> {
 
   void _copyTextToClipboard(String text, {String type = 'Teks'}) {
     Clipboard.setData(ClipboardData(text: text)).then((_) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('$type telah disalin ke klipbod'),
@@ -91,6 +93,7 @@ class _GlosariPageState extends State<GlosariPage> {
         ),
       );
     }).catchError((e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Gagal menyalin $type'),
@@ -196,9 +199,10 @@ class _GlosariPageState extends State<GlosariPage> {
                               );
                             }
                           } else if (value == 'website') {
-                            Navigator.of(context).pushNamed('/websitepage', arguments: {
-                              'url': 'https://celiktafsir.net/glosari-blog/',
-                            });
+                            showOpenWebsiteOverlay(
+                              context,
+                              'https://celiktafsir.net/glosari-blog/',
+                            );
                           }
                         },
                         itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[

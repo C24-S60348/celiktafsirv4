@@ -15,7 +15,9 @@ class _BookmarksPageState extends State<BookmarksPage> {
   List<Map<String, dynamic>> bookmarks = [];
   bool isLoading = true;
   bool _isNavigating = false;
-  final Map<int, Future<Map<String, dynamic>?>> _surahCache = {};
+  // Keyed by surahIndex + categoryUrl: the same surah can appear as
+  // several juzuk variants, and they must not share an entry.
+  final Map<String, Future<Map<String, dynamic>?>> _surahCache = {};
 
   @override
   void initState() {
@@ -178,15 +180,23 @@ class _BookmarksPageState extends State<BookmarksPage> {
                             itemBuilder: (context, index) {
                               final bookmark = bookmarks[index];
                               final surahIndex = bookmark['surahIndex'] as int;
-                              
+                              final bookmarkCategoryUrl =
+                                  bookmark['categoryUrl'] as String?;
+                              final cacheKey =
+                                  '$surahIndex|${bookmarkCategoryUrl ?? ''}';
+
                               // Cache the future to avoid reloading when widget rebuilds
-                              if (!_surahCache.containsKey(surahIndex)) {
-                                _surahCache[surahIndex] = getlist.GetListSurah.getSurahByIndex(surahIndex);
+                              if (!_surahCache.containsKey(cacheKey)) {
+                                _surahCache[cacheKey] = getlist.GetListSurah
+                                    .getSurahByIndex(
+                                  surahIndex,
+                                  categoryUrl: bookmarkCategoryUrl,
+                                );
                               }
                               
                               return FutureBuilder<Map<String, dynamic>?>(
-                                key: ValueKey('surah_$surahIndex'),
-                                future: _surahCache[surahIndex],
+                                key: ValueKey('surah_$cacheKey'),
+                                future: _surahCache[cacheKey],
                                 builder: (context, snapshot) {
                                   if (snapshot.connectionState == ConnectionState.waiting) {
                                     return Card(

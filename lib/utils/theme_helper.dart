@@ -32,6 +32,34 @@ class ThemeHelper {
     return themeName == 'Gelap' ? Colors.white : loadingIndicatorDarkBrown;
   }
 
+  /// The single font the whole app uses. It is celiktafsir.net's body face,
+  /// read from the site's own stylesheet rather than guessed:
+  ///
+  ///   .wf-active body { font-family: "Arimo", sans-serif }
+  ///
+  /// A reader reported the app's font was harder to read than the website's;
+  /// the app had no font bundled at all and fell back to the platform default.
+  ///
+  /// The site pairs this with Alegreya on its headings, but the owner asked
+  /// for one font, so headings use this face too. Body text is nearly all of
+  /// what a reader sees, and it is the half the complaint was about.
+  ///
+  /// Arimo carries no Arabic, so Arabic runs fall through to
+  /// [arabicFontFamily].
+  static const String bodyFontFamily = 'Arimo';
+
+  /// Fallback for Arabic, which [bodyFontFamily] does not cover.
+  ///
+  /// This is the face Android already falls back to, so the website and the
+  /// app render Arabic the same way -- and bundling it stops Arabic drifting
+  /// between Android, iOS and web. On web it also removes the runtime fetch of
+  /// Noto from `fonts.gstatic.com`, which was showing Arabic and the ﷻ / ﷺ
+  /// honorifics as empty boxes wherever gstatic is unreachable.
+  static const String arabicFontFamily = 'Noto Naskh Arabic';
+
+  /// Pass to any `TextStyle`/`Style` that can contain Arabic.
+  static const List<String> fontFamilyFallback = <String>[arabicFontFamily];
+
   /// App bar background color for all screens. Use this when overriding AppBar.backgroundColor.
   static Color getAppBarColor(String themeName) {
     switch (themeName) {
@@ -47,6 +75,8 @@ class ThemeHelper {
   static ThemeData _lightTheme() {
     return ThemeData(
       brightness: Brightness.light,
+      fontFamily: bodyFontFamily,
+      fontFamilyFallback: fontFamilyFallback,
       colorScheme: ColorScheme.fromSeed(
         seedColor: _brown,
         brightness: Brightness.light,
@@ -62,6 +92,11 @@ class ThemeHelper {
         iconTheme: IconThemeData(color: Colors.black),
         titleTextStyle: TextStyle(
           color: Colors.black,
+          // AppBarTheme.titleTextStyle is not part of textTheme, so
+          // ThemeData.fontFamily does not reach it. Left unset it falls back
+          // to the platform default -- the very font this app replaced.
+          fontFamily: bodyFontFamily,
+          fontFamilyFallback: fontFamilyFallback,
           fontWeight: FontWeight.bold,
           fontSize: 20,
         ),
@@ -87,6 +122,8 @@ class ThemeHelper {
   static ThemeData _darkTheme() {
     return ThemeData(
       brightness: Brightness.dark,
+      fontFamily: bodyFontFamily,
+      fontFamilyFallback: fontFamilyFallback,
       colorScheme: ColorScheme.fromSeed(
         seedColor: _brown,
         brightness: Brightness.dark,
@@ -100,6 +137,11 @@ class ThemeHelper {
         iconTheme: IconThemeData(color: Colors.white),
         titleTextStyle: TextStyle(
           color: Colors.white,
+          // AppBarTheme.titleTextStyle is not part of textTheme, so
+          // ThemeData.fontFamily does not reach it. Left unset it falls back
+          // to the platform default -- the very font this app replaced.
+          fontFamily: bodyFontFamily,
+          fontFamilyFallback: fontFamilyFallback,
           fontWeight: FontWeight.bold,
           fontSize: 20,
         ),

@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import '../services/baca.dart' as service;
 import '../widgets/image_zoom_overlay.dart';
 import '../utils/html_link_helper.dart';
+import '../utils/article_heading_styles.dart';
 
 /// Remove numbering from unordered list items and clean up nested list structures
 String _removeNumbersFromUnorderedLists(String html) {
@@ -262,12 +263,10 @@ Widget bodyContent(String url, [bool isDark = false, Color? textColor]) {
               style: {
                 "body": createStyle(
                   fontSize: FontSize(fontSize),
-                  textAlign: TextAlign.justify,
                   color: htmlTextColor,
                 ),
                 "p": createStyle(
                   fontSize: FontSize(fontSize),
-                  textAlign: TextAlign.justify,
                   color: htmlTextColor,
                 ),
                 "div": createStyle(color: htmlTextColor),
@@ -292,14 +291,12 @@ Widget bodyContent(String url, [bool isDark = false, Color? textColor]) {
                 ),
                 "ul": createStyle(
                   fontSize: FontSize(fontSize),
-                  textAlign: TextAlign.justify,
                   listStyleType: ListStyleType.disc,
                   padding: HtmlPaddings.only(left: 20),
                   color: htmlTextColor,
                 ),
                 "ol": createStyle(
                   fontSize: FontSize(fontSize),
-                  textAlign: TextAlign.justify,
                   listStyleType: ListStyleType.none,
                   padding: HtmlPaddings.only(left: 20),
                   margin: Margins.zero,
@@ -308,34 +305,10 @@ Widget bodyContent(String url, [bool isDark = false, Color? textColor]) {
                 ),
                 "li": createStyle(
                   fontSize: FontSize(fontSize),
-                  textAlign: TextAlign.justify,
                   padding: HtmlPaddings.only(bottom: 8),
                   color: htmlTextColor,
                 ),
-                "h1": createStyle(
-                  color: htmlTextColor,
-                  fontWeight: FontWeight.bold,
-                ),
-                "h2": createStyle(
-                  color: htmlTextColor,
-                  fontWeight: FontWeight.bold,
-                ),
-                "h3": createStyle(
-                  color: htmlTextColor,
-                  fontWeight: FontWeight.bold,
-                ),
-                "h4": createStyle(
-                  color: htmlTextColor,
-                  fontWeight: FontWeight.bold,
-                ),
-                "h5": createStyle(
-                  color: htmlTextColor,
-                  fontWeight: FontWeight.bold,
-                ),
-                "h6": createStyle(
-                  color: htmlTextColor,
-                  fontWeight: FontWeight.bold,
-                ),
+                ...articleHeadingStyles(htmlTextColor),
                 "img": Style(
                   width: Width(double.infinity),
                   height: Height(200),

@@ -7,6 +7,7 @@ import '../services/getlistsurah.dart' as getlist;
 import '../services/baca.dart' as service;
 import '../widgets/image_zoom_overlay.dart';
 import '../utils/html_link_helper.dart';
+import '../utils/article_heading_styles.dart';
 
 /// Remove numbering from unordered list items and clean up nested list structures
 String _removeNumbersFromUnorderedLists(String html) {
@@ -279,12 +280,10 @@ Widget bodyContent(
               style: {
                 "body": Style(
                   fontSize: FontSize(fontSize),
-                  textAlign: TextAlign.justify,
                   color: isDark ? Colors.white : null,
                 ),
                 "p": Style(
                   fontSize: FontSize(fontSize),
-                  textAlign: TextAlign.justify,
                   color: isDark ? Colors.white : null,
                   // margin: Margins.only(top: 4, bottom: 4), // Reduce top and bottom spacing
                   // padding: HtmlPaddings.zero, // Remove padding
@@ -311,14 +310,12 @@ Widget bodyContent(
                 ),
                 "ul": Style(
                   fontSize: FontSize(fontSize),
-                  textAlign: TextAlign.justify,
                   listStyleType: ListStyleType.disc,
                   padding: HtmlPaddings.only(left: 20),
                   color: isDark ? Colors.white : null,
                 ),
                 "ol": Style(
                   fontSize: FontSize(fontSize),
-                  textAlign: TextAlign.justify,
                   listStyleType: ListStyleType.none,
                   padding: HtmlPaddings.only(left: 20),
                   margin: Margins.zero,
@@ -327,16 +324,10 @@ Widget bodyContent(
                 ),
                 "li": Style(
                   fontSize: FontSize(fontSize),
-                  textAlign: TextAlign.justify,
                   padding: HtmlPaddings.only(bottom: 8),
                   color: isDark ? Colors.white : null,
                 ),
-                "h1": Style(color: isDark ? Colors.white : null, fontWeight: FontWeight.bold),
-                "h2": Style(color: isDark ? Colors.white : null, fontWeight: FontWeight.bold),
-                "h3": Style(color: isDark ? Colors.white : null, fontWeight: FontWeight.bold),
-                "h4": Style(color: isDark ? Colors.white : null, fontWeight: FontWeight.bold),
-                "h5": Style(color: isDark ? Colors.white : null, fontWeight: FontWeight.bold),
-                "h6": Style(color: isDark ? Colors.white : null, fontWeight: FontWeight.bold),
+                ...articleHeadingStyles(isDark ? Colors.white : null),
                 "img": Style(
                   width: Width(double.infinity),
                   height: Height(200),
