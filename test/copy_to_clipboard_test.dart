@@ -98,10 +98,10 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// The copy action used to be a one-item PopupMenuButton behind the copy
+  /// icon; it is now the icon itself, so this is a single tap.
   Future<void> tapCopyContent(WidgetTester tester) async {
     await tester.tap(find.byIcon(Icons.copy));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Salin Kandungan'));
   }
 
   testWidgets('copies the article body and confirms with a snackbar', (

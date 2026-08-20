@@ -8,6 +8,7 @@ import '../services/baca.dart' as service;
 import '../widgets/image_zoom_overlay.dart';
 import '../utils/html_link_helper.dart';
 import '../utils/article_heading_styles.dart';
+import '../utils/html_plain_text.dart';
 import '../utils/image_proxy.dart';
 
 /// Remove numbering from unordered list items and clean up nested list structures
@@ -335,6 +336,29 @@ Widget bodyContent(
       );
     },
   );
+}
+
+/// Plain text of the very page [bodyContent] is rendering, for the clipboard.
+///
+/// Goes through the same `_getPageContent` cache the widget uses, so the page
+/// already on screen costs nothing to copy -- no second request, and no
+/// loading flash in the article behind it.
+///
+/// Returns null when the article could not be fetched (offline, unknown URL)
+/// or came back empty, which is what the caller reports as a failed copy.
+Future<String?> getPlainText(
+  int surahIndex,
+  int currentPage, [
+  String? categoryUrl,
+]) async {
+  final html = await _getPageContent(
+    surahIndex,
+    currentPage,
+    categoryUrl: categoryUrl,
+  );
+  if (html == null) return null;
+  final text = htmlToPlainText(html);
+  return text.isEmpty ? null : text;
 }
 
 /// In-memory cache for page content so bookmark toggle / setState does not refetch.

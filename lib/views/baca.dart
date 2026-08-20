@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/baca.dart' as model;
 import '../services/getlistsurah.dart' as getlist;
 import '../utils/theme_helper.dart';
@@ -204,6 +205,30 @@ class _BacaPageState extends State<BacaPage> {
     }
   }
 
+  /// Copies the article body of the page currently on screen.
+  ///
+  /// The text comes from the same cache `bodyContent` reads, so the page in
+  /// front of the reader is copied without refetching it. Every branch reports
+  /// through [_showBookmarkMessage] so the snackbar matches the bookmark one.
+  void _copyPageText() async {
+    try {
+      final text = await model.getPlainText(surahIndex, currentPage, categoryUrl);
+      if (!mounted) return;
+      if (text == null) {
+        _showBookmarkMessage('Gagal menyalin teks');
+        return;
+      }
+      await Clipboard.setData(ClipboardData(text: text));
+      // Second guard: the reader can leave while the clipboard write is in
+      // flight, and ScaffoldMessenger.of(context) would throw on a dead State.
+      if (!mounted) return;
+      _showBookmarkMessage('Teks disalin');
+    } catch (e) {
+      if (!mounted) return;
+      _showBookmarkMessage('Gagal menyalin teks');
+    }
+  }
+
   void _showBookmarkMessage(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -276,6 +301,11 @@ class _BacaPageState extends State<BacaPage> {
                         ),
                       ),
                       actions: [
+                        IconButton(
+                          onPressed: _copyPageText,
+                          tooltip: 'Salin Kandungan',
+                          icon: Icon(Icons.copy),
+                        ),
                         ValueListenableBuilder<bool>(
                           valueListenable: _isBookmarked,
                           builder: (_, isBookmarked, __) => IconButton(
@@ -305,6 +335,7 @@ class _BacaPageState extends State<BacaPage> {
                               url ?? 'https://celiktafsir.net',
                             );
                           },
+                          tooltip: 'Buka Laman Web',
                           icon: Icon(Icons.language),
                         ),
                       ],

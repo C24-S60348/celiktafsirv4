@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../models/laa_tahzan.dart' as model;
 import '../utils/theme_helper.dart';
 import '../utils/html_link_helper.dart';
+import '../utils/html_plain_text.dart';
 import '../widgets/article_read_bottom_nav.dart';
 import '../widgets/article_read_top_nav.dart';
 import '../widgets/article_swipe_navigator.dart';
@@ -99,6 +100,23 @@ class _BacaLaaTahzanPageState extends State<BacaLaaTahzanPage> {
     );
   }
 
+  /// Copies the loaded article body. The fetch fills [_laaTahzanContent] on
+  /// load, so there is nothing to await here -- an empty field means the
+  /// article has not landed yet (or failed), and we say so.
+  void _copyContent() {
+    if (_laaTahzanContent == null || _laaTahzanContent!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Kandungan belum dimuatkan'),
+          duration: Duration(seconds: 1),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+    _copyTextToClipboard(htmlToPlainText(_laaTahzanContent!), type: 'Kandungan');
+  }
+
   void _copyTextToClipboard(String text, {String type = 'Teks'}) {
     Clipboard.setData(ClipboardData(text: text)).then((_) {
       if (!mounted) return;
@@ -119,44 +137,6 @@ class _BacaLaaTahzanPageState extends State<BacaLaaTahzanPage> {
         ),
       );
     });
-  }
-
-  String _stripHtmlTags(String htmlContent) {
-    String plainText = htmlContent;
-    
-    // Replace block elements with double newlines to preserve paragraph structure
-    plainText = plainText.replaceAll(RegExp(r'</p>\s*<p>', caseSensitive: false), '\n\n');
-    plainText = plainText.replaceAll(RegExp(r'<p[^>]*>', caseSensitive: false), '');
-    plainText = plainText.replaceAll(RegExp(r'</p>', caseSensitive: false), '');
-    plainText = plainText.replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n');
-    plainText = plainText.replaceAll(RegExp(r'<div[^>]*>', caseSensitive: false), '');
-    plainText = plainText.replaceAll(RegExp(r'</div>', caseSensitive: false), '\n');
-    plainText = plainText.replaceAll(RegExp(r'<blockquote[^>]*>', caseSensitive: false), '');
-    plainText = plainText.replaceAll(RegExp(r'</blockquote>', caseSensitive: false), '');
-    
-    // Remove remaining HTML tags
-    final RegExp htmlRegex = RegExp(r'<[^>]*>');
-    plainText = plainText.replaceAll(htmlRegex, '');
-    
-    // Decode HTML entities
-    plainText = plainText
-        .replaceAll('&nbsp;', ' ')
-        .replaceAll('&lt;', '<')
-        .replaceAll('&gt;', '>')
-        .replaceAll('&quot;', '"')
-        .replaceAll('&#39;', "'")
-        .replaceAll('&amp;', '&');
-    
-    // Clean up excessive whitespace while preserving paragraph breaks
-    // Replace multiple spaces with single space
-    plainText = plainText.replaceAll(RegExp(r' +'), ' ');
-    // Replace multiple newlines with double newlines (paragraph breaks)
-    plainText = plainText.replaceAll(RegExp(r'\n\n+'), '\n\n');
-    // Trim each line
-    final lines = plainText.split('\n');
-    plainText = lines.map((line) => line.trim()).join('\n');
-    
-    return plainText.trim();
   }
 
   @override
@@ -232,35 +212,9 @@ class _BacaLaaTahzanPageState extends State<BacaLaaTahzanPage> {
                             )
                           : null,
                       actions: [
-                        PopupMenuButton<String>(
-                          onSelected: (value) {
-                            if (value == 'content') {
-                              if (_laaTahzanContent != null && _laaTahzanContent!.isNotEmpty) {
-                                final plainText = _stripHtmlTags(_laaTahzanContent!);
-                                _copyTextToClipboard(plainText, type: 'Kandungan');
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Kandungan belum dimuatkan'),
-                                    duration: Duration(seconds: 1),
-                                    backgroundColor: Colors.orange,
-                                  ),
-                                );
-                              }
-                            }
-                          },
-                          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                            PopupMenuItem<String>(
-                              value: 'content',
-                              child: Row(
-                                children: [
-                                  Icon(Icons.article, size: 20),
-                                  SizedBox(width: 8),
-                                  Text('Salin Kandungan'),
-                                ],
-                              ),
-                            ),
-                          ],
+                        IconButton(
+                          onPressed: _copyContent,
+                          tooltip: 'Salin Kandungan',
                           icon: Icon(Icons.copy),
                         ),
                         IconButton(
@@ -269,6 +223,7 @@ class _BacaLaaTahzanPageState extends State<BacaLaaTahzanPage> {
                               showOpenWebsiteOverlay(context, postUrl!);
                             }
                           },
+                          tooltip: 'Buka Laman Web',
                           icon: Icon(Icons.language),
                         ),
                       ],
