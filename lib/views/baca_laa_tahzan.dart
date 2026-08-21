@@ -6,6 +6,7 @@ import '../utils/html_link_helper.dart';
 import '../widgets/article_read_bottom_nav.dart';
 import '../widgets/article_read_top_nav.dart';
 import '../widgets/article_swipe_navigator.dart';
+import '../widgets/nota_pembaca_button.dart';
 
 class BacaLaaTahzanPage extends StatefulWidget {
   const BacaLaaTahzanPage({super.key});
@@ -232,8 +233,18 @@ class _BacaLaaTahzanPageState extends State<BacaLaaTahzanPage> {
                             )
                           : null,
                       actions: [
+                        const NotaPembacaButton(),
                         PopupMenuButton<String>(
                           onSelected: (value) {
+                            if (value == 'website') {
+                              // Moved out of a standalone icon so the app bar
+                              // has room for Nota Pembaca without squeezing
+                              // an already long article title.
+                              if (postUrl != null) {
+                                showOpenWebsiteOverlay(context, postUrl!);
+                              }
+                              return;
+                            }
                             if (value == 'content') {
                               if (_laaTahzanContent != null && _laaTahzanContent!.isNotEmpty) {
                                 final plainText = _stripHtmlTags(_laaTahzanContent!);
@@ -260,16 +271,21 @@ class _BacaLaaTahzanPageState extends State<BacaLaaTahzanPage> {
                                 ],
                               ),
                             ),
+                            PopupMenuItem<String>(
+                              value: 'website',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.language, size: 20),
+                                  SizedBox(width: 8),
+                                  Text('Buka Laman Web'),
+                                ],
+                              ),
+                            ),
                           ],
-                          icon: Icon(Icons.copy),
-                        ),
-                        IconButton(
-                          onPressed: () {
-                            if (postUrl != null) {
-                              showOpenWebsiteOverlay(context, postUrl!);
-                            }
-                          },
-                          icon: Icon(Icons.language),
+                          // Was a copy icon back when copying was all this
+                          // menu did; it now also opens the website, so use
+                          // the conventional overflow glyph.
+                          icon: Icon(Icons.more_vert),
                         ),
                       ],
                     ),

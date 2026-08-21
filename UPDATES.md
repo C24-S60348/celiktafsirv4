@@ -1,6 +1,6 @@
 # Celik Tafsir — Updates & Todo
 
-Versi semasa: **1.0.34+34** · Web: https://celiktafsir.web.app
+Versi semasa: **1.0.35+35** · Web: https://celiktafsir.web.app
 
 Senarai ini disemak terus dengan kod, bukan dari ingatan.
 
@@ -114,6 +114,24 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
     **Tema**. Susun atur disemak atas build sebenar — latar belakang
     `Tetapan_baru.png` cuma bingkai hiasan, tiada label tercetak, jadi
     membuang satu baris tidak merosakkan penjajaran.
+20. **Nota Pembaca** — satu buku nota **bebas untuk seluruh app** (bukan
+    satu nota bagi setiap artikel). Butang nota ada di app bar semua enam
+    page bacaan; mana-mana satu buka buku nota yang sama.
+    - Tiada butang simpan: taip sahaja, ia disimpan sendiri selepas berhenti
+      seketika, dan disimpan sekali lagi masa keluar supaya perkataan
+      terakhir tidak hilang.
+    - Ada **Salin Nota** dan **Kosongkan Nota** (dengan pengesahan).
+    - Simpanan: SharedPreferences, kunci `nota_pembaca`
+      (`lib/utils/reader_notes.dart`).
+
+    **App bar dikemas supaya muat.** Ikon glob (Buka Laman Web) dulu berdiri
+    sendiri; ia dipindahkan ke dalam menu `⋮` yang sedia ada, jadi lima page
+    seksyen kekal 2 slot walaupun butang nota ditambah. Ikon menu itu pun
+    ditukar dari ikon salin kepada ikon `⋮` biasa, sebab menu itu sekarang
+    bukan untuk salin sahaja.
+    Di page tafsir (`baca.dart`) slot jadi 3 (bookmark + nota + `⋮`) —
+    bookmark kena kekal nampak sebab ia tunjuk keadaan disimpan/tidak.
+    Ujian: `test/nota_pembaca_test.dart`.
 
 ---
 

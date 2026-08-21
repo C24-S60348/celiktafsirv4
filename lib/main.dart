@@ -24,6 +24,7 @@ import 'views/hadis_40.dart';
 import 'views/baca_hadis_40.dart';
 import 'utils/uihelper.dart';
 import 'utils/theme_helper.dart';
+import 'views/nota_pembaca.dart';
 
 void main() {
   runApp(const MyApp());
@@ -88,6 +89,9 @@ class _MyAppState extends State<MyApp> {
             break;
           case '/tadabbur':
             page = TadabburPage();
+            break;
+          case '/nota':
+            page = NotaPembacaPage();
             break;
           case '/info':
             page = InformationPage();

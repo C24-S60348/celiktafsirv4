@@ -6,6 +6,7 @@ import '../utils/html_link_helper.dart';
 import '../widgets/article_read_bottom_nav.dart';
 import '../widgets/article_read_top_nav.dart';
 import '../widgets/article_swipe_navigator.dart';
+import '../widgets/nota_pembaca_button.dart';
 
 class BacaPage extends StatefulWidget {
   const BacaPage({super.key});
@@ -288,8 +289,14 @@ class _BacaPageState extends State<BacaPage> {
                             ),
                           ),
                         ),
-                        IconButton(
-                          onPressed: () async {
+                        const NotaPembacaButton(),
+                        // The website link is rare next to bookmark and notes, and a third
+                        // icon squeezes an already two-line title, so it lives in the
+                        // overflow menu -- which also gives later actions somewhere to go.
+                        PopupMenuButton<String>(
+                          tooltip: 'Lagi',
+                          onSelected: (value) async {
+                            if (value != 'website') return;
                             // Must pass categoryUrl, or this resolves against the
                             // default category and returns another juzuk's article.
                             final url = await getlist.GetListSurah.getSurahUrl(
@@ -305,7 +312,18 @@ class _BacaPageState extends State<BacaPage> {
                               url ?? 'https://celiktafsir.net',
                             );
                           },
-                          icon: Icon(Icons.language),
+                          itemBuilder: (context) => const <PopupMenuEntry<String>>[
+                            PopupMenuItem<String>(
+                              value: 'website',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.language, size: 20),
+                                  SizedBox(width: 8),
+                                  Text('Buka Laman Web'),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

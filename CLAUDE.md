@@ -126,6 +126,15 @@ before assuming.
   `test/article_image_test.dart` pins it — and note `find.byType(Image)`
   alone is not enough, since reading pages draw `assets/images/bg.jpg`
   behind the article.
+- **"Nota Pembaca" is one notebook for the whole app**, not a note per
+  article -- `utils/reader_notes.dart` has a single SharedPreferences key and
+  nothing takes a page index. The button (`widgets/nota_pembaca_button.dart`)
+  sits in all six reading app bars and they all open the same text.
+- **App bar room is tight.** Article titles run long and already wrap to two
+  lines, so a new action does not just get another icon: "Buka Laman Web"
+  lives in the `⋮` menu on the five section pages, which keeps them at two
+  slots. Only `baca.dart` has three (bookmark + notes + menu), because the
+  bookmark has to stay visible to show its state. Put new actions in the menu.
 - Reading pages use `CustomScrollView` + `SliverAppBar(floating: true,
   snap: true)`. Anything that should hide on scroll and come back belongs in
   the app bar's `bottom` — that is how `ArticleReadTopNav` works.
