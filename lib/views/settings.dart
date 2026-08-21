@@ -15,18 +15,9 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  String _selectedFont = 'Default';
   double _fontSize = 16.0;
   String _selectedTheme = 'Terang';
   bool _isInitialized = false;
-
-  final List<String> _fontOptions = [
-    'Default',
-    'Amiri',
-    'Scheherazade',
-    'Lateef',
-    'Noto Sans Arabic'
-  ];
 
   final List<String> _themeOptions = [
     'Terang',
@@ -42,7 +33,6 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _selectedFont = prefs.getString('selected_font') ?? 'Default';
       _fontSize = prefs.getDouble('font_size') ?? 16.0;
       _selectedTheme = prefs.getString('selected_theme') ?? 'Terang';
       _isInitialized = true;
@@ -51,38 +41,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _saveSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('selected_font', _selectedFont);
     await prefs.setDouble('font_size', _fontSize);
     await prefs.setString('selected_theme', _selectedTheme);
-  }
-
-  void _showFontDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Pilih Tulisan'),
-          content: SingleChildScrollView(
-            child: Column(
-              children: _fontOptions.map((font) {
-                return RadioListTile<String>(
-                  title: Text(font),
-                  value: font,
-                  groupValue: _selectedFont,
-                  onChanged: (String? value) {
-                    setState(() {
-                      _selectedFont = value!;
-                    });
-                    _saveSettings();
-                    Navigator.of(context).pop();
-                  },
-                );
-              }).toList(),
-            ),
-          ),
-        );
-      },
-    );
   }
 
   void _showThemeDialog() {
@@ -477,14 +437,6 @@ class _SettingsPageState extends State<SettingsPage> {
                         children: [
                           // Spacer for "PAPARAN" title and ornament area
                           SizedBox(height: screenHeight * 0.24),
-                          // Tulisan dropdown row
-                          buildDropdownRow(
-                            label: 'Tulisan',
-                            value: _selectedFont,
-                            onTap: _showFontDialog,
-                            isEnabled: false,
-                          ),
-                          SizedBox(height: screenHeight * 0.045),
                           // Saiz dropdown row
                           buildDropdownRow(
                             label: 'Saiz',

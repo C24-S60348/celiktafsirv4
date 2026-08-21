@@ -1,6 +1,6 @@
 # Celik Tafsir — Updates & Todo
 
-Versi semasa: **1.0.33+33** · Web: https://celiktafsir.web.app
+Versi semasa: **1.0.34+34** · Web: https://celiktafsir.web.app
 
 Senarai ini disemak terus dengan kod, bukan dari ingatan.
 
@@ -52,11 +52,17 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
     **HADIS #37 sempat tercicir.** Penapis slug dulu hanya terima slug yang
     mengandungi `hadis`, tetapi #37 diterbitkan sebagai
     `/2026/08/16/hadits-arbain-37/` — eja **hadits** (ada 't'), jadi ia
-    tidak lulus penapis dan senarai berhenti di #36. Penapis sekarang
-    terima `hadis`, `hadits`, `hadith` dan `arbain`.
-    Ujian: ujian slug dalam `test/gethadis_40_test.dart` (gagal atas kod
-    lama). Kalau satu hari nanti ada hadis baru tak keluar lagi, benda
-    pertama yang perlu disemak ialah ejaan slug artikel itu.
+    tidak lulus penapis dan senarai berhenti di #36.
+
+    **Penapis slug itu sudah dibuang terus.** Sekarang scraper hanya baca
+    link di dalam `.entry-content` (senarai yang owner tulis sendiri), jadi
+    tiada artikel boleh hilang sebab ejaan slug, dan link sidebar/related
+    tetap tak masuk sebab ia di luar bahagian itu. Kalau class itu bertukar
+    satu hari nanti, ia jatuh balik ke seluruh halaman supaya seksyen tidak
+    jadi kosong.
+    Disemak atas 5 halaman sebenar (Hadis 40 page 1 & /page/2/, Hujjah,
+    Asmaul Husna, Ilmu Usul Tafsir): kandungan sama seperti sebelum ini,
+    cuma HADIS #37 bertambah.
 15. **Font app sekarang sama dengan celiktafsir.net.** Ada pembaca beri
     review 4 bintang: *"font dalam aplikasi berbeza berbanding di dalam
     celik tafsir.net... kurang menarik dan agak susah untuk dibaca"*.
@@ -100,6 +106,14 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
     Android, iOS dan web. Simbol ﷻ dan ﷺ pun keluar betul (dulu jadi kotak
     kosong di web sebab Flutter kena muat turun Noto dari
     `fonts.gstatic.com` masa itu juga).
+19. **Picker "Tulisan" dalam Settings dibuang.** Ia menyimpan pilihan
+    (`selected_font`) tetapi nilai itu tak pernah dibaca di mana-mana, dan
+    barisnya pun sudah `isEnabled: false` — jadi memang kod mati. Sekarang
+    font sudah betul dengan sendirinya (Arimo + Noto Naskh Arabic,
+    di-bundle), jadi picker itu tiada guna. Settings tinggal **Saiz** dan
+    **Tema**. Susun atur disemak atas build sebenar — latar belakang
+    `Tetapan_baru.png` cuma bingkai hiasan, tiada label tercetak, jadi
+    membuang satu baris tidak merosakkan penjajaran.
 
 ---
 
@@ -134,16 +148,7 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
    walau header hilang satu hari nanti — tetapi kalau aksara masih rosak
    atas telefon, puncanya di tempat lain (suspek: tiada font Arab
    di-bundle, lihat item font di bawah). Perlu screenshot dari owner.
-3. **Pilihan jenis tulisan (font) dalam Settings tak berfungsi.**
-   Amiri / Scheherazade / Lateef / Noto Sans Arabic — pilihan disimpan
-   (`selected_font`) tapi **tak pernah dibaca** di mana-mana. Baris
-   "Tulisan" dalam Settings pun sudah `isEnabled: false`, jadi memang tak
-   boleh ditekan.
-   *Nota:* font sudah pun betul sekarang — Arimo untuk semua teks (item 15)
-   dan Noto Naskh Arabic untuk Arab (item 18), dua-dua di-bundle. Jadi
-   picker ini tiada guna lagi.
-   **Cadangan: buang picker terus** (baris itu pun sudah tak boleh ditekan).
-4. **"Bacaan Terakhir" pernah buka page 1 (14 Ogos) — tak dapat diulang.**
+3. **"Bacaan Terakhir" pernah buka page 1 (14 Ogos) — tak dapat diulang.**
    Owner lapor tekan Bacaan Terakhir buka Halaman 1 sedangkan simpanannya
    Halaman 35/140. Diperiksa: semua tempat yang `pushNamed('/baca')`
    (kad Bacaan Terakhir, bookmark, senarai halaman) hantar `pageIndex`
@@ -155,9 +160,9 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
    di Halaman Utama tulis "Halaman 35" atau "Halaman 1"? Itu menentukan
    sama ada masalah masa *simpan* atau masa *buka*.
 
-5. **Adjust saiz font Arab & terjemahan berasingan** (idea masabih.org) —
+4. **Adjust saiz font Arab & terjemahan berasingan** (idea masabih.org) —
    lihat nota di bawah.
-6. **Tarik/geser untuk adjust font** (bukan masuk Settings) — macam
+5. **Tarik/geser untuk adjust font** (bukan masuk Settings) — macam
    masabih.org. Belum ada.
 
 ---
