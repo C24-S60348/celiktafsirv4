@@ -170,6 +170,22 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
      link tidak akan buka app pada versi yang sudah dipasang sekarang.
    Halaman `web/buka/` sudah sedia: sebaik sahaja app menuntut skim
    `celiktafsir://`, bahagian Android mula berfungsi tanpa ubah apa-apa.
+
+   **Status (disahkan owner):**
+   - ✅ App yang betul: **Celik Tafsir Pro**,
+     `https://play.google.com/store/apps/details?id=com.af1productions.celiktafsirv3`
+     (`com.af1productions.celiktafsirv3`) — sudah dipakai dalam
+     `web/buka/index.html`, tiada perubahan diperlukan.
+   - ⬜ **Apple Team ID** — belum diberi. Apple Developer → Membership
+     (contoh bentuk: `A1B2C3D4E5`). Untuk fail
+     `apple-app-site-association` (iOS Universal Links).
+   - ⬜ **SHA-256 fingerprint kunci penandatanganan Android** — belum
+     diberi. Play Console → app → Setup → App integrity → App signing key
+     certificate. Untuk fail `assetlinks.json` (Android App Links).
+
+   Selepas dua itu diberi: perubahan native dibuat, kemudian **wajib
+   hantar build baru ke Play Store & App Store** — link tidak akan buka
+   app pada versi yang sudah dipasang sekarang.
 2. **Soalan quiz** — belum ada langsung dalam app.
 3. **Fix character rosak dalam app** — *kod sudah dibetulkan, tunggu owner
    sahkan atas telefon.*
