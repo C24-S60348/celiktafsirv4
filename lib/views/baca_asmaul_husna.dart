@@ -7,6 +7,7 @@ import '../widgets/article_read_bottom_nav.dart';
 import '../widgets/article_read_top_nav.dart';
 import '../widgets/article_swipe_navigator.dart';
 import '../widgets/nota_pembaca_button.dart';
+import '../utils/share_article.dart';
 
 class BacaAsmaulHusnaPage extends StatefulWidget {
   const BacaAsmaulHusnaPage({super.key});
@@ -236,6 +237,14 @@ class _BacaAsmaulHusnaPageState extends State<BacaAsmaulHusnaPage> {
                         const NotaPembacaButton(),
                         PopupMenuButton<String>(
                           onSelected: (value) {
+                            if (value == 'share') {
+                              ShareArticle.share(
+                                context: context,
+                                articleUrl: postUrl,
+                                title: postTitle,
+                              );
+                              return;
+                            }
                             if (value == 'website') {
                               // Moved out of a standalone icon so the app bar
                               // has room for Nota Pembaca without squeezing
@@ -268,6 +277,16 @@ class _BacaAsmaulHusnaPageState extends State<BacaAsmaulHusnaPage> {
                                   Icon(Icons.article, size: 20),
                                   SizedBox(width: 8),
                                   Text('Salin Kandungan'),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem<String>(
+                              value: 'share',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.share, size: 20),
+                                  SizedBox(width: 8),
+                                  Text('Kongsi'),
                                 ],
                               ),
                             ),

@@ -7,6 +7,7 @@ import '../widgets/article_read_bottom_nav.dart';
 import '../widgets/article_read_top_nav.dart';
 import '../widgets/article_swipe_navigator.dart';
 import '../widgets/nota_pembaca_button.dart';
+import '../utils/share_article.dart';
 
 class BacaPage extends StatefulWidget {
   const BacaPage({super.key});
@@ -296,6 +297,25 @@ class _BacaPageState extends State<BacaPage> {
                         PopupMenuButton<String>(
                           tooltip: 'Lagi',
                           onSelected: (value) async {
+                            // Must pass categoryUrl, or this resolves against
+                            // the default category and returns another
+                            // juzuk's article -- for sharing as for opening.
+                            if (value == 'share') {
+                              final shareUrl =
+                                  await getlist.GetListSurah.getSurahUrl(
+                                surahIndex,
+                                currentPage,
+                                categoryUrl: categoryUrl,
+                              );
+                              if (!context.mounted) return;
+                              await ShareArticle.share(
+                                context: context,
+                                articleUrl: shareUrl,
+                                title: surahData['pageTitle'] ??
+                                    surahData['name'],
+                              );
+                              return;
+                            }
                             if (value != 'website') return;
                             // Must pass categoryUrl, or this resolves against the
                             // default category and returns another juzuk's article.
@@ -313,6 +333,16 @@ class _BacaPageState extends State<BacaPage> {
                             );
                           },
                           itemBuilder: (context) => const <PopupMenuEntry<String>>[
+                            PopupMenuItem<String>(
+                              value: 'share',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.share, size: 20),
+                                  SizedBox(width: 8),
+                                  Text('Kongsi'),
+                                ],
+                              ),
+                            ),
                             PopupMenuItem<String>(
                               value: 'website',
                               child: Row(

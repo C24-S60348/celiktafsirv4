@@ -1,6 +1,6 @@
 # Celik Tafsir — Updates & Todo
 
-Versi semasa: **1.0.35+35** · Web: https://celiktafsir.web.app
+Versi semasa: **1.0.36+36** · Web: https://celiktafsir.web.app
 
 Senarai ini disemak terus dengan kod, bukan dari ingatan.
 
@@ -132,13 +132,46 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
     Di page tafsir (`baca.dart`) slot jadi 3 (bookmark + nota + `⋮`) —
     bookmark kena kekal nampak sebab ia tunjuk keadaan disimpan/tidak.
     Ujian: `test/nota_pembaca_test.dart`.
+21. **Butang Kongsi** — ada dalam menu `⋮` setiap page bacaan (dalam menu,
+    bukan ikon baru, sebab app bar memang sempit).
+    Link yang dikongsi bukan link artikel terus, tetapi satu halaman kecil
+    milik kita sendiri: `https://celiktafsir.web.app/buka/?u=<link artikel>`
+    (`web/buka/index.html`). Halaman itu tentukan penerima patut pergi ke
+    mana:
+    - **Android** — cuba buka app dahulu (`intent://`), kalau tiada terus ke
+      **Play Store**
+    - **iPhone/iPad** — cuba buka app, kalau tiada terus ke **App Store**
+    - **Desktop / lain-lain** — terus ke artikel di celiktafsir.net
+
+    Link Play Store & App Store diambil dari API kemas kini app sendiri, jadi
+    ia memang link rasmi yang owner guna.
+    Halaman itu hanya benarkan `u` yang menuju celiktafsir.net /
+    celiktafsir.web.app — kalau tidak ia jadi *open redirect* yang boleh
+    dieksploitasi orang lain memakai nama domain kita.
+    Disemak dalam browser sebenar untuk Android, iPhone dan desktop,
+    termasuk cubaan `u` berniat jahat.
+
+    **Belum berfungsi: "kalau ada app, terus buka app".** Itu perlu
+    perubahan native (Android App Links / iOS Universal Links) **dan**
+    keluaran baru di kedua-dua store. Lihat item Todo di bawah.
 
 ---
 
 ## Todo (Belum siap)
 
-1. **Soalan quiz** — belum ada langsung dalam app.
-2. **Fix character rosak dalam app** — *kod sudah dibetulkan, tunggu owner
+1. **Buka terus dalam app bila link Kongsi ditekan** (separuh lagi bagi
+   item 21). Sekarang penerima yang *sudah ada* app pun dibawa ke store.
+   Untuk buka app terus, perlu:
+   - Android: `intent-filter` + fail `assetlinks.json` — perlu **SHA-256
+     fingerprint** kunci penandatanganan dari Play Console.
+   - iOS: Associated Domains + fail `apple-app-site-association` — perlu
+     **Apple Team ID**.
+   - Kemudian **build & hantar versi baru ke Play Store dan App Store**;
+     link tidak akan buka app pada versi yang sudah dipasang sekarang.
+   Halaman `web/buka/` sudah sedia: sebaik sahaja app menuntut skim
+   `celiktafsir://`, bahagian Android mula berfungsi tanpa ubah apa-apa.
+2. **Soalan quiz** — belum ada langsung dalam app.
+3. **Fix character rosak dalam app** — *kod sudah dibetulkan, tunggu owner
    sahkan atas telefon.*
    Suspek utama ialah `response.body`. Kalau server tak hantar `charset` dalam
    header, package `http` baca bait sebagai latin-1, jadi setiap aksara
@@ -166,7 +199,7 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
    walau header hilang satu hari nanti — tetapi kalau aksara masih rosak
    atas telefon, puncanya di tempat lain (suspek: tiada font Arab
    di-bundle, lihat item font di bawah). Perlu screenshot dari owner.
-3. **"Bacaan Terakhir" pernah buka page 1 (14 Ogos) — tak dapat diulang.**
+4. **"Bacaan Terakhir" pernah buka page 1 (14 Ogos) — tak dapat diulang.**
    Owner lapor tekan Bacaan Terakhir buka Halaman 1 sedangkan simpanannya
    Halaman 35/140. Diperiksa: semua tempat yang `pushNamed('/baca')`
    (kad Bacaan Terakhir, bookmark, senarai halaman) hantar `pageIndex`
@@ -178,9 +211,9 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
    di Halaman Utama tulis "Halaman 35" atau "Halaman 1"? Itu menentukan
    sama ada masalah masa *simpan* atau masa *buka*.
 
-4. **Adjust saiz font Arab & terjemahan berasingan** (idea masabih.org) —
+5. **Adjust saiz font Arab & terjemahan berasingan** (idea masabih.org) —
    lihat nota di bawah.
-5. **Tarik/geser untuk adjust font** (bukan masuk Settings) — macam
+6. **Tarik/geser untuk adjust font** (bukan masuk Settings) — macam
    masabih.org. Belum ada.
 
 ---

@@ -135,6 +135,13 @@ before assuming.
   lives in the `⋮` menu on the five section pages, which keeps them at two
   slots. Only `baca.dart` has three (bookmark + notes + menu), because the
   bookmark has to stay visible to show its state. Put new actions in the menu.
+- **Shared links go through `web/buka/index.html`, not straight to the
+  article.** One link has to serve four people: with/without the app on
+  Android, on iPhone, and on desktop. Firebase Dynamic Links did this until
+  Google shut it down in August 2025, so the redirect is ours. It only
+  forwards to celiktafsir.net / celiktafsir.web.app -- drop that check and the
+  page becomes an open redirect wearing our domain. Store links come from the
+  app's own update API, not invented.
 - Reading pages use `CustomScrollView` + `SliverAppBar(floating: true,
   snap: true)`. Anything that should hide on scroll and come back belongs in
   the app bar's `bottom` — that is how `ArticleReadTopNav` works.
