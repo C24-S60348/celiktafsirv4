@@ -25,6 +25,32 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+
+            <!-- Shared links: https://celiktafsir.web.app/buka/?u=<article>.
+                 autoVerify makes Android check
+                 https://celiktafsir.web.app/.well-known/assetlinks.json against
+                 this app's signing certificate; when it matches, the link opens
+                 the app instead of the browser. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https"
+                      android:host="celiktafsir.web.app"
+                      android:pathPrefix="/buka"/>
+            </intent-filter>
+
+            <!-- The fallback the share page uses on Android: an intent: URL
+                 naming this scheme, which opens the app when it is installed
+                 and follows browser_fallback_url (Play Store) when it is not.
+                 Kept separate from the verified filter above so it still works
+                 if App Links verification has not completed. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="celiktafsir"/>
+            </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

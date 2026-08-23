@@ -1,6 +1,6 @@
 # Celik Tafsir — Updates & Todo
 
-Versi semasa: **1.0.37+37** · Web: https://celiktafsir.web.app
+Versi semasa: **1.0.38+38** · Web: https://celiktafsir.web.app
 
 Senarai ini disemak terus dengan kod, bukan dari ingatan.
 
@@ -189,7 +189,12 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
    - ⬜ **Apple Team ID** — belum diberi. Apple Developer → Membership
      (contoh bentuk: `A1B2C3D4E5`). Untuk fail
      `apple-app-site-association` (iOS Universal Links).
-   - ⚠️ **SHA-256 Android** — owner hantar fail `deployment_cert.der`
+   - ✅ **SHA-256 Android disahkan.** Owner hantar Digital Asset Links JSON
+     dari Play Console dan ia sepadan dengan cap jari yang dikira dari fail
+     sijil: `47:D4:0E:CB:...:88`. Fail live di
+     `https://celiktafsir.web.app/.well-known/assetlinks.json`
+     (pulangkan `application/json`, sudah disemak).
+   - ~~⚠️ **SHA-256 Android** — owner hantar fail `deployment_cert.der`
      **dan** senarai cap jari, tetapi **dua-dua tidak sepadan**. Cap jari
      yang dikira terus dari fail itu:
      `47:D4:0E:CB:83:23:B6:10:50:2F:E4:3B:7C:71:A5:46:92:C4:CB:45:DF:A6:DD:EA:2B:F5:A3:ED:F8:5A:48:88`
@@ -200,7 +205,7 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
      `web/.well-known/assetlinks.json` sekarang guna cap jari **dari fail**
      sahaja. Owner perlu sahkan di Play Console → Setup → App integrity →
      **App signing key certificate** yang SHA-256 di situ bermula `47:D4:`.
-     Kalau bermula `99:5F:`, beritahu — senang tukar.
+     Kalau bermula `99:5F:`, beritahu — senang tukar.~~ *(selesai)*
 
    Selepas dua itu diberi: perubahan native dibuat, kemudian **wajib
    hantar build baru ke Play Store & App Store** — link tidak akan buka
