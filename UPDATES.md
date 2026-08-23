@@ -1,6 +1,6 @@
 # Celik Tafsir — Updates & Todo
 
-Versi semasa: **1.0.36+36** · Web: https://celiktafsir.web.app
+Versi semasa: **1.0.37+37** · Web: https://celiktafsir.web.app
 
 Senarai ini disemak terus dengan kod, bukan dari ingatan.
 
@@ -154,6 +154,16 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
     **Belum berfungsi: "kalau ada app, terus buka app".** Itu perlu
     perubahan native (Android App Links / iOS Universal Links) **dan**
     keluaran baru di kedua-dua store. Lihat item Todo di bawah.
+22. **Fail `assetlinks.json` sudah live** di
+    `https://celiktafsir.web.app/.well-known/assetlinks.json` — ini yang
+    Android baca untuk sahkan link boleh buka app.
+
+    **Bug yang dijumpai masa buat ini:** `firebase.json` ada
+    `"ignore": ["**/.*"]`, yang menghalang **semua** fail/folder bermula
+    titik daripada di-deploy — termasuk `.well-known/`. Ditambah dengan
+    rewrite `"**" -> /index.html`, URL itu dulu pulangkan **HTML dengan
+    status 200**, bukan 404. Jadi Android akan baca HTML, gagal sahkan, dan
+    tiada mesej ralat di mana-mana. `ignore` sudah dibetulkan.
 
 ---
 
@@ -179,9 +189,18 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
    - ⬜ **Apple Team ID** — belum diberi. Apple Developer → Membership
      (contoh bentuk: `A1B2C3D4E5`). Untuk fail
      `apple-app-site-association` (iOS Universal Links).
-   - ⬜ **SHA-256 fingerprint kunci penandatanganan Android** — belum
-     diberi. Play Console → app → Setup → App integrity → App signing key
-     certificate. Untuk fail `assetlinks.json` (Android App Links).
+   - ⚠️ **SHA-256 Android** — owner hantar fail `deployment_cert.der`
+     **dan** senarai cap jari, tetapi **dua-dua tidak sepadan**. Cap jari
+     yang dikira terus dari fail itu:
+     `47:D4:0E:CB:83:23:B6:10:50:2F:E4:3B:7C:71:A5:46:92:C4:CB:45:DF:A6:DD:EA:2B:F5:A3:ED:F8:5A:48:88`
+     manakala yang ditaip owner bermula `99:5F:05:0B:...`. Sijil dalam fail
+     itu dikeluarkan Google (CN=Android, sah 2025–2055), jadi ia nampak
+     seperti *app signing key* yang betul — yang ditaip itu mungkin dari
+     *upload key* atau app lain.
+     `web/.well-known/assetlinks.json` sekarang guna cap jari **dari fail**
+     sahaja. Owner perlu sahkan di Play Console → Setup → App integrity →
+     **App signing key certificate** yang SHA-256 di situ bermula `47:D4:`.
+     Kalau bermula `99:5F:`, beritahu — senang tukar.
 
    Selepas dua itu diberi: perubahan native dibuat, kemudian **wajib
    hantar build baru ke Play Store & App Store** — link tidak akan buka
