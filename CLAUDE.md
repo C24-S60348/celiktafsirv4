@@ -60,6 +60,21 @@ before assuming.
 
 ## Things that have bitten us
 
+- **`pubspec.lock` is committed.** It used to be gitignored, which is correct
+  for a published *package* but wrong for an *app*: CI ran a fresh
+  `flutter pub get` on every push with nothing pinning transitive versions,
+  so it silently resolved whatever was newest on pub.dev that day. A pub.dev
+  patch (`html` 0.15.6 -> 0.15.7) broke `flutter_html 3.0.0`'s own internals
+  (`qs.matches` in `styled_element.dart` no longer existed), and both CI
+  workflows failed outright -- `flutter test` couldn't even compile 9 test
+  files, `flutter build web` failed the same way -- while local builds kept
+  succeeding, because the local pub cache already had the older, working
+  resolution and a bare `flutter pub get` will not upgrade past what a lock
+  already pins. If CI ever fails to compile on a dependency it while local
+  builds are fine, suspect this class of drift first and compare
+  `pubspec.lock` against what actually built. Do not delete the lock file to
+  "fix" a resolution problem -- update it deliberately (`flutter pub upgrade
+  <package>`) and prove the build/test suite still passes before committing.
 - **`categoryUrl` must be threaded through every lookup.** Surahs split
   across juzuk (Baqarah spans juzuk 1–3) have one category per variant.
   Calling `getSurahByIndex`/`getSurahUrl` without `categoryUrl` silently

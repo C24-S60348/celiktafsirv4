@@ -43,4 +43,9 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
-pubspec.lock
+# pubspec.lock is committed on purpose for this app (not a package): CI must
+# resolve the exact versions verified locally, not "whatever's newest on
+# pub.dev today". An uncommitted lock let a pub.dev html 0.15.6 -> 0.15.7
+# patch silently break flutter_html 3.0.0's internals (qs.matches) on a
+# fresh `flutter pub get`, failing both `flutter test` and `flutter build
+# web` in CI while local builds kept succeeding on stale cached resolution.
