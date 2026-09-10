@@ -29,6 +29,7 @@ import 'utils/theme_helper.dart';
 import 'views/nota_pembaca.dart';
 import 'package:app_links/app_links.dart';
 import 'utils/deep_link.dart';
+import 'views/search_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -145,6 +146,9 @@ class _MyAppState extends State<MyApp> {
             break;
           case '/nota':
             page = NotaPembacaPage();
+            break;
+          case '/search':
+            page = SearchPage();
             break;
           case '/info':
             page = InformationPage();

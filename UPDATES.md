@@ -1,6 +1,6 @@
 # Celik Tafsir — Updates & Todo
 
-Versi semasa: **1.0.38+38** · Web: https://celiktafsir.web.app
+Versi semasa: **1.0.39+39** · Web: https://celiktafsir.web.app
 
 Senarai ini disemak terus dengan kod, bukan dari ingatan.
 
@@ -164,6 +164,28 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
     rewrite `"**" -> /index.html`, URL itu dulu pulangkan **HTML dengan
     status 200**, bukan 404. Jadi Android akan baca HTML, gagal sahkan, dan
     tiada mesej ralat di mana-mana. `ignore` sudah dibetulkan.
+23. **Fungsi "Pergi ke Halaman".** Tekan terus label "Halaman X / Y" (atau
+    "Artikel X / Y") di top nav atau bottom nav pada mana-mana daripada
+    enam page bacaan — keluar dialog untuk taip nombor dan terus lompat ke
+    situ, tak payah tekan Selepas berulang kali. Nombor di luar julat
+    ditolak dengan mesej ralat, bukan senyap dibetulkan.
+    Widget baru: `lib/widgets/go_to_page_dialog.dart`, dipakai dari
+    `ArticleReadTopNav`/`ArticleReadBottomNav` melalui `onTapPosition`.
+    Ujian: `test/go_to_page_test.dart` (gagal bila `onTapPosition` dibuang).
+24. **Carian Lanjutan (Advanced Search).** Carian "Cari Surah..." yang
+    sedia ada cuma padan nama surah tempatan. Ciri baru ini cari **seluruh
+    laman celiktafsir.net** — tafsir ayat, Hujjah, Hadis 40, Glosari, Asal
+    Usul Tafsir — dengan menghantar terus ke carian WordPress laman itu
+    sendiri (`?s=<kata kunci>`), sebab carian WP itu memang cari kandungan
+    penuh, bukan tajuk sahaja, dan tak perlu kita simpan/selaraskan indeks
+    tempatan. Keputusan buka terus dalam pembaca artikel generik
+    (`/baca-hujjah`) — laluan sama yang link Kongsi (item 21) sudah pakai.
+    Diakses melalui ikon carian (bulat) di penjuru Halaman Utama.
+    Perkhidmatan: `lib/services/search_service.dart`. Disahkan terus
+    terhadap halaman carian sebenar ("kiblat" pulangkan 5 keputusan
+    termasuk excerpt, dan carian tanpa hasil pulangkan senarai kosong tanpa
+    ranap).
+    Ujian: `test/search_page_test.dart`.
 
 ---
 
@@ -211,6 +233,12 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
    hantar build baru ke Play Store & App Store** — link tidak akan buka
    app pada versi yang sudah dipasang sekarang.
 2. **Soalan quiz** — belum ada langsung dalam app.
+   **Disemak 2026-09-10:** celiktafsir.net sendiri tiada kandungan kuiz
+   (tiada soalan/jawapan untuk di-scrape), jadi ini bukan setakat UI —
+   perlu **sumber soalan** dahulu. Sebab soalan agama yang salah lebih
+   teruk daripada tiada soalan langsung, kandungan kuiz **tidak dicipta
+   sendiri** di sini. Perlu owner sediakan/sahkan set soalan (fail
+   JSON/spreadsheet ke satu bank soalan) sebelum ciri ini boleh dibina.
 3. **Fix character rosak dalam app** — *kod sudah dibetulkan, tunggu owner
    sahkan atas telefon.*
    Suspek utama ialah `response.body`. Kalau server tak hantar `charset` dalam

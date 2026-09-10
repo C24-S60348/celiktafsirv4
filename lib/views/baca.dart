@@ -5,6 +5,7 @@ import '../utils/theme_helper.dart';
 import '../utils/html_link_helper.dart';
 import '../widgets/article_read_bottom_nav.dart';
 import '../widgets/article_read_top_nav.dart';
+import '../widgets/go_to_page_dialog.dart';
 import '../widgets/article_swipe_navigator.dart';
 import '../widgets/nota_pembaca_button.dart';
 import '../utils/share_article.dart';
@@ -167,6 +168,28 @@ class _BacaPageState extends State<BacaPage> {
     }
   }
 
+  /// Jumps straight to [index] (0-based), for "Pergi ke Halaman".
+  void _goToPage(int index) {
+    if (index < 0 || index >= totalPages || index == currentPage) return;
+    setState(() {
+      currentPage = index;
+    });
+    _updatePageTitle();
+    _checkBookmark();
+    _saveLastRead();
+  }
+
+  Future<void> _showGoToPage(String themeName) async {
+    final index = await showGoToPageDialog(
+      context: context,
+      total: totalPages,
+      currentIndex: currentPage,
+      themeName: themeName,
+      label: 'Halaman',
+    );
+    if (index != null) _goToPage(index);
+  }
+
   void _toggleBookmark() async {
     if (_isBookmarked.value) {
       await model.removeBookmark(surahIndex, currentPage);
@@ -274,6 +297,7 @@ class _BacaPageState extends State<BacaPage> {
                             label: 'Halaman',
                             onPrevious: currentPage > 0 ? _previousPage : null,
                             onNext: currentPage < totalPages - 1 ? _nextPage : null,
+                            onTapPosition: totalPages > 1 ? () => _showGoToPage(themeName) : null,
                           ),
                         ),
                       ),
@@ -382,6 +406,7 @@ class _BacaPageState extends State<BacaPage> {
                         label: 'Halaman',
                         onPrevious: _previousPage,
                         onNext: _nextPage,
+                        onTapPosition: totalPages > 1 ? () => _showGoToPage(themeName) : null,
                       ),
                     ),
                   ],

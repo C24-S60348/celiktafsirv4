@@ -145,6 +145,28 @@ before assuming.
 - Reading pages use `CustomScrollView` + `SliverAppBar(floating: true,
   snap: true)`. Anything that should hide on scroll and come back belongs in
   the app bar's `bottom` — that is how `ArticleReadTopNav` works.
+- **"Go to page" is one dialog shared by all six reading pages**
+  (`widgets/go_to_page_dialog.dart`), reached by tapping the "Halaman X / Y"
+  / "Artikel X / Y" position label in `ArticleReadTopNav`/
+  `ArticleReadBottomNav` (`onTapPosition`). The five article-list pages
+  already had a `_goToArticle(int)` that accepts any index, not just ±1, so
+  they only needed wiring; `baca.dart` needed a new `_goToPage(int)`
+  mirroring `_nextPage`/`_previousPage`.
+- **"Carian Lanjutan" delegates to celiktafsir.net's own WordPress search**
+  (`?s=<query>`, `services/search_service.dart`) rather than indexing
+  content locally. That search already covers full post content across
+  every section, so results need no local index to keep in sync -- parse
+  `<article>` / `.entry-title a` / `.entry-summary p`, strip the
+  `a.more-link` "Continue reading" tail, and page with
+  `/page/N/?s=<query>` using the same `a.next.page-numbers` selectors the
+  other scrapers use. Results open through `/baca-hujjah` with a single-item
+  list, the same generic route shared links use -- a hit can be a surah
+  tafsir, Hujjah, Hadis 40, Glosari or Asal Usul Tafsir post, and that route
+  only ever needed a URL.
+- **Do not invent quiz (or any other religious) content.** Soalan Kuiz is
+  blocked on the owner supplying real questions -- celiktafsir.net has none
+  to scrape, and a wrong "correct answer" on Islamic content is worse than
+  the feature not existing yet. Ask; do not fabricate a source.
 
 ## Testing
 
