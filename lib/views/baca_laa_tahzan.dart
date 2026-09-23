@@ -5,7 +5,10 @@ import '../utils/theme_helper.dart';
 import '../utils/html_link_helper.dart';
 import '../widgets/article_read_bottom_nav.dart';
 import '../widgets/article_read_top_nav.dart';
+import '../widgets/go_to_page_dialog.dart';
 import '../widgets/article_swipe_navigator.dart';
+import '../widgets/nota_pembaca_button.dart';
+import '../utils/share_article.dart';
 
 class BacaLaaTahzanPage extends StatefulWidget {
   const BacaLaaTahzanPage({super.key});
@@ -97,6 +100,17 @@ class _BacaLaaTahzanPageState extends State<BacaLaaTahzanPage> {
         'items': _items,
       },
     );
+  }
+
+  Future<void> _showGoToPageDialog(String themeName) async {
+    final index = await showGoToPageDialog(
+      context: context,
+      total: _total,
+      currentIndex: _currentIndex,
+      themeName: themeName,
+      label: 'Artikel',
+    );
+    if (index != null) _goToArticle(index);
   }
 
   void _copyTextToClipboard(String text, {String type = 'Teks'}) {
@@ -227,13 +241,34 @@ class _BacaLaaTahzanPageState extends State<BacaLaaTahzanPage> {
                                   onNext: _currentIndex < _total - 1
                                       ? () => _goToArticle(_currentIndex + 1)
                                       : null,
+                                  onTapPosition: _total > 1
+                                      ? () => _showGoToPageDialog(themeName)
+                                      : null,
                                 ),
                               ),
                             )
                           : null,
                       actions: [
+                        const NotaPembacaButton(),
                         PopupMenuButton<String>(
                           onSelected: (value) {
+                            if (value == 'share') {
+                              ShareArticle.share(
+                                context: context,
+                                articleUrl: postUrl,
+                                title: postTitle,
+                              );
+                              return;
+                            }
+                            if (value == 'website') {
+                              // Moved out of a standalone icon so the app bar
+                              // has room for Nota Pembaca without squeezing
+                              // an already long article title.
+                              if (postUrl != null) {
+                                showOpenWebsiteOverlay(context, postUrl!);
+                              }
+                              return;
+                            }
                             if (value == 'content') {
                               if (_laaTahzanContent != null && _laaTahzanContent!.isNotEmpty) {
                                 final plainText = _stripHtmlTags(_laaTahzanContent!);
@@ -260,16 +295,31 @@ class _BacaLaaTahzanPageState extends State<BacaLaaTahzanPage> {
                                 ],
                               ),
                             ),
+                            PopupMenuItem<String>(
+                              value: 'share',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.share, size: 20),
+                                  SizedBox(width: 8),
+                                  Text('Kongsi'),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem<String>(
+                              value: 'website',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.language, size: 20),
+                                  SizedBox(width: 8),
+                                  Text('Buka Laman Web'),
+                                ],
+                              ),
+                            ),
                           ],
-                          icon: Icon(Icons.copy),
-                        ),
-                        IconButton(
-                          onPressed: () {
-                            if (postUrl != null) {
-                              showOpenWebsiteOverlay(context, postUrl!);
-                            }
-                          },
-                          icon: Icon(Icons.language),
+                          // Was a copy icon back when copying was all this
+                          // menu did; it now also opens the website, so use
+                          // the conventional overflow glyph.
+                          icon: Icon(Icons.more_vert),
                         ),
                       ],
                     ),
@@ -309,6 +359,9 @@ class _BacaLaaTahzanPageState extends State<BacaLaaTahzanPage> {
                               : null,
                           onNext: _currentIndex < _total - 1
                               ? () => _goToArticle(_currentIndex + 1)
+                              : null,
+                          onTapPosition: _total > 1
+                              ? () => _showGoToPageDialog(themeName)
                               : null,
                         ),
                       ),

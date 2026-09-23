@@ -18,8 +18,14 @@ void main() {
     HttpOverrides.global = null;
   });
 
-  String categoryPage(String links) =>
-      '<html><body><div class="posts">$links</div></body></html>';
+  /// Mirrors the real page: the hand-maintained list of hadis links sits
+  /// inside .entry-content, and the theme renders other post links (sidebar,
+  /// related posts, navigation) outside it.
+  String categoryPage(String links, {String outsideArticle = ''}) =>
+      '<html><body>'
+      '<div class="entry-content">$links</div>'
+      '<aside class="widget">$outsideArticle</aside>'
+      '</body></html>';
 
   testWidgets('lists every hadis post found in the category', (tester) async {
     HttpOverrides.global = FakeHttpOverrides(
@@ -59,19 +65,46 @@ void main() {
     );
   });
 
-  testWidgets('ignores non-hadis posts in the category', (tester) async {
+  testWidgets('ignores post links outside the article body', (tester) async {
+    // What keeps unrelated articles out is scoping to .entry-content, not
+    // recognising them by name -- a slug filter cost us HADIS #37.
     HttpOverrides.global = FakeHttpOverrides(
-      categoryPage('''
+      categoryPage(
+        '''
         <a href="https://celiktafsir.net/2026/01/07/syarah-hadis-26-hadis-40/">HADIS #26</a>
-        <a href="https://celiktafsir.net/2026/01/08/tafsir-surah-baqarah-ayat-3/">Tafsir Baqarah</a>
         <a href="https://celiktafsir.net/category/hadis-40/">Kategori</a>
-      '''),
+      ''',
+        outsideArticle: '''
+        <a href="https://celiktafsir.net/2026/01/08/tafsir-surah-baqarah-ayat-3/">Tafsir Baqarah</a>
+        <a href="https://celiktafsir.net/2026/01/09/laa-tahzan-bahagian-2/">Laa Tahzan</a>
+      ''',
+      ),
     );
 
     final posts = await GetHadis40.getHadis40Posts();
 
     expect(posts, hasLength(1));
     expect(posts.single['title'], 'HADIS #26');
+  });
+
+  testWidgets('takes every post in the list, whatever the slug', (
+    tester,
+  ) async {
+    // No slug is special-cased any more, so a post named in a way nobody
+    // anticipated still shows up.
+    HttpOverrides.global = FakeHttpOverrides(
+      categoryPage('''
+        <p><strong>HADIS #38</strong><br /><a href="https://celiktafsir.net/2026/09/01/arbain-nawawi-38/">Wali Allah</a></p>
+        <p><strong>HADIS #39</strong><br /><a href="https://celiktafsir.net/2026/09/08/40-nawawi-bilangan-39/">Terlupa dan Terpaksa</a></p>
+      '''),
+    );
+
+    final posts = await GetHadis40.getHadis40Posts();
+
+    expect(
+      posts.map((p) => p['title']).toList(),
+      ['HADIS #38 Wali Allah', 'HADIS #39 Terlupa dan Terpaksa'],
+    );
   });
 
   testWidgets('recovers the hadis number kept outside the link', (

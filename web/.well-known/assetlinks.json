@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.af1productions.celiktafsirv3",
+      "sha256_cert_fingerprints": [
+        "47:D4:0E:CB:83:23:B6:10:50:2F:E4:3B:7C:71:A5:46:92:C4:CB:45:DF:A6:DD:EA:2B:F5:A3:ED:F8:5A:48:88"
+      ]
+    }
+  }
+]

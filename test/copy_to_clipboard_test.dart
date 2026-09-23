@@ -99,7 +99,7 @@ void main() {
   }
 
   Future<void> tapCopyContent(WidgetTester tester) async {
-    await tester.tap(find.byIcon(Icons.copy));
+    await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Salin Kandungan'));
   }
@@ -130,9 +130,13 @@ void main() {
   ) async {
     // The globe action used to push a full WebsitePage route, which navigated
     // away from the article. It now shows the same overlay inline links use.
+    // It also moved out of a standalone icon and into the overflow menu, to
+    // make app bar room for Nota Pembaca, so open the menu first.
     await pumpPage(tester);
 
-    await tester.tap(find.byIcon(Icons.language));
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Buka Laman Web'));
     await tester.pumpAndSettle();
 
     expect(find.text('Open Website'), findsOneWidget);

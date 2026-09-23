@@ -38,19 +38,6 @@ class GetHadis40 {
     },
   ];
 
-  /// Slugs that count as a Hadis 40 post.
-  ///
-  /// The owner does not spell them consistently: #25-#36 are
-  /// `syarah-hadis-NN-hadis-40...`, but #37 was published as
-  /// `hadits-arbain-37`. A plain `contains('hadis')` check silently dropped
-  /// it, so the section stopped at #36 even though the listing showed #37.
-  /// Accept the spellings the site actually uses -- hadis / hadits / hadith,
-  /// and arbain (Arba'in), the collection's own name.
-  static final RegExp _hadisSlugPattern = RegExp(
-    r'hadi(?:s|ts|th)|arbain',
-    caseSensitive: false,
-  );
-
   /// "HADIS #25" as the listing writes it, wherever it sits in the markup.
   static final RegExp _hadisNumberPattern = RegExp(
     r'HADIS\s*#\s*(\d+)',
@@ -107,7 +94,16 @@ class GetHadis40 {
 
         // Post URLs match /YYYY/MM/DD/post-slug/
         final postUrlPattern = RegExp(r'/(\d{4})/(\d{2})/(\d{2})/([^/]+)/$');
-        final allLinks = document.querySelectorAll('a');
+
+        // Only the hand-maintained list inside .entry-content counts. Scoping
+        // here rather than filtering by slug is what makes the scrape safe:
+        // sidebar, related-post and navigation links live outside it, so
+        // nothing has to be recognised by name and no post can be lost to an
+        // unexpected slug spelling (#37 shipped as "hadits-arbain-37").
+        // Fall back to the whole document if the theme ever renames the class,
+        // so a layout change degrades instead of emptying the section.
+        final articleBody = document.querySelector('.entry-content');
+        final allLinks = (articleBody ?? document).querySelectorAll('a');
 
         bool foundNewLinks = false;
         for (var link in allLinks) {
@@ -117,11 +113,6 @@ class GetHadis40 {
           final absoluteUrl = href.startsWith('http') ? href : '$_baseUrl$href';
           final dateMatch = postUrlPattern.firstMatch(absoluteUrl);
           if (dateMatch == null) continue;
-
-          // Only accept hadis posts. If _categoryUrl ever points at the wrong
-          // page, this keeps unrelated articles out of the Hadis 40 list.
-          final slug = dateMatch.group(4)!.toLowerCase();
-          if (!_hadisSlugPattern.hasMatch(slug)) continue;
 
           if (absoluteUrl.contains('celiktafsir.net') &&
               !urlTitles.any((item) => item['url'] == absoluteUrl) &&

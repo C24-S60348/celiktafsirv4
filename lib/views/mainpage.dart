@@ -5,6 +5,7 @@ import '../services/getlistsurah.dart' as getlist;
 import '../models/tadabbur.dart' as surahlist;
 import '../services/version_checker.dart';
 import '../widgets/update_dialog.dart';
+import '../utils/theme_helper.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -515,6 +516,16 @@ class _MainPageState extends State<MainPage> {
             ),
           ],
         ),
+      ),
+      // Home screen has no app bar (custom background art carries the whole
+      // layout), so "Carian Lanjutan" gets a FAB rather than an app bar icon.
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'search-fab',
+        tooltip: 'Carian Lanjutan',
+        backgroundColor: ThemeHelper.appBarColorLight,
+        foregroundColor: Colors.black,
+        onPressed: () => Navigator.of(context).pushNamed('/search'),
+        child: const Icon(Icons.search),
       ),
     );
   }

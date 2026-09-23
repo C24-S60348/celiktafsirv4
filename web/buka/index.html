@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Celik Tafsir</title>
+<meta name="robots" content="noindex">
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    margin: 0; min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    background: #F5F0E6; color: #3B2A17;
+    font-family: Arimo, Arial, Helvetica, sans-serif;
+    text-align: center; padding: 24px;
+  }
+  @media (prefers-color-scheme: dark) {
+    body { background: #121212; color: #F0E6D8; }
+  }
+  .card { max-width: 32rem; }
+  h1 { font-size: 1.25rem; margin: 0 0 .5rem; }
+  p  { margin: .25rem 0 1rem; opacity: .8; }
+  a.button {
+    display: inline-block; padding: .75rem 1.5rem; border-radius: 999px;
+    background: #5C4033; color: #fff; text-decoration: none; font-weight: bold;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Membuka Celik Tafsir…</h1>
+  <p id="msg">Sekejap ya.</p>
+  <a class="button" id="fallback" href="https://celiktafsir.web.app/">Teruskan</a>
+</div>
+<script>
+(function () {
+  // Where a shared link should land, depending on the person who opened it:
+  //   Android with the app -> the app (via the intent: fallback chain)
+  //   Android without it   -> Play Store
+  //   iPhone/iPad          -> the app if it claims the link, else App Store
+  //   anything else        -> the article on the website
+  var PLAY  = 'https://play.google.com/store/apps/details?id=com.af1productions.celiktafsirv3';
+  var APPLE = 'https://apps.apple.com/my/app/celik-tafsir-pro/id6754980616';
+  var WEB   = 'https://celiktafsir.web.app/';
+  var ANDROID_PACKAGE = 'com.af1productions.celiktafsirv3';
+  var SCHEME = 'celiktafsir';
+
+  // Only ever forward to the project's own sites. Without this the page is an
+  // open redirect that anyone could point at any URL while wearing our domain.
+  var ALLOWED = ['celiktafsir.net', 'www.celiktafsir.net', 'celiktafsir.web.app'];
+  function safeTarget(raw) {
+    if (!raw) return null;
+    try {
+      var u = new URL(raw, WEB);
+      if (u.protocol !== 'https:' && u.protocol !== 'http:') return null;
+      return ALLOWED.indexOf(u.hostname) === -1 ? null : u.href;
+    } catch (e) { return null; }
+  }
+
+  var params  = new URLSearchParams(window.location.search);
+  var article = safeTarget(params.get('u'));
+  var ua = navigator.userAgent || '';
+  var isAndroid = /Android/i.test(ua);
+  // iPadOS 13+ reports as a Mac, so check for touch as well.
+  var isIOS = /iPad|iPhone|iPod/.test(ua) ||
+              (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+
+  var web = article || WEB;
+  document.getElementById('fallback').href = isAndroid ? PLAY : (isIOS ? APPLE : web);
+
+  if (isAndroid) {
+    document.getElementById('msg').textContent =
+      'Jika aplikasi belum dipasang, anda akan dibawa ke Play Store.';
+    // Android resolves this itself: it opens the app when the scheme is
+    // registered, and follows browser_fallback_url when it is not -- so this
+    // already behaves correctly today, before the app claims the scheme.
+    var intent = 'intent://buka/?u=' + encodeURIComponent(article || '') +
+      '#Intent;scheme=' + SCHEME +
+      ';package=' + ANDROID_PACKAGE +
+      ';S.browser_fallback_url=' + encodeURIComponent(PLAY) + ';end';
+    window.location.replace(intent);
+    return;
+  }
+
+  if (isIOS) {
+    document.getElementById('msg').textContent =
+      'Jika aplikasi belum dipasang, anda akan dibawa ke App Store.';
+    // iOS gives no signal for "did the app open", so try the scheme and send
+    // the ones still here afterwards to the App Store. If the page is hidden
+    // the app took over and we must not navigate.
+    var start = Date.now();
+    window.location.href = SCHEME + '://buka/?u=' + encodeURIComponent(article || '');
+    setTimeout(function () {
+      if (document.hidden) return;
+      if (Date.now() - start > 2500) return; // returned from the app later
+      window.location.replace(APPLE);
+    }, 1200);
+    return;
+  }
+
+  document.getElementById('msg').textContent = 'Membuka di laman web…';
+  window.location.replace(web);
+})();
+</script>
+</body>
+</html>

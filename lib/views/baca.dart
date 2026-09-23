@@ -5,7 +5,10 @@ import '../utils/theme_helper.dart';
 import '../utils/html_link_helper.dart';
 import '../widgets/article_read_bottom_nav.dart';
 import '../widgets/article_read_top_nav.dart';
+import '../widgets/go_to_page_dialog.dart';
 import '../widgets/article_swipe_navigator.dart';
+import '../widgets/nota_pembaca_button.dart';
+import '../utils/share_article.dart';
 
 class BacaPage extends StatefulWidget {
   const BacaPage({super.key});
@@ -165,6 +168,28 @@ class _BacaPageState extends State<BacaPage> {
     }
   }
 
+  /// Jumps straight to [index] (0-based), for "Pergi ke Halaman".
+  void _goToPage(int index) {
+    if (index < 0 || index >= totalPages || index == currentPage) return;
+    setState(() {
+      currentPage = index;
+    });
+    _updatePageTitle();
+    _checkBookmark();
+    _saveLastRead();
+  }
+
+  Future<void> _showGoToPage(String themeName) async {
+    final index = await showGoToPageDialog(
+      context: context,
+      total: totalPages,
+      currentIndex: currentPage,
+      themeName: themeName,
+      label: 'Halaman',
+    );
+    if (index != null) _goToPage(index);
+  }
+
   void _toggleBookmark() async {
     if (_isBookmarked.value) {
       await model.removeBookmark(surahIndex, currentPage);
@@ -272,6 +297,7 @@ class _BacaPageState extends State<BacaPage> {
                             label: 'Halaman',
                             onPrevious: currentPage > 0 ? _previousPage : null,
                             onNext: currentPage < totalPages - 1 ? _nextPage : null,
+                            onTapPosition: totalPages > 1 ? () => _showGoToPage(themeName) : null,
                           ),
                         ),
                       ),
@@ -288,8 +314,33 @@ class _BacaPageState extends State<BacaPage> {
                             ),
                           ),
                         ),
-                        IconButton(
-                          onPressed: () async {
+                        const NotaPembacaButton(),
+                        // The website link is rare next to bookmark and notes, and a third
+                        // icon squeezes an already two-line title, so it lives in the
+                        // overflow menu -- which also gives later actions somewhere to go.
+                        PopupMenuButton<String>(
+                          tooltip: 'Lagi',
+                          onSelected: (value) async {
+                            // Must pass categoryUrl, or this resolves against
+                            // the default category and returns another
+                            // juzuk's article -- for sharing as for opening.
+                            if (value == 'share') {
+                              final shareUrl =
+                                  await getlist.GetListSurah.getSurahUrl(
+                                surahIndex,
+                                currentPage,
+                                categoryUrl: categoryUrl,
+                              );
+                              if (!context.mounted) return;
+                              await ShareArticle.share(
+                                context: context,
+                                articleUrl: shareUrl,
+                                title: surahData['pageTitle'] ??
+                                    surahData['name'],
+                              );
+                              return;
+                            }
+                            if (value != 'website') return;
                             // Must pass categoryUrl, or this resolves against the
                             // default category and returns another juzuk's article.
                             final url = await getlist.GetListSurah.getSurahUrl(
@@ -305,7 +356,28 @@ class _BacaPageState extends State<BacaPage> {
                               url ?? 'https://celiktafsir.net',
                             );
                           },
-                          icon: Icon(Icons.language),
+                          itemBuilder: (context) => const <PopupMenuEntry<String>>[
+                            PopupMenuItem<String>(
+                              value: 'share',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.share, size: 20),
+                                  SizedBox(width: 8),
+                                  Text('Kongsi'),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem<String>(
+                              value: 'website',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.language, size: 20),
+                                  SizedBox(width: 8),
+                                  Text('Buka Laman Web'),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -334,6 +406,7 @@ class _BacaPageState extends State<BacaPage> {
                         label: 'Halaman',
                         onPrevious: _previousPage,
                         onNext: _nextPage,
+                        onTapPosition: totalPages > 1 ? () => _showGoToPage(themeName) : null,
                       ),
                     ),
                   ],

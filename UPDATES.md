@@ -1,6 +1,6 @@
 # Celik Tafsir — Updates & Todo
 
-Versi semasa: **1.0.33+33** · Web: https://celiktafsir.web.app
+Versi semasa: **1.0.39+39** · Web: https://celiktafsir.web.app
 
 Senarai ini disemak terus dengan kod, bukan dari ingatan.
 
@@ -52,11 +52,17 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
     **HADIS #37 sempat tercicir.** Penapis slug dulu hanya terima slug yang
     mengandungi `hadis`, tetapi #37 diterbitkan sebagai
     `/2026/08/16/hadits-arbain-37/` — eja **hadits** (ada 't'), jadi ia
-    tidak lulus penapis dan senarai berhenti di #36. Penapis sekarang
-    terima `hadis`, `hadits`, `hadith` dan `arbain`.
-    Ujian: ujian slug dalam `test/gethadis_40_test.dart` (gagal atas kod
-    lama). Kalau satu hari nanti ada hadis baru tak keluar lagi, benda
-    pertama yang perlu disemak ialah ejaan slug artikel itu.
+    tidak lulus penapis dan senarai berhenti di #36.
+
+    **Penapis slug itu sudah dibuang terus.** Sekarang scraper hanya baca
+    link di dalam `.entry-content` (senarai yang owner tulis sendiri), jadi
+    tiada artikel boleh hilang sebab ejaan slug, dan link sidebar/related
+    tetap tak masuk sebab ia di luar bahagian itu. Kalau class itu bertukar
+    satu hari nanti, ia jatuh balik ke seluruh halaman supaya seksyen tidak
+    jadi kosong.
+    Disemak atas 5 halaman sebenar (Hadis 40 page 1 & /page/2/, Hujjah,
+    Asmaul Husna, Ilmu Usul Tafsir): kandungan sama seperti sebelum ini,
+    cuma HADIS #37 bertambah.
 15. **Font app sekarang sama dengan celiktafsir.net.** Ada pembaca beri
     review 4 bintang: *"font dalam aplikasi berbeza berbanding di dalam
     celik tafsir.net... kurang menarik dan agak susah untuk dibaca"*.
@@ -100,13 +106,140 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
     Android, iOS dan web. Simbol ﷻ dan ﷺ pun keluar betul (dulu jadi kotak
     kosong di web sebab Flutter kena muat turun Noto dari
     `fonts.gstatic.com` masa itu juga).
+19. **Picker "Tulisan" dalam Settings dibuang.** Ia menyimpan pilihan
+    (`selected_font`) tetapi nilai itu tak pernah dibaca di mana-mana, dan
+    barisnya pun sudah `isEnabled: false` — jadi memang kod mati. Sekarang
+    font sudah betul dengan sendirinya (Arimo + Noto Naskh Arabic,
+    di-bundle), jadi picker itu tiada guna. Settings tinggal **Saiz** dan
+    **Tema**. Susun atur disemak atas build sebenar — latar belakang
+    `Tetapan_baru.png` cuma bingkai hiasan, tiada label tercetak, jadi
+    membuang satu baris tidak merosakkan penjajaran.
+20. **Nota Pembaca** — satu buku nota **bebas untuk seluruh app** (bukan
+    satu nota bagi setiap artikel). Butang nota ada di app bar semua enam
+    page bacaan; mana-mana satu buka buku nota yang sama.
+    - Tiada butang simpan: taip sahaja, ia disimpan sendiri selepas berhenti
+      seketika, dan disimpan sekali lagi masa keluar supaya perkataan
+      terakhir tidak hilang.
+    - Ada **Salin Nota** dan **Kosongkan Nota** (dengan pengesahan).
+    - Simpanan: SharedPreferences, kunci `nota_pembaca`
+      (`lib/utils/reader_notes.dart`).
+
+    **App bar dikemas supaya muat.** Ikon glob (Buka Laman Web) dulu berdiri
+    sendiri; ia dipindahkan ke dalam menu `⋮` yang sedia ada, jadi lima page
+    seksyen kekal 2 slot walaupun butang nota ditambah. Ikon menu itu pun
+    ditukar dari ikon salin kepada ikon `⋮` biasa, sebab menu itu sekarang
+    bukan untuk salin sahaja.
+    Di page tafsir (`baca.dart`) slot jadi 3 (bookmark + nota + `⋮`) —
+    bookmark kena kekal nampak sebab ia tunjuk keadaan disimpan/tidak.
+    Ujian: `test/nota_pembaca_test.dart`.
+21. **Butang Kongsi** — ada dalam menu `⋮` setiap page bacaan (dalam menu,
+    bukan ikon baru, sebab app bar memang sempit).
+    Link yang dikongsi bukan link artikel terus, tetapi satu halaman kecil
+    milik kita sendiri: `https://celiktafsir.web.app/buka/?u=<link artikel>`
+    (`web/buka/index.html`). Halaman itu tentukan penerima patut pergi ke
+    mana:
+    - **Android** — cuba buka app dahulu (`intent://`), kalau tiada terus ke
+      **Play Store**
+    - **iPhone/iPad** — cuba buka app, kalau tiada terus ke **App Store**
+    - **Desktop / lain-lain** — terus ke artikel di celiktafsir.net
+
+    Link Play Store & App Store diambil dari API kemas kini app sendiri, jadi
+    ia memang link rasmi yang owner guna.
+    Halaman itu hanya benarkan `u` yang menuju celiktafsir.net /
+    celiktafsir.web.app — kalau tidak ia jadi *open redirect* yang boleh
+    dieksploitasi orang lain memakai nama domain kita.
+    Disemak dalam browser sebenar untuk Android, iPhone dan desktop,
+    termasuk cubaan `u` berniat jahat.
+
+    **Belum berfungsi: "kalau ada app, terus buka app".** Itu perlu
+    perubahan native (Android App Links / iOS Universal Links) **dan**
+    keluaran baru di kedua-dua store. Lihat item Todo di bawah.
+22. **Fail `assetlinks.json` sudah live** di
+    `https://celiktafsir.web.app/.well-known/assetlinks.json` — ini yang
+    Android baca untuk sahkan link boleh buka app.
+
+    **Bug yang dijumpai masa buat ini:** `firebase.json` ada
+    `"ignore": ["**/.*"]`, yang menghalang **semua** fail/folder bermula
+    titik daripada di-deploy — termasuk `.well-known/`. Ditambah dengan
+    rewrite `"**" -> /index.html`, URL itu dulu pulangkan **HTML dengan
+    status 200**, bukan 404. Jadi Android akan baca HTML, gagal sahkan, dan
+    tiada mesej ralat di mana-mana. `ignore` sudah dibetulkan.
+23. **Fungsi "Pergi ke Halaman".** Tekan terus label "Halaman X / Y" (atau
+    "Artikel X / Y") di top nav atau bottom nav pada mana-mana daripada
+    enam page bacaan — keluar dialog untuk taip nombor dan terus lompat ke
+    situ, tak payah tekan Selepas berulang kali. Nombor di luar julat
+    ditolak dengan mesej ralat, bukan senyap dibetulkan.
+    Widget baru: `lib/widgets/go_to_page_dialog.dart`, dipakai dari
+    `ArticleReadTopNav`/`ArticleReadBottomNav` melalui `onTapPosition`.
+    Ujian: `test/go_to_page_test.dart` (gagal bila `onTapPosition` dibuang).
+24. **Carian Lanjutan (Advanced Search).** Carian "Cari Surah..." yang
+    sedia ada cuma padan nama surah tempatan. Ciri baru ini cari **seluruh
+    laman celiktafsir.net** — tafsir ayat, Hujjah, Hadis 40, Glosari, Asal
+    Usul Tafsir — dengan menghantar terus ke carian WordPress laman itu
+    sendiri (`?s=<kata kunci>`), sebab carian WP itu memang cari kandungan
+    penuh, bukan tajuk sahaja, dan tak perlu kita simpan/selaraskan indeks
+    tempatan. Keputusan buka terus dalam pembaca artikel generik
+    (`/baca-hujjah`) — laluan sama yang link Kongsi (item 21) sudah pakai.
+    Diakses melalui ikon carian (bulat) di penjuru Halaman Utama.
+    Perkhidmatan: `lib/services/search_service.dart`. Disahkan terus
+    terhadap halaman carian sebenar ("kiblat" pulangkan 5 keputusan
+    termasuk excerpt, dan carian tanpa hasil pulangkan senarai kosong tanpa
+    ranap).
+    Ujian: `test/search_page_test.dart`.
 
 ---
 
 ## Todo (Belum siap)
 
-1. **Soalan quiz** — belum ada langsung dalam app.
-2. **Fix character rosak dalam app** — *kod sudah dibetulkan, tunggu owner
+1. **Buka terus dalam app bila link Kongsi ditekan** (separuh lagi bagi
+   item 21). Sekarang penerima yang *sudah ada* app pun dibawa ke store.
+   Untuk buka app terus, perlu:
+   - Android: `intent-filter` + fail `assetlinks.json` — perlu **SHA-256
+     fingerprint** kunci penandatanganan dari Play Console.
+   - iOS: Associated Domains + fail `apple-app-site-association` — perlu
+     **Apple Team ID**.
+   - Kemudian **build & hantar versi baru ke Play Store dan App Store**;
+     link tidak akan buka app pada versi yang sudah dipasang sekarang.
+   Halaman `web/buka/` sudah sedia: sebaik sahaja app menuntut skim
+   `celiktafsir://`, bahagian Android mula berfungsi tanpa ubah apa-apa.
+
+   **Status (disahkan owner):**
+   - ✅ App yang betul: **Celik Tafsir Pro**,
+     `https://play.google.com/store/apps/details?id=com.af1productions.celiktafsirv3`
+     (`com.af1productions.celiktafsirv3`) — sudah dipakai dalam
+     `web/buka/index.html`, tiada perubahan diperlukan.
+   - ⬜ **Apple Team ID** — belum diberi. Apple Developer → Membership
+     (contoh bentuk: `A1B2C3D4E5`). Untuk fail
+     `apple-app-site-association` (iOS Universal Links).
+   - ✅ **SHA-256 Android disahkan.** Owner hantar Digital Asset Links JSON
+     dari Play Console dan ia sepadan dengan cap jari yang dikira dari fail
+     sijil: `47:D4:0E:CB:...:88`. Fail live di
+     `https://celiktafsir.web.app/.well-known/assetlinks.json`
+     (pulangkan `application/json`, sudah disemak).
+   - ~~⚠️ **SHA-256 Android** — owner hantar fail `deployment_cert.der`
+     **dan** senarai cap jari, tetapi **dua-dua tidak sepadan**. Cap jari
+     yang dikira terus dari fail itu:
+     `47:D4:0E:CB:83:23:B6:10:50:2F:E4:3B:7C:71:A5:46:92:C4:CB:45:DF:A6:DD:EA:2B:F5:A3:ED:F8:5A:48:88`
+     manakala yang ditaip owner bermula `99:5F:05:0B:...`. Sijil dalam fail
+     itu dikeluarkan Google (CN=Android, sah 2025–2055), jadi ia nampak
+     seperti *app signing key* yang betul — yang ditaip itu mungkin dari
+     *upload key* atau app lain.
+     `web/.well-known/assetlinks.json` sekarang guna cap jari **dari fail**
+     sahaja. Owner perlu sahkan di Play Console → Setup → App integrity →
+     **App signing key certificate** yang SHA-256 di situ bermula `47:D4:`.
+     Kalau bermula `99:5F:`, beritahu — senang tukar.~~ *(selesai)*
+
+   Selepas dua itu diberi: perubahan native dibuat, kemudian **wajib
+   hantar build baru ke Play Store & App Store** — link tidak akan buka
+   app pada versi yang sudah dipasang sekarang.
+2. **Soalan quiz** — belum ada langsung dalam app.
+   **Disemak 2026-09-10:** celiktafsir.net sendiri tiada kandungan kuiz
+   (tiada soalan/jawapan untuk di-scrape), jadi ini bukan setakat UI —
+   perlu **sumber soalan** dahulu. Sebab soalan agama yang salah lebih
+   teruk daripada tiada soalan langsung, kandungan kuiz **tidak dicipta
+   sendiri** di sini. Perlu owner sediakan/sahkan set soalan (fail
+   JSON/spreadsheet ke satu bank soalan) sebelum ciri ini boleh dibina.
+3. **Fix character rosak dalam app** — *kod sudah dibetulkan, tunggu owner
    sahkan atas telefon.*
    Suspek utama ialah `response.body`. Kalau server tak hantar `charset` dalam
    header, package `http` baca bait sebagai latin-1, jadi setiap aksara
@@ -134,15 +267,6 @@ Senarai ini disemak terus dengan kod, bukan dari ingatan.
    walau header hilang satu hari nanti — tetapi kalau aksara masih rosak
    atas telefon, puncanya di tempat lain (suspek: tiada font Arab
    di-bundle, lihat item font di bawah). Perlu screenshot dari owner.
-3. **Pilihan jenis tulisan (font) dalam Settings tak berfungsi.**
-   Amiri / Scheherazade / Lateef / Noto Sans Arabic — pilihan disimpan
-   (`selected_font`) tapi **tak pernah dibaca** di mana-mana. Baris
-   "Tulisan" dalam Settings pun sudah `isEnabled: false`, jadi memang tak
-   boleh ditekan.
-   *Nota:* font sudah pun betul sekarang — Arimo untuk semua teks (item 15)
-   dan Noto Naskh Arabic untuk Arab (item 18), dua-dua di-bundle. Jadi
-   picker ini tiada guna lagi.
-   **Cadangan: buang picker terus** (baris itu pun sudah tak boleh ditekan).
 4. **"Bacaan Terakhir" pernah buka page 1 (14 Ogos) — tak dapat diulang.**
    Owner lapor tekan Bacaan Terakhir buka Halaman 1 sedangkan simpanannya
    Halaman 35/140. Diperiksa: semua tempat yang `pushNamed('/baca')`
