@@ -75,7 +75,7 @@ class GetAsmaulHusna {
 
         // Safety limit to prevent infinite loops
         if (page > 100) {
-          print('Warning: Reached page limit for Asmaul Husna category');
+          // print('Warning: Reached page limit for Asmaul Husna category');
           break;
         }
 
@@ -84,7 +84,7 @@ class GetAsmaulHusna {
           hasMorePages = false;
         }
       } catch (e) {
-        print('Error scraping page $page of Asmaul Husna category: $e');
+        // print('Error scraping page $page of Asmaul Husna category: $e');
         break;
       }
     }
@@ -106,16 +106,16 @@ class GetAsmaulHusna {
 
     if (hasInternet) {
       try {
-        print('Scraping Asmaul Husna posts from $_categoryUrl...');
+        // print('Scraping Asmaul Husna posts from $_categoryUrl...');
         final posts = await scrapeAsmaulHusnaPosts();
-        print('Successfully scraped ${posts.length} Asmaul Husna posts');
+        // print('Successfully scraped ${posts.length} Asmaul Husna posts');
         return posts;
       } catch (e) {
-        print('Error scraping Asmaul Husna posts: $e');
+        // print('Error scraping Asmaul Husna posts: $e');
         return [];
       }
     } else {
-      print('No internet connection, cannot fetch Asmaul Husna posts');
+      // print('No internet connection, cannot fetch Asmaul Husna posts');
       return [];
     }
   }

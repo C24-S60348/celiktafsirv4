@@ -27,6 +27,13 @@ class _BacaHadis40PageState extends State<BacaHadis40Page> {
   int _total = 0;
   List<Map<String, dynamic>>? _items;
   String? _hadis40Content;
+  late final Future<String> _themeFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _themeFuture = ThemeHelper.getThemeName();
+  }
 
   @override
   void dispose() {
@@ -75,7 +82,7 @@ class _BacaHadis40PageState extends State<BacaHadis40Page> {
         }
       }
     } catch (e) {
-      print('Error loading Hadis 40 content: $e');
+      // print('Error loading Hadis 40 content: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -115,44 +122,67 @@ class _BacaHadis40PageState extends State<BacaHadis40Page> {
   }
 
   void _copyTextToClipboard(String text, {String type = 'Teks'}) {
-    Clipboard.setData(ClipboardData(text: text)).then((_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('$type telah disalin ke klipbod'),
-          duration: Duration(seconds: 1),
-          backgroundColor: Colors.green,
-        ),
-      );
-    }).catchError((e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Gagal menyalin $type'),
-          duration: Duration(seconds: 1),
-          backgroundColor: Colors.red,
-        ),
-      );
-    });
+    Clipboard.setData(ClipboardData(text: text))
+        .then((_) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('$type telah disalin ke klipbod'),
+              duration: Duration(seconds: 1),
+              backgroundColor: Colors.green,
+            ),
+          );
+        })
+        .catchError((e) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Gagal menyalin $type'),
+              duration: Duration(seconds: 1),
+              backgroundColor: Colors.red,
+            ),
+          );
+        });
   }
 
   String _stripHtmlTags(String htmlContent) {
     String plainText = htmlContent;
-    
+
     // Replace block elements with double newlines to preserve paragraph structure
-    plainText = plainText.replaceAll(RegExp(r'</p>\s*<p>', caseSensitive: false), '\n\n');
-    plainText = plainText.replaceAll(RegExp(r'<p[^>]*>', caseSensitive: false), '');
+    plainText = plainText.replaceAll(
+      RegExp(r'</p>\s*<p>', caseSensitive: false),
+      '\n\n',
+    );
+    plainText = plainText.replaceAll(
+      RegExp(r'<p[^>]*>', caseSensitive: false),
+      '',
+    );
     plainText = plainText.replaceAll(RegExp(r'</p>', caseSensitive: false), '');
-    plainText = plainText.replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n');
-    plainText = plainText.replaceAll(RegExp(r'<div[^>]*>', caseSensitive: false), '');
-    plainText = plainText.replaceAll(RegExp(r'</div>', caseSensitive: false), '\n');
-    plainText = plainText.replaceAll(RegExp(r'<blockquote[^>]*>', caseSensitive: false), '');
-    plainText = plainText.replaceAll(RegExp(r'</blockquote>', caseSensitive: false), '');
-    
+    plainText = plainText.replaceAll(
+      RegExp(r'<br\s*/?>', caseSensitive: false),
+      '\n',
+    );
+    plainText = plainText.replaceAll(
+      RegExp(r'<div[^>]*>', caseSensitive: false),
+      '',
+    );
+    plainText = plainText.replaceAll(
+      RegExp(r'</div>', caseSensitive: false),
+      '\n',
+    );
+    plainText = plainText.replaceAll(
+      RegExp(r'<blockquote[^>]*>', caseSensitive: false),
+      '',
+    );
+    plainText = plainText.replaceAll(
+      RegExp(r'</blockquote>', caseSensitive: false),
+      '',
+    );
+
     // Remove remaining HTML tags
     final RegExp htmlRegex = RegExp(r'<[^>]*>');
     plainText = plainText.replaceAll(htmlRegex, '');
-    
+
     // Decode HTML entities
     plainText = plainText
         .replaceAll('&nbsp;', ' ')
@@ -161,7 +191,7 @@ class _BacaHadis40PageState extends State<BacaHadis40Page> {
         .replaceAll('&quot;', '"')
         .replaceAll('&#39;', "'")
         .replaceAll('&amp;', '&');
-    
+
     // Clean up excessive whitespace while preserving paragraph breaks
     // Replace multiple spaces with single space
     plainText = plainText.replaceAll(RegExp(r' +'), ' ');
@@ -170,7 +200,7 @@ class _BacaHadis40PageState extends State<BacaHadis40Page> {
     // Trim each line
     final lines = plainText.split('\n');
     plainText = lines.map((line) => line.trim()).join('\n');
-    
+
     return plainText.trim();
   }
 
@@ -178,11 +208,12 @@ class _BacaHadis40PageState extends State<BacaHadis40Page> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: FutureBuilder<String>(
-        future: ThemeHelper.getThemeName(),
+        future: _themeFuture,
         builder: (context, snapshot) {
           final themeName = snapshot.data ?? 'Terang';
-          final backgroundColor =
-              ThemeHelper.getContentBackgroundColor(themeName);
+          final backgroundColor = ThemeHelper.getContentBackgroundColor(
+            themeName,
+          );
           final isDark = themeName == 'Gelap';
           final baseTextColor = ThemeHelper.getTextColor(themeName);
           // Ensure all text is pure white in dark mode (to match BacaPage behaviour)
@@ -220,7 +251,10 @@ class _BacaHadis40PageState extends State<BacaHadis40Page> {
                         postTitle ?? 'Hadis 40 Imam Nawawi',
                         textAlign: TextAlign.left,
                         maxLines: 2,
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       leading: IconButton(
                         onPressed: () => Navigator.of(context).pop(),
@@ -228,8 +262,7 @@ class _BacaHadis40PageState extends State<BacaHadis40Page> {
                       ),
                       bottom: (_items != null && _items!.isNotEmpty)
                           ? PreferredSize(
-                              preferredSize:
-                                  const Size.fromHeight(44),
+                              preferredSize: const Size.fromHeight(44),
                               child: Container(
                                 color: articleReadTopNavColor(themeName),
                                 child: ArticleReadTopNav(
@@ -272,9 +305,15 @@ class _BacaHadis40PageState extends State<BacaHadis40Page> {
                               return;
                             }
                             if (value == 'content') {
-                              if (_hadis40Content != null && _hadis40Content!.isNotEmpty) {
-                                final plainText = _stripHtmlTags(_hadis40Content!);
-                                _copyTextToClipboard(plainText, type: 'Kandungan');
+                              if (_hadis40Content != null &&
+                                  _hadis40Content!.isNotEmpty) {
+                                final plainText = _stripHtmlTags(
+                                  _hadis40Content!,
+                                );
+                                _copyTextToClipboard(
+                                  plainText,
+                                  type: 'Kandungan',
+                                );
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
@@ -286,38 +325,39 @@ class _BacaHadis40PageState extends State<BacaHadis40Page> {
                               }
                             }
                           },
-                          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                            PopupMenuItem<String>(
-                              value: 'content',
-                              child: Row(
-                                children: [
-                                  Icon(Icons.article, size: 20),
-                                  SizedBox(width: 8),
-                                  Text('Salin Kandungan'),
-                                ],
-                              ),
-                            ),
-                            PopupMenuItem<String>(
-                              value: 'share',
-                              child: Row(
-                                children: [
-                                  Icon(Icons.share, size: 20),
-                                  SizedBox(width: 8),
-                                  Text('Kongsi'),
-                                ],
-                              ),
-                            ),
-                            PopupMenuItem<String>(
-                              value: 'website',
-                              child: Row(
-                                children: [
-                                  Icon(Icons.language, size: 20),
-                                  SizedBox(width: 8),
-                                  Text('Buka Laman Web'),
-                                ],
-                              ),
-                            ),
-                          ],
+                          itemBuilder: (BuildContext context) =>
+                              <PopupMenuEntry<String>>[
+                                PopupMenuItem<String>(
+                                  value: 'content',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.article, size: 20),
+                                      SizedBox(width: 8),
+                                      Text('Salin Kandungan'),
+                                    ],
+                                  ),
+                                ),
+                                PopupMenuItem<String>(
+                                  value: 'share',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.share, size: 20),
+                                      SizedBox(width: 8),
+                                      Text('Kongsi'),
+                                    ],
+                                  ),
+                                ),
+                                PopupMenuItem<String>(
+                                  value: 'website',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.language, size: 20),
+                                      SizedBox(width: 8),
+                                      Text('Buka Laman Web'),
+                                    ],
+                                  ),
+                                ),
+                              ],
                           // Was a copy icon back when copying was all this
                           // menu did; it now also opens the website, so use
                           // the conventional overflow glyph.
@@ -408,4 +448,3 @@ class _BacaHadis40PageState extends State<BacaHadis40Page> {
     );
   }
 }
-

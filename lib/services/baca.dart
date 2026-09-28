@@ -32,7 +32,7 @@ class BacaService {
         }
       }
     } catch (e) {
-      print('Error fetching content: $e');
+      // print('Error fetching content: $e');
     }
     return null;
   }

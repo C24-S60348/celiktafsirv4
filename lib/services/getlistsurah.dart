@@ -23,14 +23,14 @@ class GetListSurah {
     final cachedVersion = prefs.getInt(_cacheVersionKey) ?? 0;
     
     if (cachedVersion < _currentCacheVersion) {
-      print('Surah cache version outdated ($cachedVersion < $_currentCacheVersion). Clearing surah cache...');
+      // print('Surah cache version outdated ($cachedVersion < $_currentCacheVersion). Clearing surah cache...');
       // Clear all surah-related caches
       await prefs.remove(_cacheKey);
       await prefs.remove(_cacheCategoryUrlsKey);
       await prefs.remove(_cacheSurahUrlsKey);
       await prefs.remove(_cacheTimestampKey);
       await prefs.setInt(_cacheVersionKey, _currentCacheVersion);
-      print('Surah cache cleared and version updated to $_currentCacheVersion');
+      // print('Surah cache cleared and version updated to $_currentCacheVersion');
     }
   }
   
@@ -40,18 +40,18 @@ class GetListSurah {
   static Future<List<Map<String, String>>> getSurahNames() async {
     // Cache disabled - always fetch fresh data
     try {
-      print('Fetching surah names from celiktafsir.net...');
+      // print('Fetching surah names from celiktafsir.net...');
       final surahNames = await _scrapeSurahNamesFromWebsite();
       
       if (surahNames.isNotEmpty) {
-        print('Successfully scraped ${surahNames.length} surah names from website');
+        // print('Successfully scraped ${surahNames.length} surah names from website');
         return surahNames;
       } else {
-        print('No surah names found on website');
+        // print('No surah names found on website');
         return [];
       }
     } catch (e) {
-      print('Error scraping website: $e');
+      // print('Error scraping website: $e');
       return [];
     }
     
@@ -65,42 +65,42 @@ class GetListSurah {
     if (hasInternet) {
       // Try to fetch from website first
       try {
-        print('Fetching surah names from celiktafsir.net...');
+        // print('Fetching surah names from celiktafsir.net...');
         final surahNames = await _scrapeSurahNamesFromWebsite();
         
         if (surahNames.isNotEmpty) {
           // Cache the data locally
           await _cacheSurahNames(surahNames);
-          print('Successfully scraped ${surahNames.length} surah names from website');
+          // print('Successfully scraped ${surahNames.length} surah names from website');
           return surahNames;
         } else {
           throw Exception('No surah names found on website');
         }
       } catch (e) {
-        print('Error scraping website, trying cached data: $e');
+        // print('Error scraping website, trying cached data: $e');
         
         // If network fails, try to get cached data
         final cachedData = await _getCachedSurahNames();
         if (cachedData != null && cachedData.isNotEmpty) {
-          print('Using cached surah names');
+          // print('Using cached surah names');
           return cachedData;
         }
         
         // If no cached data, return empty list
-        print('No cached data available');
+        // print('No cached data available');
         return [];
       }
     } else {
       // No internet - use cached data
-      print('No internet connection, using cached surah names');
+      // print('No internet connection, using cached surah names');
       final cachedData = await _getCachedSurahNames();
       if (cachedData != null && cachedData.isNotEmpty) {
-        print('Using cached surah names');
+        // print('Using cached surah names');
         return cachedData;
       }
       
       // If no cached data, return empty list
-      print('No cached data available');
+      // print('No cached data available');
       return [];
     }
     */
@@ -198,7 +198,7 @@ class GetListSurah {
             }
           } catch (e) {
             // If there's an error accessing siblings, continue without additional text
-            print('Error accessing sibling elements: $e');
+            // print('Error accessing sibling elements: $e');
           }
           
           // Remove leading number prefix like "2. " or "1. " (but keep "Surah" prefix)
@@ -243,10 +243,10 @@ class GetListSurah {
       // Let's try to find Arabic names in the HTML structure
       _populateArabicNames(surahNames, document);
       
-      print('Found ${surahNames.length} surah entries');
+      // print('Found ${surahNames.length} surah entries');
       return surahNames;
     } catch (e) {
-      print('Error in _scrapeSurahNamesFromWebsite: $e');
+      // print('Error in _scrapeSurahNamesFromWebsite: $e');
       return [];
     }
   }
@@ -330,7 +330,7 @@ class GetListSurah {
         
         // Safety limit to prevent infinite loops
         if (page > 100) {
-          print('Warning: Reached page limit for category');
+          // print('Warning: Reached page limit for category');
           break;
         }
         
@@ -339,7 +339,7 @@ class GetListSurah {
           hasMorePages = false;
         }
       } catch (e) {
-        print('Error scraping page $page of category: $e');
+        // print('Error scraping page $page of category: $e');
         break;
       }
     }
@@ -356,9 +356,9 @@ class GetListSurah {
       final jsonString = jsonEncode(surahNames);
       await prefs.setString(_cacheKey, jsonString);
       await prefs.setString(_cacheTimestampKey, DateTime.now().toIso8601String());
-      print('Surah names cached successfully');
+      // print('Surah names cached successfully');
     } catch (e) {
-      print('Error caching surah names: $e');
+      // print('Error caching surah names: $e');
     }
   }
   
@@ -379,7 +379,7 @@ class GetListSurah {
       
       return null;
     } catch (e) {
-      print('Error getting cached surah names: $e');
+      // print('Error getting cached surah names: $e');
       return null;
     }
   }
@@ -391,9 +391,9 @@ class GetListSurah {
       final Map<String, String> stringMap = categoryUrls.map((k, v) => MapEntry(k.toString(), v));
       final jsonString = jsonEncode(stringMap);
       await prefs.setString(_cacheCategoryUrlsKey, jsonString);
-      print('Category URLs cached successfully');
+      // print('Category URLs cached successfully');
     } catch (e) {
-      print('Error caching category URLs: $e');
+      // print('Error caching category URLs: $e');
     }
   }
   
@@ -410,7 +410,7 @@ class GetListSurah {
       
       return null;
     } catch (e) {
-      print('Error getting cached category URLs: $e');
+      // print('Error getting cached category URLs: $e');
       return null;
     }
   }
@@ -456,7 +456,7 @@ class GetListSurah {
         return categoryUrls[surahNumber];
       }
     } catch (e) {
-      print('Error scraping category URL: $e');
+      // print('Error scraping category URL: $e');
     }
     
     return null;
@@ -478,9 +478,9 @@ class GetListSurah {
       
       final jsonString = jsonEncode(cacheMap);
       await prefs.setString(_cacheSurahUrlsKey, jsonString);
-      print('Cached URLs and titles for surah $surahNumber (${urlTitles.length} pages)');
+      // print('Cached URLs and titles for surah $surahNumber (${urlTitles.length} pages)');
     } catch (e) {
-      print('Error caching surah URLs: $e');
+      // print('Error caching surah URLs: $e');
     }
   }
   
@@ -517,7 +517,7 @@ class GetListSurah {
       
       return {};
     } catch (e) {
-      print('Error getting cached surah URLs: $e');
+      // print('Error getting cached surah URLs: $e');
       return {};
     }
   }
@@ -532,13 +532,13 @@ class GetListSurah {
     // Get category URL for this surah (use provided one or look it up)
     final String? finalCategoryUrl = categoryUrl ?? await _getCategoryUrlForSurah(surahNumber);
     if (finalCategoryUrl == null) {
-      print('No category URL found for surah $surahNumber');
+      // print('No category URL found for surah $surahNumber');
       return null;
     }
     
     // Scrape URLs and titles for this specific surah
     try {
-      print('Scraping URLs and titles for surah $surahNumber from $finalCategoryUrl...');
+      // print('Scraping URLs and titles for surah $surahNumber from $finalCategoryUrl...');
       final urlTitles = await _scrapeSurahUrls(finalCategoryUrl);
       
       return {
@@ -550,7 +550,7 @@ class GetListSurah {
         'totalPages': urlTitles.length,
       };
     } catch (e) {
-      print('Error scraping surah $surahNumber: $e');
+      // print('Error scraping surah $surahNumber: $e');
       return {
         'surahNumber': surahNumber,
         'surahIndex': surahIndex,
@@ -570,11 +570,11 @@ class GetListSurah {
       // Get category URL for this surah (use provided one or look it up)
       final String? finalCategoryUrl = categoryUrl ?? await _getCategoryUrlForSurah(surahNumber);
       if (finalCategoryUrl == null) {
-        print('No category URL found for surah $surahNumber');
+        // print('No category URL found for surah $surahNumber');
         // Try to use cached URLs if available
         final cachedUrls = await _getCachedSurahUrls();
         if (cachedUrls.containsKey(surahNumber)) {
-          print('Using cached URLs for surah $surahNumber');
+          // print('Using cached URLs for surah $surahNumber');
           final urlTitles = cachedUrls[surahNumber]!;
           return {
             'surahNumber': surahNumber,
@@ -590,7 +590,7 @@ class GetListSurah {
       
       // Scrape URLs and titles for this specific surah
       try {
-        print('Scraping URLs and titles for surah $surahNumber from $finalCategoryUrl...');
+        // print('Scraping URLs and titles for surah $surahNumber from $finalCategoryUrl...');
         final urlTitles = await _scrapeSurahUrls(finalCategoryUrl);
         
         // Cache the URLs and titles
@@ -605,11 +605,11 @@ class GetListSurah {
           'totalPages': urlTitles.length,
         };
       } catch (e) {
-        print('Error scraping surah $surahNumber: $e');
+        // print('Error scraping surah $surahNumber: $e');
         // If scraping fails, try to use cached URLs
         final cachedUrls = await _getCachedSurahUrls();
         if (cachedUrls.containsKey(surahNumber)) {
-          print('Using cached URLs for surah $surahNumber after scraping error');
+          // print('Using cached URLs for surah $surahNumber after scraping error');
           final urlTitles = cachedUrls[surahNumber]!;
           return {
             'surahNumber': surahNumber,
@@ -631,7 +631,7 @@ class GetListSurah {
       }
     } else {
       // No internet - use cached URLs
-      print('No internet connection, using cached URLs for surah $surahNumber');
+      // print('No internet connection, using cached URLs for surah $surahNumber');
       final cachedUrls = await _getCachedSurahUrls();
       if (cachedUrls.containsKey(surahNumber)) {
         final urlTitles = cachedUrls[surahNumber]!;
@@ -644,7 +644,7 @@ class GetListSurah {
           'totalPages': urlTitles.length,
         };
       } else {
-        print('No cached URLs found for surah $surahNumber');
+        // print('No cached URLs found for surah $surahNumber');
         return {
           'surahNumber': surahNumber,
           'surahIndex': surahIndex,

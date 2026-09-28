@@ -140,7 +140,7 @@ class GetHadis40 {
 
         // Safety limit to prevent infinite loops
         if (page > 100) {
-          print('Warning: Reached page limit for Hadis 40 category');
+          // print('Warning: Reached page limit for Hadis 40 category');
           break;
         }
 
@@ -148,7 +148,7 @@ class GetHadis40 {
           hasMorePages = false;
         }
       } catch (e) {
-        print('Error scraping page $page of Hadis 40 category: $e');
+        // print('Error scraping page $page of Hadis 40 category: $e');
         break;
       }
     }
@@ -167,7 +167,7 @@ class GetHadis40 {
     final hasInternet = await hasInternetConnection();
 
     if (!hasInternet) {
-      print('No internet connection, cannot fetch Hadis 40 page');
+      // print('No internet connection, cannot fetch Hadis 40 page');
       return [];
     }
 
@@ -176,10 +176,10 @@ class GetHadis40 {
       return scraped;
     }
 
-    print(
-      'Hadis 40 category scrape found nothing at $_categoryUrl, '
-      'falling back to the known articles',
-    );
+    // print(
+//       'Hadis 40 category scrape found nothing at $_categoryUrl, '
+//       'falling back to the known articles',
+//     );
     return _knownPosts.map((e) => Map<String, String>.from(e)).toList();
   }
 }

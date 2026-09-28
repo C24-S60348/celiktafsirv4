@@ -46,7 +46,7 @@ class _TadabburPageState extends State<TadabburPage> {
         isLoading = false;
       });
     } catch (e) {
-      print('Error loading surah names: $e');
+      // print('Error loading surah names: $e');
       
       // Check if widget is still mounted after error
       if (!mounted) return;

@@ -151,8 +151,8 @@ Widget Function(ExtensionContext) networkImageExtensionBuilderWithTheme(
             );
           },
           errorBuilder: (context, error, stackTrace) {
-            print('Error loading image from: $proxiedUrl');
-            print('Error: $error');
+            // print('Error loading image from: $proxiedUrl');
+            // print('Error: $error');
             return Container(
               width: double.infinity,
               height: 200,
@@ -411,7 +411,7 @@ Future<List<Map<String, dynamic>>> getBookmarks() async {
     }
     return [];
   } catch (e) {
-    print('Error getting bookmarks: $e');
+    // print('Error getting bookmarks: $e');
     return [];
   }
 }
@@ -422,7 +422,7 @@ Future<void> saveBookmarks(List<Map<String, dynamic>> bookmarks) async {
     final bookmarksJson = json.encode(bookmarks);
     await prefs.setString('bookmarks', bookmarksJson);
   } catch (e) {
-    print('Error saving bookmarks: $e');
+    // print('Error saving bookmarks: $e');
   }
 }
 
@@ -452,7 +452,7 @@ Future<void> addBookmark(
       await saveBookmarks(bookmarks);
     }
   } catch (e) {
-    print('Error adding bookmark: $e');
+    // print('Error adding bookmark: $e');
   }
 }
 
@@ -464,7 +464,7 @@ Future<void> removeBookmark(int surahIndex, int currentPage) async {
     );
     await saveBookmarks(bookmarks);
   } catch (e) {
-    print('Error removing bookmark: $e');
+    // print('Error removing bookmark: $e');
   }
 }
 
@@ -475,7 +475,7 @@ Future<bool> isBookmarked(int surahIndex, int currentPage) async {
       (b) => b['surahIndex'] == surahIndex && b['currentPage'] == currentPage,
     );
   } catch (e) {
-    print('Error checking bookmark: $e');
+    // print('Error checking bookmark: $e');
     return false;
   }
 }
@@ -491,7 +491,7 @@ Future<Map<String, dynamic>?> getLastRead() async {
     }
     return null;
   } catch (e) {
-    print('Error getting last read: $e');
+    // print('Error getting last read: $e');
     return null;
   }
 }
@@ -516,6 +516,6 @@ Future<void> saveLastRead(
     final lastReadJson = json.encode(lastRead);
     await prefs.setString('lastRead', lastReadJson);
   } catch (e) {
-    print('Error saving last read: $e');
+    // print('Error saving last read: $e');
   }
 }

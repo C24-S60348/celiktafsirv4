@@ -56,7 +56,7 @@ class GetLaaTahzan {
         });
       }
     } catch (e) {
-      print('Error scraping La Tahzan page: $e');
+      // print('Error scraping La Tahzan page: $e');
       return [];
     }
 
@@ -68,12 +68,12 @@ class GetLaaTahzan {
     if (!hasInternet) return [];
 
     try {
-      print('Scraping La Tahzan posts from $_listUrl...');
+      // print('Scraping La Tahzan posts from $_listUrl...');
       final posts = await scrapeLaaTahzanPosts();
-      print('Successfully scraped ${posts.length} La Tahzan posts');
+      // print('Successfully scraped ${posts.length} La Tahzan posts');
       return posts;
     } catch (e) {
-      print('Error scraping La Tahzan posts: $e');
+      // print('Error scraping La Tahzan posts: $e');
       return [];
     }
   }

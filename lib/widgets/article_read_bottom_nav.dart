@@ -28,7 +28,8 @@ class ArticleReadBottomNav extends StatelessWidget {
     this.onTapPosition,
   });
 
-  static Color buttonColor(String themeName) => ThemeHelper.getAppBarColor(themeName);
+  static Color buttonColor(String themeName) =>
+      ThemeHelper.getAppBarColor(themeName);
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +39,12 @@ class ArticleReadBottomNav extends StatelessWidget {
         : '$label ${currentIndex + 1} dari $total';
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.fromLTRB(8, 16, 8, 16 + MediaQuery.of(context).padding.bottom),
+      padding: EdgeInsets.fromLTRB(
+        8,
+        16,
+        8,
+        16 + MediaQuery.of(context).padding.bottom,
+      ),
       color: ThemeHelper.getContentBackgroundColor(themeName),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -46,7 +52,7 @@ class ArticleReadBottomNav extends StatelessWidget {
           ElevatedButton.icon(
             onPressed: currentIndex > 0 ? onPrevious : null,
             icon: const Icon(Icons.arrow_back),
-            label: Text('Sebelum'),
+            label: const Text('Sebelum', style: TextStyle(fontSize: 12)),
             style: ElevatedButton.styleFrom(
               backgroundColor: buttonColor,
               foregroundColor: Colors.black,
@@ -65,7 +71,10 @@ class ArticleReadBottomNav extends StatelessWidget {
                   onTap: onTapPosition,
                   borderRadius: BorderRadius.circular(6),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -86,7 +95,7 @@ class ArticleReadBottomNav extends StatelessWidget {
           ElevatedButton.icon(
             onPressed: currentIndex < total - 1 ? onNext : null,
             icon: const Icon(Icons.arrow_forward),
-            label: Text('Selepas'),
+            label: const Text('Selepas', style: TextStyle(fontSize: 12)),
             style: ElevatedButton.styleFrom(
               backgroundColor: buttonColor,
               foregroundColor: Colors.black,

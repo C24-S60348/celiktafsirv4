@@ -55,10 +55,10 @@ class _MainPageState extends State<MainPage> {
     await Future.delayed(Duration(seconds: 2));
     
     try {
-      print('🔄 Auto-checking for updates on app start...');
+      // print('🔄 Auto-checking for updates on app start...');
       final notifications = await VersionChecker.checkForUpdate();
       
-      print('📬 Found ${notifications.length} notification(s)');
+      // print('📬 Found ${notifications.length} notification(s)');
       
       // Show all notifications (update first, then news) one by one
       if (notifications.isNotEmpty && mounted) {
@@ -70,16 +70,16 @@ class _MainPageState extends State<MainPage> {
         
         for (var i = 0; i < notifications.length; i++) {
           final notification = notifications[i];
-          print('📢 Showing notification ${i + 1}/${notifications.length}: ${notification.title ?? (notification.isNews ? "News" : "Update")}');
+          // print('📢 Showing notification ${i + 1}/${notifications.length}: ${notification.title ?? (notification.isNews ? "News" : "Update")}');
           if (mounted) {
             await UpdateDialog.show(context, notification);
           }
         }
       } else {
-        print('✅ No updates or news to show (or already dismissed)');
+        // print('✅ No updates or news to show (or already dismissed)');
       }
     } catch (e) {
-      print('❌ Error checking for updates: $e');
+      // print('❌ Error checking for updates: $e');
     }
   }
 
@@ -102,7 +102,7 @@ class _MainPageState extends State<MainPage> {
         });
       }
     } catch (e) {
-      print('Error loading last read: $e');
+      // print('Error loading last read: $e');
       if (mounted) {
         setState(() {
           isLoadingLastRead = false;
@@ -148,7 +148,7 @@ class _MainPageState extends State<MainPage> {
         _loadLastRead();
       }
     } catch (e) {
-      print('Error navigating to last read: $e');
+      // print('Error navigating to last read: $e');
     }
   }
 

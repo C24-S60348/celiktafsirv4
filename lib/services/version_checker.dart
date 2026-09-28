@@ -16,19 +16,19 @@ class VersionChecker {
       final version = packageInfo.version;
       final buildNumber = packageInfo.buildNumber;
       
-      print('📱 PackageInfo - version: $version, buildNumber: $buildNumber');
-      print('📱 App name: ${packageInfo.appName}');
-      print('📱 Package name: ${packageInfo.packageName}');
+      // print('📱 PackageInfo - version: $version, buildNumber: $buildNumber');
+      // print('📱 App name: ${packageInfo.appName}');
+      // print('📱 Package name: ${packageInfo.packageName}');
       
       // If version is empty, invalid, or default "1.0.0", use fallback
       if (version.isEmpty || version == '0.0.0' || version == '1.0.0') {
-        print('⚠️ Invalid/default version detected ($version), using fallback');
+        // print('⚠️ Invalid/default version detected ($version), using fallback');
         return '1.0.20'; // Use current version from pubspec.yaml as fallback
       }
       
       return version; // Gets version from pubspec.yaml
     } catch (e) {
-      print('❌ Error getting package version: $e');
+      // print('❌ Error getting package version: $e');
       return '1.0.20'; // Use current version from pubspec.yaml as fallback
     }
   }
@@ -40,7 +40,7 @@ class VersionChecker {
     try {
       // Get current version from app's pubspec.yaml (NOT from API)
       final currentVersion = await getCurrentVersion();
-      print('🔍 Current app version: $currentVersion');
+      // print('🔍 Current app version: $currentVersion');
       
       final prefs = await SharedPreferences.getInstance();
       
@@ -51,12 +51,12 @@ class VersionChecker {
         
         // Check only once per day (86400000 ms = 24 hours)
         if (now - lastCheck < 86400000) {
-          print('Version check skipped - checked recently');
+          // print('Version check skipped - checked recently');
           return [];
         }
       }
       
-      print('Checking for app updates...');
+      // print('Checking for app updates...');
       final response = await http.get(Uri.parse(versionApiUrl)).timeout(
         const Duration(seconds: 10),
       );
@@ -114,7 +114,7 @@ class VersionChecker {
       
       return [];
     } catch (e) {
-      print('Error checking version: $e');
+      // print('Error checking version: $e');
       return [];
     }
   }
@@ -143,7 +143,7 @@ class VersionChecker {
       
       return false; // Versions are equal
     } catch (e) {
-      print('Error comparing versions: $e');
+      // print('Error comparing versions: $e');
       return false;
     }
   }

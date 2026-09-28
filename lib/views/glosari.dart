@@ -69,7 +69,7 @@ class _GlosariPageState extends State<GlosariPage> {
         );
       }
     } catch (e) {
-      print('Error memuat kandungan: $e');
+      // print('Error memuat kandungan: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

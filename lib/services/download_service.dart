@@ -14,10 +14,10 @@ class DownloadService {
     final cachedVersion = prefs.getInt(_cacheVersionKey) ?? 0;
     
     if (cachedVersion < _currentCacheVersion) {
-      print('Cache version outdated ($cachedVersion < $_currentCacheVersion). Clearing cache...');
+      // print('Cache version outdated ($cachedVersion < $_currentCacheVersion). Clearing cache...');
       await clearCache();
       await prefs.setInt(_cacheVersionKey, _currentCacheVersion);
-      print('Cache cleared and version updated to $_currentCacheVersion');
+      // print('Cache cleared and version updated to $_currentCacheVersion');
     }
   }
   
@@ -39,14 +39,14 @@ class DownloadService {
       
       final surah = await GetListSurah.getSurahByIndex(surahIndex, categoryUrl: categoryUrl);
       if (surah == null) {
-        print('Surah $surahIndex not found');
+        // print('Surah $surahIndex not found');
         return;
       }
       
       final totalPages = surah['totalPages'] as int;
       final urls = List<String>.from(surah['urls'] as List);
       
-      print('Downloading surah $surahIndex (categoryUrl: $categoryUrl): $totalPages pages');
+      // print('Downloading surah $surahIndex (categoryUrl: $categoryUrl): $totalPages pages');
       
       // Get cached content
       final cachedContent = await _getCachedContent();
@@ -56,16 +56,16 @@ class DownloadService {
         final url = urls[pageIndex];
         final cacheKey = _getCacheKey(surahIndex, pageIndex, categoryUrl);
         
-        print('Processing page $pageIndex: $url (cacheKey: $cacheKey)');
+        // print('Processing page $pageIndex: $url (cacheKey: $cacheKey)');
         
         // Skip if already cached
         if (cachedContent.containsKey(cacheKey)) {
-          print('Page $pageIndex already cached, skipping');
+          // print('Page $pageIndex already cached, skipping');
           continue;
         }
         
         try {
-          print('Downloading page $pageIndex...');
+          // print('Downloading page $pageIndex...');
           // Fetch content from URL
           final content = await BacaService.fetchContentFromUrl(url, 'entry-content');
           
@@ -84,19 +84,19 @@ class DownloadService {
             
             // Save to cache
             await _saveCachedContent(cachedContent);
-            print('Page $pageIndex downloaded and cached successfully');
+            // print('Page $pageIndex downloaded and cached successfully');
           } else {
-            print('Failed to get content for page $pageIndex');
+            // print('Failed to get content for page $pageIndex');
           }
         } catch (e) {
-          print('Error downloading page $pageIndex: $e');
+          // print('Error downloading page $pageIndex: $e');
         }
       }
       
-      print('Completed downloading surah $surahIndex');
+      // print('Completed downloading surah $surahIndex');
       
     } catch (e) {
-      print('Error downloading surah $surahIndex: $e');
+      // print('Error downloading surah $surahIndex: $e');
     }
   }
   
@@ -143,17 +143,17 @@ class DownloadService {
     final surah = await GetListSurah.getSurahByIndex(surahIndex, categoryUrl: categoryUrl);
     
     if (surah == null) {
-      print('Surah $surahIndex not found');
+      // print('Surah $surahIndex not found');
       return;
     }
     
     final totalPages = surah['totalPages'] as int;
-    print('Debug: Surah $surahIndex (categoryUrl: $categoryUrl) has $totalPages pages');
+    // print('Debug: Surah $surahIndex (categoryUrl: $categoryUrl) has $totalPages pages');
     
     for (int pageIndex = 0; pageIndex < totalPages; pageIndex++) {
       final cacheKey = _getCacheKey(surahIndex, pageIndex, categoryUrl);
       final isCached = cachedContent.containsKey(cacheKey);
-      print('Page $pageIndex (cacheKey: $cacheKey): ${isCached ? 'CACHED' : 'NOT CACHED'}');
+      // print('Page $pageIndex (cacheKey: $cacheKey): ${isCached ? 'CACHED' : 'NOT CACHED'}');
     }
   }
   

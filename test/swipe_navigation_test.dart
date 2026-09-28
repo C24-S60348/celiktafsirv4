@@ -9,10 +9,8 @@ import 'package:celik_tafsir/widgets/article_swipe_navigator.dart';
 
 import 'support/fake_http.dart';
 
-/// The main page has swiped between its grids for a while (`PageView` in
-/// mainpage.dart); the reading pages only had the chevron buttons. These pin
-/// the gesture and, just as importantly, that it obeys the same "is there a
-/// page in that direction" rule the chevrons do.
+/// Reading pages keep their chevron controls, but horizontal swipes must never
+/// change the current article or page.
 void main() {
   group('ArticleSwipeNavigator', () {
     late List<String> calls;
@@ -44,7 +42,7 @@ void main() {
 
     tearDown(() => scrollController.dispose());
 
-    testWidgets('swiping right-to-left goes to the next article', (
+    testWidgets('swiping right-to-left does not change the article', (
       tester,
     ) async {
       await pump(tester);
@@ -52,21 +50,23 @@ void main() {
       await tester.fling(find.byType(ListView), const Offset(-300, 0), 800);
       await tester.pumpAndSettle();
 
-      expect(calls, ['next']);
+      expect(calls, isEmpty);
     });
 
-    testWidgets('swiping left-to-right goes back', (tester) async {
+    testWidgets('swiping left-to-right does not change the article', (
+      tester,
+    ) async {
       await pump(tester);
 
       await tester.fling(find.byType(ListView), const Offset(300, 0), 800);
       await tester.pumpAndSettle();
 
-      expect(calls, ['previous']);
+      expect(calls, isEmpty);
     });
 
-    testWidgets('a slow drag is not a page change', (tester) async {
-      // Reading with a thumb on the screen drifts sideways; only a deliberate
-      // flick should move the reader off the article.
+    testWidgets('a slow horizontal drag does not change the article', (
+      tester,
+    ) async {
       await pump(tester);
 
       final gesture = await tester.startGesture(
@@ -82,7 +82,7 @@ void main() {
       expect(calls, isEmpty);
     });
 
-    testWidgets('swiping past the last article does nothing', (tester) async {
+    testWidgets('swiping remains disabled at the last article', (tester) async {
       await pump(tester, hasNext: false);
 
       await tester.fling(find.byType(ListView), const Offset(-300, 0), 800);
@@ -120,7 +120,7 @@ void main() {
 
     tearDown(() => HttpOverrides.global = null);
 
-    testWidgets('swiping moves to the next article', (tester) async {
+    testWidgets('swiping does not move to the next article', (tester) async {
       const items = <Map<String, dynamic>>[
         {'url': 'https://celiktafsir.net/satu/', 'title': 'Artikel Satu'},
         {'url': 'https://celiktafsir.net/dua/', 'title': 'Artikel Dua'},
@@ -174,7 +174,7 @@ void main() {
       await tester.pump(const Duration(seconds: 3));
       await tester.pumpAndSettle();
 
-      expect(find.text('Artikel Dua'), findsWidgets);
+      expect(find.text('Artikel Satu'), findsWidgets);
     });
   });
 }
