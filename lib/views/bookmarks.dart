@@ -34,7 +34,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
         isLoading = false;
       });
     } catch (e) {
-      print('Error loading bookmarks: $e');
+      // print('Error loading bookmarks: $e');
       if (!mounted) return;
       setState(() {
         isLoading = false;
@@ -66,7 +66,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
         ),
       );
     } catch (e) {
-      print('Error removing bookmark: $e');
+      // print('Error removing bookmark: $e');
     }
   }
 
@@ -92,7 +92,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
         });
       }
     } catch (e) {
-      print('Error navigating to verse: $e');
+      // print('Error navigating to verse: $e');
     } finally {
       if (mounted) {
         setState(() {

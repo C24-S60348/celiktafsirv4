@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../models/baca.dart' as model;
 import '../services/getlistsurah.dart' as getlist;
 import '../utils/theme_helper.dart';
 import '../utils/html_link_helper.dart';
 import '../widgets/article_read_bottom_nav.dart';
 import '../widgets/article_read_top_nav.dart';
+import '../widgets/go_to_page_dialog.dart';
 import '../widgets/article_swipe_navigator.dart';
+import '../widgets/nota_pembaca_button.dart';
+import '../utils/share_article.dart';
 
 class BacaPage extends StatefulWidget {
   const BacaPage({super.key});
@@ -23,9 +25,11 @@ class _BacaPageState extends State<BacaPage> {
   int surahIndex = 0; // Add surah index
   /// Use ValueNotifier so toggling bookmark only rebuilds the icon, not the whole page.
   final ValueNotifier<bool> _isBookmarked = ValueNotifier<bool>(false);
+  late final Future<String> _themeFuture;
   bool _isInitialized = false; // Add initialization flag
   final ScrollController _scrollController = ScrollController();
-  List<String>? _cachedTitles; // Cache titles to avoid calling service on navigation
+  List<String>?
+  _cachedTitles; // Cache titles to avoid calling service on navigation
 
   @override
   void dispose() {
@@ -35,7 +39,13 @@ class _BacaPageState extends State<BacaPage> {
   }
 
   String? categoryUrl;
-  
+
+  @override
+  void initState() {
+    super.initState();
+    _themeFuture = ThemeHelper.getThemeName();
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -54,26 +64,31 @@ class _BacaPageState extends State<BacaPage> {
   }
 
   void _loadSurahContent() async {
-    print('Loading surah content for index: $surahIndex');
+    // print('Loading surah content for index: $surahIndex');
     // Pass categoryUrl to ensure we get the correct variant (e.g., Baqarah Juzuk 2)
-    final surah = await getlist.GetListSurah.getSurahByIndex(surahIndex, categoryUrl: categoryUrl);
+    final surah = await getlist.GetListSurah.getSurahByIndex(
+      surahIndex,
+      categoryUrl: categoryUrl,
+    );
     if (!mounted) return;
-    print('Surah data: $surah');
-    
+    // print('Surah data: $surah');
+
     if (surah != null) {
       final pages = surah['totalPages'];
       final titles = surah['titles'] as List<String>?;
-      print('Total pages from surah: $pages');
-      
+      // print('Total pages from surah: $pages');
+
       setState(() {
         totalPages = pages;
         _cachedTitles = titles; // Cache titles for navigation
       });
 
-      print('Updated totalPages to: $totalPages');
+      // print('Updated totalPages to: $totalPages');
 
       // Update page title if not already set from navigation
-      if (surahData['pageTitle'] == null && _cachedTitles != null && currentPage < _cachedTitles!.length) {
+      if (surahData['pageTitle'] == null &&
+          _cachedTitles != null &&
+          currentPage < _cachedTitles!.length) {
         if (!mounted) return;
         setState(() {
           surahData['pageTitle'] = _cachedTitles![currentPage];
@@ -84,7 +99,7 @@ class _BacaPageState extends State<BacaPage> {
       if (mounted) _saveLastRead();
       if (mounted) _downloadSurahInBackground();
     } else {
-      print('Surah data is null for index: $surahIndex');
+      // print('Surah data is null for index: $surahIndex');
     }
   }
 
@@ -92,12 +107,12 @@ class _BacaPageState extends State<BacaPage> {
     // try {
     //   // Check if surah is already downloaded
     //   final isDownloaded = await DownloadService.isSurahDownloaded(surahIndex, categoryUrl: categoryUrl);
-      
+
     //   if (!isDownloaded) {
     //     // Get theme to determine snackbar color
     //     final themeName = await ThemeHelper.getThemeName();
     //     final isDark = themeName == 'Gelap';
-        
+
     //     // Show a subtle notification that download is starting
     //     ScaffoldMessenger.of(context).showSnackBar(
     //       SnackBar(
@@ -109,10 +124,10 @@ class _BacaPageState extends State<BacaPage> {
     //         backgroundColor: isDark ? Colors.grey[850] : Color.fromARGB(255, 52, 21, 104),
     //       ),
     //     );
-        
+
     //     // Download in background with correct categoryUrl
     //     await DownloadService.downloadSurahPages(surahIndex, categoryUrl: categoryUrl);
-        
+
     //     // Show completion notification
     //     if (mounted) {
     //       ScaffoldMessenger.of(context).showSnackBar(
@@ -123,7 +138,7 @@ class _BacaPageState extends State<BacaPage> {
     //         ),
     //       );
     //     }
-        
+
     //     // Debug: Check cached pages
     //     await DownloadService.debugCachedPages(surahIndex, categoryUrl: categoryUrl);
     //   }
@@ -132,12 +147,14 @@ class _BacaPageState extends State<BacaPage> {
     // }
     // Cache/download disabled for now
     // TODO: Re-enable after webapp is perfected
-    print('Cache/download disabled - using direct fetch only');
+    // print('Cache/download disabled - using direct fetch only');
   }
 
   void _updatePageTitle() {
     // Use cached titles directly without calling service
-    if (_cachedTitles != null && currentPage >= 0 && currentPage < _cachedTitles!.length) {
+    if (_cachedTitles != null &&
+        currentPage >= 0 &&
+        currentPage < _cachedTitles!.length) {
       setState(() {
         surahData['pageTitle'] = _cachedTitles![currentPage];
       });
@@ -164,6 +181,28 @@ class _BacaPageState extends State<BacaPage> {
       _checkBookmark(); // Check bookmark after page change
       _saveLastRead(); // Save last read when navigating
     }
+  }
+
+  /// Jumps straight to [index] (0-based), for "Pergi ke Halaman".
+  void _goToPage(int index) {
+    if (index < 0 || index >= totalPages || index == currentPage) return;
+    setState(() {
+      currentPage = index;
+    });
+    _updatePageTitle();
+    _checkBookmark();
+    _saveLastRead();
+  }
+
+  Future<void> _showGoToPage(String themeName) async {
+    final index = await showGoToPageDialog(
+      context: context,
+      total: totalPages,
+      currentIndex: currentPage,
+      themeName: themeName,
+      label: 'Halaman',
+    );
+    if (index != null) _goToPage(index);
   }
 
   void _toggleBookmark() async {
@@ -201,31 +240,7 @@ class _BacaPageState extends State<BacaPage> {
         categoryUrl: categoryUrl,
       );
     } catch (e) {
-      print('Error saving last read: $e');
-    }
-  }
-
-  /// Copies the article body of the page currently on screen.
-  ///
-  /// The text comes from the same cache `bodyContent` reads, so the page in
-  /// front of the reader is copied without refetching it. Every branch reports
-  /// through [_showBookmarkMessage] so the snackbar matches the bookmark one.
-  void _copyPageText() async {
-    try {
-      final text = await model.getPlainText(surahIndex, currentPage, categoryUrl);
-      if (!mounted) return;
-      if (text == null) {
-        _showBookmarkMessage('Gagal menyalin teks');
-        return;
-      }
-      await Clipboard.setData(ClipboardData(text: text));
-      // Second guard: the reader can leave while the clipboard write is in
-      // flight, and ScaffoldMessenger.of(context) would throw on a dead State.
-      if (!mounted) return;
-      _showBookmarkMessage('Teks disalin');
-    } catch (e) {
-      if (!mounted) return;
-      _showBookmarkMessage('Gagal menyalin teks');
+      // print('Error saving last read: $e');
     }
   }
 
@@ -235,7 +250,9 @@ class _BacaPageState extends State<BacaPage> {
       SnackBar(
         content: Text(message, style: TextStyle(color: Colors.black)),
         duration: Duration(seconds: 2),
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor ?? Theme.of(context).colorScheme.primary,
+        backgroundColor:
+            Theme.of(context).appBarTheme.backgroundColor ??
+            Theme.of(context).colorScheme.primary,
       ),
     );
   }
@@ -244,10 +261,12 @@ class _BacaPageState extends State<BacaPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: FutureBuilder<String>(
-        future: ThemeHelper.getThemeName(),
+        future: _themeFuture,
         builder: (context, snapshot) {
           final themeName = snapshot.data ?? 'Terang';
-          final backgroundColor = ThemeHelper.getContentBackgroundColor(themeName);
+          final backgroundColor = ThemeHelper.getContentBackgroundColor(
+            themeName,
+          );
           final textColor = ThemeHelper.getTextColor(themeName);
           final isDark = themeName == 'Gelap';
           // Reading container: white in light (no border), theme background in dark
@@ -280,7 +299,10 @@ class _BacaPageState extends State<BacaPage> {
                         surahData['pageTitle'] ?? surahData['name'] ?? '',
                         textAlign: TextAlign.left,
                         maxLines: 2,
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       leading: IconButton(
                         onPressed: () => Navigator.of(context).pop(),
@@ -296,16 +318,16 @@ class _BacaPageState extends State<BacaPage> {
                             themeName: themeName,
                             label: 'Halaman',
                             onPrevious: currentPage > 0 ? _previousPage : null,
-                            onNext: currentPage < totalPages - 1 ? _nextPage : null,
+                            onNext: currentPage < totalPages - 1
+                                ? _nextPage
+                                : null,
+                            onTapPosition: totalPages > 1
+                                ? () => _showGoToPage(themeName)
+                                : null,
                           ),
                         ),
                       ),
                       actions: [
-                        IconButton(
-                          onPressed: _copyPageText,
-                          tooltip: 'Salin Kandungan',
-                          icon: Icon(Icons.copy),
-                        ),
                         ValueListenableBuilder<bool>(
                           valueListenable: _isBookmarked,
                           builder: (_, isBookmarked, __) => IconButton(
@@ -314,12 +336,39 @@ class _BacaPageState extends State<BacaPage> {
                               Navigator.of(context).pushNamed('/bookmarks');
                             },
                             icon: Icon(
-                              isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                              isBookmarked
+                                  ? Icons.bookmark
+                                  : Icons.bookmark_border,
                             ),
                           ),
                         ),
-                        IconButton(
-                          onPressed: () async {
+                        const NotaPembacaButton(),
+                        // The website link is rare next to bookmark and notes, and a third
+                        // icon squeezes an already two-line title, so it lives in the
+                        // overflow menu -- which also gives later actions somewhere to go.
+                        PopupMenuButton<String>(
+                          tooltip: 'Lagi',
+                          onSelected: (value) async {
+                            // Must pass categoryUrl, or this resolves against
+                            // the default category and returns another
+                            // juzuk's article -- for sharing as for opening.
+                            if (value == 'share') {
+                              final shareUrl =
+                                  await getlist.GetListSurah.getSurahUrl(
+                                    surahIndex,
+                                    currentPage,
+                                    categoryUrl: categoryUrl,
+                                  );
+                              if (!context.mounted) return;
+                              await ShareArticle.share(
+                                context: context,
+                                articleUrl: shareUrl,
+                                title:
+                                    surahData['pageTitle'] ?? surahData['name'],
+                              );
+                              return;
+                            }
+                            if (value != 'website') return;
                             // Must pass categoryUrl, or this resolves against the
                             // default category and returns another juzuk's article.
                             final url = await getlist.GetListSurah.getSurahUrl(
@@ -335,8 +384,29 @@ class _BacaPageState extends State<BacaPage> {
                               url ?? 'https://celiktafsir.net',
                             );
                           },
-                          tooltip: 'Buka Laman Web',
-                          icon: Icon(Icons.language),
+                          itemBuilder: (context) =>
+                              const <PopupMenuEntry<String>>[
+                                PopupMenuItem<String>(
+                                  value: 'share',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.share, size: 20),
+                                      SizedBox(width: 8),
+                                      Text('Kongsi'),
+                                    ],
+                                  ),
+                                ),
+                                PopupMenuItem<String>(
+                                  value: 'website',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.language, size: 20),
+                                      SizedBox(width: 8),
+                                      Text('Buka Laman Web'),
+                                    ],
+                                  ),
+                                ),
+                              ],
                         ),
                       ],
                     ),
@@ -349,7 +419,13 @@ class _BacaPageState extends State<BacaPage> {
                         child: _buildSurahBodyWithTheme(
                           context,
                           surahData,
-                          model.bodyContent(surahIndex, currentPage, isDark, textColor, categoryUrl),
+                          model.bodyContent(
+                            surahIndex,
+                            currentPage,
+                            isDark,
+                            textColor,
+                            categoryUrl,
+                          ),
                           textColor,
                           isDark,
                         ),
@@ -365,6 +441,9 @@ class _BacaPageState extends State<BacaPage> {
                         label: 'Halaman',
                         onPrevious: _previousPage,
                         onNext: _nextPage,
+                        onTapPosition: totalPages > 1
+                            ? () => _showGoToPage(themeName)
+                            : null,
                       ),
                     ),
                   ],
@@ -389,8 +468,11 @@ class _BacaPageState extends State<BacaPage> {
       builder: (context, constraints) {
         // Same max width as Pilihan Surah (600) so bismillah doesn't grow too large on wide screens
         const double maxBismillahWidth = 600;
-        final bismillahWidth = (constraints.maxWidth * 0.7).clamp(0.0, maxBismillahWidth);
-        
+        final bismillahWidth = (constraints.maxWidth * 0.7).clamp(
+          0.0,
+          maxBismillahWidth,
+        );
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -409,9 +491,9 @@ class _BacaPageState extends State<BacaPage> {
                   ),
                   SizedBox(height: 20),
                   Image.asset(
-                    isDark 
-                      ? 'assets/images/bismillah_darkmode.png'
-                      : 'assets/images/bismillah.png',
+                    isDark
+                        ? 'assets/images/bismillah_darkmode.png'
+                        : 'assets/images/bismillah.png',
                     fit: BoxFit.contain,
                     width: bismillahWidth,
                   ),
@@ -427,5 +509,4 @@ class _BacaPageState extends State<BacaPage> {
       },
     );
   }
-
 }

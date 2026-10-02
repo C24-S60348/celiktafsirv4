@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'views/splashscreen.dart';
 import 'views/tutorial.dart';
@@ -24,6 +26,10 @@ import 'views/hadis_40.dart';
 import 'views/baca_hadis_40.dart';
 import 'utils/uihelper.dart';
 import 'utils/theme_helper.dart';
+import 'views/nota_pembaca.dart';
+import 'package:app_links/app_links.dart';
+import 'utils/deep_link.dart';
+import 'views/search_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -40,10 +46,58 @@ class _MyAppState extends State<MyApp> {
   String _currentTheme = 'Light';
   bool _isLoading = true;
 
+  /// Lets the deep link handler navigate without a BuildContext from a route.
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+  StreamSubscription<Uri>? _linkSubscription;
+
   @override
   void initState() {
     super.initState();
     _loadTheme();
+    _listenForSharedLinks();
+  }
+
+  /// Opens the article carried by a shared link.
+  ///
+  /// Covers both ways one arrives: the link that launched a cold start, and
+  /// links that arrive while the app is already open.
+  Future<void> _listenForSharedLinks() async {
+    if (kIsWeb) return; // the web build is already at the URL
+    final links = AppLinks();
+    try {
+      _openIfArticle(await links.getInitialLink());
+    } catch (_) {
+      // A malformed launch URI must not stop the app from starting.
+    }
+    _linkSubscription = links.uriLinkStream.listen(
+      _openIfArticle,
+      onError: (_) {},
+    );
+  }
+
+  void _openIfArticle(Uri? uri) {
+    final articleUrl = DeepLink.articleUrlFrom(uri);
+    if (articleUrl == null) return; // not ours, or nothing to open
+    // Wait for the navigator: a cold start delivers the link before the first
+    // route exists.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _navigatorKey.currentState?.pushNamed(
+        '/baca-hujjah',
+        arguments: <String, dynamic>{
+          'url': articleUrl,
+          'title': DeepLink.titleFrom(articleUrl),
+          'index': 0,
+          'total': 1,
+          'items': const <Map<String, dynamic>>[],
+        },
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _linkSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadTheme() async {
@@ -73,6 +127,7 @@ class _MyAppState extends State<MyApp> {
     }
 
     return MaterialApp(
+      navigatorKey: _navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Celik Tafsir',
       theme: ThemeHelper.getThemeData(_currentTheme),
@@ -88,6 +143,12 @@ class _MyAppState extends State<MyApp> {
             break;
           case '/tadabbur':
             page = TadabburPage();
+            break;
+          case '/nota':
+            page = NotaPembacaPage();
+            break;
+          case '/search':
+            page = SearchPage();
             break;
           case '/info':
             page = InformationPage();

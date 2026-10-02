@@ -14,6 +14,9 @@ class ArticleReadTopNav extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onNext;
   final String themeName;
   final String label; // e.g. 'Artikel' or 'Halaman'
+  /// Tap target on the position text itself, e.g. to open a "go to page"
+  /// dialog. Null (the default) leaves the label a plain, unstyled text.
+  final VoidCallback? onTapPosition;
 
   const ArticleReadTopNav({
     super.key,
@@ -23,6 +26,7 @@ class ArticleReadTopNav extends StatelessWidget implements PreferredSizeWidget {
     this.onNext,
     required this.themeName,
     this.label = 'Artikel',
+    this.onTapPosition,
   });
 
   static const double _height = 44;
@@ -53,15 +57,41 @@ class ArticleReadTopNav extends StatelessWidget implements PreferredSizeWidget {
             disabledColor: disabled,
           ),
           Flexible(
-            child: Text(
-              text,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: foreground,
-              ),
-            ),
+            child: onTapPosition == null
+                ? Text(
+                    text,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: foreground,
+                    ),
+                  )
+                : InkWell(
+                    onTap: onTapPosition,
+                    borderRadius: BorderRadius.circular(6),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              text,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: foreground,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 2),
+                          Icon(Icons.unfold_more, size: 14, color: foreground),
+                        ],
+                      ),
+                    ),
+                  ),
           ),
           IconButton(
             onPressed: onNext,

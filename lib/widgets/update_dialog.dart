@@ -223,16 +223,16 @@ class UpdateDialog extends StatelessWidget {
         ? 'news_${versionInfo.message.hashCode}' 
         : versionInfo.latestVersion;
     
-    print('🔍 Checking if notification was dismissed: $identifier');
+    // print('🔍 Checking if notification was dismissed: $identifier');
     
     // Don't show if user already dismissed this
     final dismissed = await VersionChecker.hasUserDismissedUpdate(identifier);
     if (dismissed) {
-      print('⏭️  Notification already dismissed by user, skipping');
+      // print('⏭️  Notification already dismissed by user, skipping');
       return;
     }
     
-    print('✅ Showing dialog for: $identifier');
+    // print('✅ Showing dialog for: $identifier');
     
     if (context.mounted) {
       showDialog(

@@ -3,10 +3,12 @@ import 'package:flutter/services.dart';
 import '../models/hujjah.dart' as model;
 import '../utils/theme_helper.dart';
 import '../utils/html_link_helper.dart';
-import '../utils/html_plain_text.dart';
 import '../widgets/article_read_bottom_nav.dart';
 import '../widgets/article_read_top_nav.dart';
+import '../widgets/go_to_page_dialog.dart';
 import '../widgets/article_swipe_navigator.dart';
+import '../widgets/nota_pembaca_button.dart';
+import '../utils/share_article.dart';
 
 class BacaAsmaulHusnaPage extends StatefulWidget {
   const BacaAsmaulHusnaPage({super.key});
@@ -25,6 +27,13 @@ class _BacaAsmaulHusnaPageState extends State<BacaAsmaulHusnaPage> {
   int _total = 0;
   List<Map<String, dynamic>>? _items;
   String? _asmaulHusnaContent;
+  late final Future<String> _themeFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _themeFuture = ThemeHelper.getThemeName();
+  }
 
   @override
   void dispose() {
@@ -57,7 +66,7 @@ class _BacaAsmaulHusnaPageState extends State<BacaAsmaulHusnaPage> {
         ThemeHelper.showMemuatSnackBar(context, themeName);
         // Actually load the content to ensure it's fetched
         final content = await model.getHujjahContent(postUrl!);
-        
+
         if (mounted && content != null) {
           setState(() {
             _asmaulHusnaContent = content;
@@ -73,7 +82,7 @@ class _BacaAsmaulHusnaPageState extends State<BacaAsmaulHusnaPage> {
         }
       }
     } catch (e) {
-      print('Error loading Asmaul Husna content: $e');
+      // print('Error loading Asmaul Husna content: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -94,7 +103,7 @@ class _BacaAsmaulHusnaPageState extends State<BacaAsmaulHusnaPage> {
       arguments: {
         'url': item['url'],
         'title': item['title'],
-            'pageIndex': item['index'] ?? newIndex,
+        'pageIndex': item['index'] ?? newIndex,
         'index': newIndex,
         'total': _total,
         'items': _items,
@@ -102,56 +111,110 @@ class _BacaAsmaulHusnaPageState extends State<BacaAsmaulHusnaPage> {
     );
   }
 
-  /// Copies the loaded article body. The fetch fills [_asmaulHusnaContent] on
-  /// load, so there is nothing to await here -- an empty field means the
-  /// article has not landed yet (or failed), and we say so.
-  void _copyContent() {
-    if (_asmaulHusnaContent == null || _asmaulHusnaContent!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Kandungan belum dimuatkan'),
-          duration: Duration(seconds: 1),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-    _copyTextToClipboard(
-      htmlToPlainText(_asmaulHusnaContent!),
-      type: 'Kandungan',
+  Future<void> _showGoToPageDialog(String themeName) async {
+    final index = await showGoToPageDialog(
+      context: context,
+      total: _total,
+      currentIndex: _currentIndex,
+      themeName: themeName,
+      label: 'Halaman',
     );
+    if (index != null) _goToArticle(index);
   }
 
   void _copyTextToClipboard(String text, {String type = 'Teks'}) {
-    Clipboard.setData(ClipboardData(text: text)).then((_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('$type telah disalin ke klipbod'),
-          duration: Duration(seconds: 1),
-          backgroundColor: Colors.green,
-        ),
-      );
-    }).catchError((e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Gagal menyalin $type'),
-          duration: Duration(seconds: 1),
-          backgroundColor: Colors.red,
-        ),
-      );
-    });
+    Clipboard.setData(ClipboardData(text: text))
+        .then((_) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('$type telah disalin ke klipbod'),
+              duration: Duration(seconds: 1),
+              backgroundColor: Colors.green,
+            ),
+          );
+        })
+        .catchError((e) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Gagal menyalin $type'),
+              duration: Duration(seconds: 1),
+              backgroundColor: Colors.red,
+            ),
+          );
+        });
+  }
+
+  String _stripHtmlTags(String htmlContent) {
+    String plainText = htmlContent;
+
+    // Replace block elements with double newlines to preserve paragraph structure
+    plainText = plainText.replaceAll(
+      RegExp(r'</p>\s*<p>', caseSensitive: false),
+      '\n\n',
+    );
+    plainText = plainText.replaceAll(
+      RegExp(r'<p[^>]*>', caseSensitive: false),
+      '',
+    );
+    plainText = plainText.replaceAll(RegExp(r'</p>', caseSensitive: false), '');
+    plainText = plainText.replaceAll(
+      RegExp(r'<br\s*/?>', caseSensitive: false),
+      '\n',
+    );
+    plainText = plainText.replaceAll(
+      RegExp(r'<div[^>]*>', caseSensitive: false),
+      '',
+    );
+    plainText = plainText.replaceAll(
+      RegExp(r'</div>', caseSensitive: false),
+      '\n',
+    );
+    plainText = plainText.replaceAll(
+      RegExp(r'<blockquote[^>]*>', caseSensitive: false),
+      '',
+    );
+    plainText = plainText.replaceAll(
+      RegExp(r'</blockquote>', caseSensitive: false),
+      '',
+    );
+
+    // Remove remaining HTML tags
+    final RegExp htmlRegex = RegExp(r'<[^>]*>');
+    plainText = plainText.replaceAll(htmlRegex, '');
+
+    // Decode HTML entities
+    plainText = plainText
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>')
+        .replaceAll('&quot;', '"')
+        .replaceAll('&#39;', "'")
+        .replaceAll('&amp;', '&');
+
+    // Clean up excessive whitespace while preserving paragraph breaks
+    // Replace multiple spaces with single space
+    plainText = plainText.replaceAll(RegExp(r' +'), ' ');
+    // Replace multiple newlines with double newlines (paragraph breaks)
+    plainText = plainText.replaceAll(RegExp(r'\n\n+'), '\n\n');
+    // Trim each line
+    final lines = plainText.split('\n');
+    plainText = lines.map((line) => line.trim()).join('\n');
+
+    return plainText.trim();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: FutureBuilder<String>(
-        future: ThemeHelper.getThemeName(),
+        future: _themeFuture,
         builder: (context, snapshot) {
           final themeName = snapshot.data ?? 'Terang';
-          final backgroundColor = ThemeHelper.getContentBackgroundColor(themeName);
+          final backgroundColor = ThemeHelper.getContentBackgroundColor(
+            themeName,
+          );
           final textColor = ThemeHelper.getTextColor(themeName);
           final isDark = themeName == 'Gelap';
           // Reading container: white in light (no border), theme background in dark
@@ -187,7 +250,10 @@ class _BacaAsmaulHusnaPageState extends State<BacaAsmaulHusnaPage> {
                         postTitle ?? 'Asmaul Husna',
                         textAlign: TextAlign.left,
                         maxLines: 2,
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       leading: IconButton(
                         onPressed: () => Navigator.of(context).pop(),
@@ -195,8 +261,7 @@ class _BacaAsmaulHusnaPageState extends State<BacaAsmaulHusnaPage> {
                       ),
                       bottom: (_items != null && _items!.isNotEmpty)
                           ? PreferredSize(
-                              preferredSize:
-                                  const Size.fromHeight(44),
+                              preferredSize: const Size.fromHeight(44),
                               child: Container(
                                 color: articleReadTopNavColor(themeName),
                                 child: ArticleReadTopNav(
@@ -210,24 +275,92 @@ class _BacaAsmaulHusnaPageState extends State<BacaAsmaulHusnaPage> {
                                   onNext: _currentIndex < _total - 1
                                       ? () => _goToArticle(_currentIndex + 1)
                                       : null,
+                                  onTapPosition: _total > 1
+                                      ? () => _showGoToPageDialog(themeName)
+                                      : null,
                                 ),
                               ),
                             )
                           : null,
                       actions: [
-                        IconButton(
-                          onPressed: _copyContent,
-                          tooltip: 'Salin Kandungan',
-                          icon: Icon(Icons.copy),
-                        ),
-                        IconButton(
-                          onPressed: () {
-                            if (postUrl != null) {
-                              showOpenWebsiteOverlay(context, postUrl!);
+                        const NotaPembacaButton(),
+                        PopupMenuButton<String>(
+                          onSelected: (value) {
+                            if (value == 'share') {
+                              ShareArticle.share(
+                                context: context,
+                                articleUrl: postUrl,
+                                title: postTitle,
+                              );
+                              return;
+                            }
+                            if (value == 'website') {
+                              // Moved out of a standalone icon so the app bar
+                              // has room for Nota Pembaca without squeezing
+                              // an already long article title.
+                              if (postUrl != null) {
+                                showOpenWebsiteOverlay(context, postUrl!);
+                              }
+                              return;
+                            }
+                            if (value == 'content') {
+                              if (_asmaulHusnaContent != null &&
+                                  _asmaulHusnaContent!.isNotEmpty) {
+                                final plainText = _stripHtmlTags(
+                                  _asmaulHusnaContent!,
+                                );
+                                _copyTextToClipboard(
+                                  plainText,
+                                  type: 'Kandungan',
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Kandungan belum dimuatkan'),
+                                    duration: Duration(seconds: 1),
+                                    backgroundColor: Colors.orange,
+                                  ),
+                                );
+                              }
                             }
                           },
-                          tooltip: 'Buka Laman Web',
-                          icon: Icon(Icons.language),
+                          itemBuilder: (BuildContext context) =>
+                              <PopupMenuEntry<String>>[
+                                PopupMenuItem<String>(
+                                  value: 'content',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.article, size: 20),
+                                      SizedBox(width: 8),
+                                      Text('Salin Kandungan'),
+                                    ],
+                                  ),
+                                ),
+                                PopupMenuItem<String>(
+                                  value: 'share',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.share, size: 20),
+                                      SizedBox(width: 8),
+                                      Text('Kongsi'),
+                                    ],
+                                  ),
+                                ),
+                                PopupMenuItem<String>(
+                                  value: 'website',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.language, size: 20),
+                                      SizedBox(width: 8),
+                                      Text('Buka Laman Web'),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                          // Was a copy icon back when copying was all this
+                          // menu did; it now also opens the website, so use
+                          // the conventional overflow glyph.
+                          icon: Icon(Icons.more_vert),
                         ),
                       ],
                     ),
@@ -267,6 +400,9 @@ class _BacaAsmaulHusnaPageState extends State<BacaAsmaulHusnaPage> {
                               : null,
                           onNext: _currentIndex < _total - 1
                               ? () => _goToArticle(_currentIndex + 1)
+                              : null,
+                          onTapPosition: _total > 1
+                              ? () => _showGoToPageDialog(themeName)
                               : null,
                         ),
                       ),
@@ -311,4 +447,3 @@ class _BacaAsmaulHusnaPageState extends State<BacaAsmaulHusnaPage> {
     );
   }
 }
-

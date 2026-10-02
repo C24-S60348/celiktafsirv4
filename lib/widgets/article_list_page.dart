@@ -60,7 +60,7 @@ class _ArticleListPageState extends State<ArticleListPage> {
         _hasNoInternet = !hasInternet && list.isEmpty;
       });
     } catch (e) {
-      print('Error loading ${widget.config.appBarTitle}: $e');
+      // print('Error loading ${widget.config.appBarTitle}: $e');
       if (!mounted) return;
       setState(() {
         _items = [];

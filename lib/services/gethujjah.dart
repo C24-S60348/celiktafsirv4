@@ -75,7 +75,7 @@ class GetHujjah {
         
         // Safety limit to prevent infinite loops
         if (page > 100) {
-          print('Warning: Reached page limit for hujjah category');
+          // print('Warning: Reached page limit for hujjah category');
           break;
         }
         
@@ -84,7 +84,7 @@ class GetHujjah {
           hasMorePages = false;
         }
       } catch (e) {
-        print('Error scraping page $page of hujjah category: $e');
+        // print('Error scraping page $page of hujjah category: $e');
         break;
       }
     }
@@ -106,16 +106,16 @@ class GetHujjah {
     
     if (hasInternet) {
       try {
-        print('Scraping hujjah posts from $_categoryUrl...');
+        // print('Scraping hujjah posts from $_categoryUrl...');
         final posts = await scrapeHujjahPosts();
-        print('Successfully scraped ${posts.length} hujjah posts');
+        // print('Successfully scraped ${posts.length} hujjah posts');
         return posts;
       } catch (e) {
-        print('Error scraping hujjah posts: $e');
+        // print('Error scraping hujjah posts: $e');
         return [];
       }
     } else {
-      print('No internet connection, cannot fetch hujjah posts');
+      // print('No internet connection, cannot fetch hujjah posts');
       return [];
     }
   }

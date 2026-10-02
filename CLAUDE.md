@@ -60,6 +60,21 @@ before assuming.
 
 ## Things that have bitten us
 
+- **`pubspec.lock` is committed.** It used to be gitignored, which is correct
+  for a published *package* but wrong for an *app*: CI ran a fresh
+  `flutter pub get` on every push with nothing pinning transitive versions,
+  so it silently resolved whatever was newest on pub.dev that day. A pub.dev
+  patch (`html` 0.15.6 -> 0.15.7) broke `flutter_html 3.0.0`'s own internals
+  (`qs.matches` in `styled_element.dart` no longer existed), and both CI
+  workflows failed outright -- `flutter test` couldn't even compile 9 test
+  files, `flutter build web` failed the same way -- while local builds kept
+  succeeding, because the local pub cache already had the older, working
+  resolution and a bare `flutter pub get` will not upgrade past what a lock
+  already pins. If CI ever fails to compile on a dependency it while local
+  builds are fine, suspect this class of drift first and compare
+  `pubspec.lock` against what actually built. Do not delete the lock file to
+  "fix" a resolution problem -- update it deliberately (`flutter pub upgrade
+  <package>`) and prove the build/test suite still passes before committing.
 - **`categoryUrl` must be threaded through every lookup.** Surahs split
   across juzuk (Baqarah spans juzuk 1–3) have one category per variant.
   Calling `getSurahByIndex`/`getSurahUrl` without `categoryUrl` silently
@@ -126,9 +141,47 @@ before assuming.
   `test/article_image_test.dart` pins it — and note `find.byType(Image)`
   alone is not enough, since reading pages draw `assets/images/bg.jpg`
   behind the article.
+- **"Nota Pembaca" is one notebook for the whole app**, not a note per
+  article -- `utils/reader_notes.dart` has a single SharedPreferences key and
+  nothing takes a page index. The button (`widgets/nota_pembaca_button.dart`)
+  sits in all six reading app bars and they all open the same text.
+- **App bar room is tight.** Article titles run long and already wrap to two
+  lines, so a new action does not just get another icon: "Buka Laman Web"
+  lives in the `⋮` menu on the five section pages, which keeps them at two
+  slots. Only `baca.dart` has three (bookmark + notes + menu), because the
+  bookmark has to stay visible to show its state. Put new actions in the menu.
+- **Shared links go through `web/buka/index.html`, not straight to the
+  article.** One link has to serve four people: with/without the app on
+  Android, on iPhone, and on desktop. Firebase Dynamic Links did this until
+  Google shut it down in August 2025, so the redirect is ours. It only
+  forwards to celiktafsir.net / celiktafsir.web.app -- drop that check and the
+  page becomes an open redirect wearing our domain. Store links come from the
+  app's own update API, not invented.
 - Reading pages use `CustomScrollView` + `SliverAppBar(floating: true,
   snap: true)`. Anything that should hide on scroll and come back belongs in
   the app bar's `bottom` — that is how `ArticleReadTopNav` works.
+- **"Go to page" is one dialog shared by all six reading pages**
+  (`widgets/go_to_page_dialog.dart`), reached by tapping the "Halaman X / Y"
+  / "Artikel X / Y" position label in `ArticleReadTopNav`/
+  `ArticleReadBottomNav` (`onTapPosition`). The five article-list pages
+  already had a `_goToArticle(int)` that accepts any index, not just ±1, so
+  they only needed wiring; `baca.dart` needed a new `_goToPage(int)`
+  mirroring `_nextPage`/`_previousPage`.
+- **"Carian Lanjutan" delegates to celiktafsir.net's own WordPress search**
+  (`?s=<query>`, `services/search_service.dart`) rather than indexing
+  content locally. That search already covers full post content across
+  every section, so results need no local index to keep in sync -- parse
+  `<article>` / `.entry-title a` / `.entry-summary p`, strip the
+  `a.more-link` "Continue reading" tail, and page with
+  `/page/N/?s=<query>` using the same `a.next.page-numbers` selectors the
+  other scrapers use. Results open through `/baca-hujjah` with a single-item
+  list, the same generic route shared links use -- a hit can be a surah
+  tafsir, Hujjah, Hadis 40, Glosari or Asal Usul Tafsir post, and that route
+  only ever needed a URL.
+- **Do not invent quiz (or any other religious) content.** Soalan Kuiz is
+  blocked on the owner supplying real questions -- celiktafsir.net has none
+  to scrape, and a wrong "correct answer" on Islamic content is worse than
+  the feature not existing yet. Ask; do not fabricate a source.
 
 ## Testing
 
@@ -161,6 +214,13 @@ hand-maintained list of links. Consequences:
   a`, `.pagination-next a`) ever match. Every post is on page 1 and the loop
   correctly stops after one request. `/page/2/` serves the same page again;
   duplicate URLs make `foundNewLinks` false, so that is harmless too.
+- **Never filter posts by slug.** Hadis #25-#36 are `syarah-hadis-NN-...`,
+  but #37 is `hadits-arbain-37` -- *hadits*, with a 't'. A safety-net filter
+  of `contains('hadis')` silently dropped it, so the section sat at 12
+  articles while the page showed 13. `GetHadis40` now scopes the link search
+  to `.entry-content` (the hand-maintained list) instead, falling back to the
+  whole document if that class ever disappears. Scoping cannot lose a post to
+  an unexpected slug; a name filter always can.
 - **The link text is not the whole title.** Hadis 40 keeps the number in a
   sibling `<span>`: `<p><strong>HADIS #25</strong><br><a>Sedekah dari Orang
   Miskin</a></p>`. `GetHadis40._titleForLink` walks up to recover it. Check

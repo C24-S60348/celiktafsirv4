@@ -94,7 +94,16 @@ class GetHadis40 {
 
         // Post URLs match /YYYY/MM/DD/post-slug/
         final postUrlPattern = RegExp(r'/(\d{4})/(\d{2})/(\d{2})/([^/]+)/$');
-        final allLinks = document.querySelectorAll('a');
+
+        // Only the hand-maintained list inside .entry-content counts. Scoping
+        // here rather than filtering by slug is what makes the scrape safe:
+        // sidebar, related-post and navigation links live outside it, so
+        // nothing has to be recognised by name and no post can be lost to an
+        // unexpected slug spelling (#37 shipped as "hadits-arbain-37").
+        // Fall back to the whole document if the theme ever renames the class,
+        // so a layout change degrades instead of emptying the section.
+        final articleBody = document.querySelector('.entry-content');
+        final allLinks = (articleBody ?? document).querySelectorAll('a');
 
         bool foundNewLinks = false;
         for (var link in allLinks) {
@@ -104,11 +113,6 @@ class GetHadis40 {
           final absoluteUrl = href.startsWith('http') ? href : '$_baseUrl$href';
           final dateMatch = postUrlPattern.firstMatch(absoluteUrl);
           if (dateMatch == null) continue;
-
-          // Only accept hadis posts. If _categoryUrl ever points at the wrong
-          // page, this keeps unrelated articles out of the Hadis 40 list.
-          final slug = dateMatch.group(4)!.toLowerCase();
-          if (!slug.contains('hadis')) continue;
 
           if (absoluteUrl.contains('celiktafsir.net') &&
               !urlTitles.any((item) => item['url'] == absoluteUrl) &&
@@ -136,7 +140,7 @@ class GetHadis40 {
 
         // Safety limit to prevent infinite loops
         if (page > 100) {
-          print('Warning: Reached page limit for Hadis 40 category');
+          // print('Warning: Reached page limit for Hadis 40 category');
           break;
         }
 
@@ -144,7 +148,7 @@ class GetHadis40 {
           hasMorePages = false;
         }
       } catch (e) {
-        print('Error scraping page $page of Hadis 40 category: $e');
+        // print('Error scraping page $page of Hadis 40 category: $e');
         break;
       }
     }
@@ -163,7 +167,7 @@ class GetHadis40 {
     final hasInternet = await hasInternetConnection();
 
     if (!hasInternet) {
-      print('No internet connection, cannot fetch Hadis 40 page');
+      // print('No internet connection, cannot fetch Hadis 40 page');
       return [];
     }
 
@@ -172,10 +176,10 @@ class GetHadis40 {
       return scraped;
     }
 
-    print(
-      'Hadis 40 category scrape found nothing at $_categoryUrl, '
-      'falling back to the known articles',
-    );
+    // print(
+//       'Hadis 40 category scrape found nothing at $_categoryUrl, '
+//       'falling back to the known articles',
+//     );
     return _knownPosts.map((e) => Map<String, String>.from(e)).toList();
   }
 }

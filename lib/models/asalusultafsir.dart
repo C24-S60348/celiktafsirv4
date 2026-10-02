@@ -172,8 +172,8 @@ Widget Function(ExtensionContext) networkImageExtensionBuilderWithTheme(
             );
           },
           errorBuilder: (context, error, stackTrace) {
-            print('Error loading image from: $proxiedUrl');
-            print('Error: $error');
+            // print('Error loading image from: $proxiedUrl');
+            // print('Error: $error');
             return Container(
               width: double.infinity,
               height: 200,

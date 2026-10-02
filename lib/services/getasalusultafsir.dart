@@ -75,7 +75,7 @@ class GetAsalUsulTafsir {
         
         // Safety limit to prevent infinite loops
         if (page > 100) {
-          print('Warning: Reached page limit for ilmu usul tafsir category');
+          // print('Warning: Reached page limit for ilmu usul tafsir category');
           break;
         }
         
@@ -84,7 +84,7 @@ class GetAsalUsulTafsir {
           hasMorePages = false;
         }
       } catch (e) {
-        print('Error scraping page $page of ilmu usul tafsir category: $e');
+        // print('Error scraping page $page of ilmu usul tafsir category: $e');
         break;
       }
     }
@@ -106,16 +106,16 @@ class GetAsalUsulTafsir {
     
     if (hasInternet) {
       try {
-        print('Scraping ilmu usul tafsir posts from $_categoryUrl...');
+        // print('Scraping ilmu usul tafsir posts from $_categoryUrl...');
         final posts = await scrapeAsalUsulTafsirPosts();
-        print('Successfully scraped ${posts.length} ilmu usul tafsir posts');
+        // print('Successfully scraped ${posts.length} ilmu usul tafsir posts');
         return posts;
       } catch (e) {
-        print('Error scraping ilmu usul tafsir posts: $e');
+        // print('Error scraping ilmu usul tafsir posts: $e');
         return [];
       }
     } else {
-      print('No internet connection, cannot fetch ilmu usul tafsir posts');
+      // print('No internet connection, cannot fetch ilmu usul tafsir posts');
       return [];
     }
   }
