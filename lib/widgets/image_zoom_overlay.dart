@@ -1,85 +1,74 @@
 import 'package:flutter/material.dart';
 
-/// Shows a full-screen zoomable image in an OverlayEntry.
+/// Shows a full-screen zoomable image in a transparent ModalRoute.
 ///
-/// Deliberately an [OverlayEntry] rather than a dialog/route: closing removes
-/// ONLY the overlay entry, so the underlying reading page stays mounted,
-/// never resets its scroll position, and never refreshes or jumps to top.
-///
-/// Supports closing via:
-/// 1. Top-left back button (`←`) - standard iOS/Android back action.
-/// 2. Top-right close button (`✕`).
-/// 3. Android hardware/gesture back button (via [BackButtonListener] or [PopScope]).
-/// 4. Tap outside the image.
+/// Uses [PageRouteBuilder] with `opaque: false` so:
+/// 1. Android physical back button & swipe back gesture are automatically handled by Flutter Navigator.
+/// 2. The underlying reader page remains mounted underneath and never reloads/resets scroll.
+/// 3. Top-left `←` and top-right `✕` buttons close the viewer seamlessly.
 void showImageZoomOverlay(
   BuildContext context,
   String imageUrl, {
   bool isDark = false,
 }) {
-  final overlay = Overlay.maybeOf(context, rootOverlay: true) ?? Overlay.of(context);
-  late OverlayEntry entry;
-
-  void closeOverlay() {
-    if (entry.mounted) {
-      entry.remove();
-    }
-  }
-
-  entry = OverlayEntry(
-    builder: (BuildContext overlayContext) {
-      return BackButtonListener(
-        onBackButtonPressed: () async {
-          closeOverlay();
-          return true; // Handled back press; do not pop underlying route
-        },
-        child: Material(
-          color: Colors.black,
-          child: Stack(
+  Navigator.of(context).push(
+    PageRouteBuilder<void>(
+      opaque: false,
+      barrierDismissible: true,
+      barrierColor: Colors.black,
+      pageBuilder: (
+        BuildContext pageContext,
+        Animation<double> animation,
+        Animation<double> secondaryAnimation,
+      ) {
+        return Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Stack(
             children: [
-              GestureDetector(
-                onTap: closeOverlay,
+              // Zoomable image layer
+              InteractiveViewer(
+                minScale: 0.5,
+                maxScale: 4.0,
                 child: SizedBox.expand(
-                  child: InteractiveViewer(
-                    minScale: 0.5,
-                    maxScale: 4.0,
-                    child: Center(
-                      child: Image.network(
-                        imageUrl,
-                        fit: BoxFit.contain,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Center(
-                            child: CircularProgressIndicator(
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                  : null,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                isDark ? Colors.deepPurple[300]! : Colors.white,
+                  child: Center(
+                    child: Image.network(
+                      imageUrl,
+                      fit: BoxFit.contain,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                                : null,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              isDark ? Colors.deepPurple[300]! : Colors.white,
+                            ),
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(Icons.broken_image, size: 64, color: Colors.white),
+                              SizedBox(height: 16),
+                              Text(
+                                'Gagal memuatkan gambar',
+                                style: TextStyle(color: Colors.white),
                               ),
-                            ),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.broken_image, size: 64, color: Colors.white),
-                                SizedBox(height: 16),
-                                Text(
-                                  'Gagal memuatkan gambar',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),
               ),
+
+              // Top-left Back button
               SafeArea(
                 child: Align(
                   alignment: Alignment.topLeft,
@@ -88,11 +77,15 @@ void showImageZoomOverlay(
                     child: IconButton(
                       icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
                       tooltip: 'Kembali',
-                      onPressed: closeOverlay,
+                      onPressed: () {
+                        Navigator.of(pageContext).pop();
+                      },
                     ),
                   ),
                 ),
               ),
+
+              // Top-right Close button
               SafeArea(
                 child: Align(
                   alignment: Alignment.topRight,
@@ -101,19 +94,23 @@ void showImageZoomOverlay(
                     child: IconButton(
                       icon: const Icon(Icons.close, color: Colors.white, size: 28),
                       tooltip: 'Tutup',
-                      onPressed: closeOverlay,
+                      onPressed: () {
+                        Navigator.of(pageContext).pop();
+                      },
                     ),
                   ),
                 ),
               ),
             ],
           ),
-        ),
-      );
-    },
+        );
+      },
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(opacity: animation, child: child);
+      },
+    ),
   );
-
-  overlay.insert(entry);
 }
+
 
 
